@@ -1,4 +1,5 @@
 import logo from '../../assets/logo.png'
+import userPng from '../../assets/descarga.png'
 // Icons
 import { FaShoppingCart } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa";
@@ -13,6 +14,10 @@ import { Link } from 'react-router-dom';
 export default function NavBarMq() {
     const user = null; // Por ahora funcional, pero esto debe validar el localStorage
     const [openMenu, setOpenMenu] = useState(false);
+    const userData = {
+        "name" : "Manuel",
+        "lastName" : "Quiazua"
+    }
 
     return (
         <>
@@ -31,10 +36,9 @@ export default function NavBarMq() {
 
                 {/* Menú principal (visible en desktop) */}
                 <ul className='hidden lg:flex space-x-15 items-center font-medium'>
-                    <Link to={'/services'} />
-                    <li className='styleLinks'>Servicios</li>
-                    <li className='styleLinks'>Productos</li>
-                    <li className='styleLinks'>Clinicas</li>
+                    <Link to={'/services'} ><li className='styleLinks'>Servicios</li></Link>
+                    <Link to={'/products'} ><li className='styleLinks'>Productos</li></Link>
+                    <Link to={'/Veterinary'} ><li className='styleLinks'>Clinicas</li></Link>
                 </ul>
 
                 {/* Botones e íconos */}
@@ -48,21 +52,47 @@ export default function NavBarMq() {
                     {/* Botones de usuario/inicio de sesión visibles en Desktop */}
                     {user == null ? (
                         <div className='hidden lg:flex pr-10'>
-                            <button className='styleButton rounded-r hover:bg-acento-secundario
-                                                transition-all duration-300 ease-in-out transform hover:scale-105'>
-                                Iniciar Sesion
-                            </button>
-                            <button className='styleButton rounded-l hover:bg-acento-secundario
-                                                transition-all duration-300 ease-in-out transform hover:scale-105'>
-                                Registrarse
-                            </button>
+                            <Link to={'/Auth/Login'}>
+                                <button className='styleButton rounded-r hover:bg-acento-secundario
+                                                    transition-all duration-300 ease-in-out transform hover:scale-105'>
+                                    Iniciar Sesion
+                                </button>
+                            </Link>
+                            <Link to={'/Auth/Register'}>
+                                <button className='styleButton rounded-l hover:bg-acento-secundario
+                                                    transition-all duration-300 ease-in-out transform hover:scale-105'>
+                                    Registrarse
+                                </button>
+                            </Link>
                         </div>
                     ) : (
-                        <div className='hidden md:flex items-center space-x-4'>
-                            <FaHeart />
-                            <FaShoppingCart />
-                            <img src="" alt="" className='w-8 h-8 rounded-full border' />
-                            <button>Mis mascotas</button>
+                        <div className='hidden lg:flex items-center space-x-4'>
+                            <Link to={'/wishlist'}><FaHeart className=' text-[20px]
+                                                                        hover:text-acento-primario
+                                                                        transition-all duration-300 ease-in-out
+                                                                        transform hover:scale-105'/></Link>
+                            
+                            <Link to={'/car'}><FaShoppingCart className='   text-[20px]
+                                                                            hover:text-acento-primario
+                                                                            transition-all duration-300 ease-in-out
+                                                                            transform hover:scale-120
+                                                                            '/></Link>
+                            
+                            <Link to={'myperfil'}>
+                                <img src={userPng} alt="Imagen de perfil" className='   
+                                                            w-11 h-11 rounded-full
+                                                            transition-all duration-300 ease-in-out
+                                                            transform hover:scale-105' />
+                            </Link>
+
+                            <Link to={'/pets'}>
+                                <button className=' styleButton hover:bg-acento-secundario
+                                                    transition-all duration-300 ease-in-out 
+                                                    transform hover:scale-105'>
+                                                        Mis mascotas
+                                </button>
+                            </Link>
+
                         </div>
                     )}
                 </div>
@@ -98,29 +128,63 @@ export default function NavBarMq() {
 
                 {/* Enlaces del menú */}
                 <ul className='flex flex-col space-y-4 text-xl mt-40'>
-                    <li className='flex flex-row items-center justify-between text-2xl'>
-                        Servicios <FaLongArrowAltRight />
-                    </li>
-                    <li className='flex flex-row items-center justify-between text-2xl'>
-                        Productos <FaLongArrowAltRight />
-                    </li>
-                    <li className='flex flex-row items-center justify-between text-2xl'>
-                        Veterinarias <FaLongArrowAltRight />
-                    </li>
+                    <Link to={'/services'} >
+                        <li className='styleLinksMobile text-2xl'>
+                            Servicios <FaLongArrowAltRight />
+                        </li>
+                    </Link>
+                    <Link to={'/products'} >
+                        <li className='styleLinksMobile text-2xl'>
+                            Productos <FaLongArrowAltRight />
+                        </li>
+                    </Link>
+                    <Link to={'/veterinary'} >
+                        <li className='styleLinksMobile text-2xl'>
+                            Veterinarias <FaLongArrowAltRight />
+                        </li>
+                    </Link>
+                    <Link to={'/pets'}>
+                        <li className='styleLinksMobile text-2xl'>
+                            Mis mascotas <FaLongArrowAltRight />
+                        </li>
+                    </Link>
                 </ul>
 
                 {/* Botones de sesión o usuario */}
                 {user == null ? (
-                    <div className='flex flex-col gap-2 mt-40'>
-                        <button className='styleButton'>Iniciar Sesion</button>
-                        <button className='styleButton'>Registrarse</button>
+                    <div className='flex flex-col gap-2 mt-40 items-center'>
+                        <Link to={'/Auth/Login'}>
+                            <button className='styleButton'>Iniciar Sesion</button>
+                        </Link>
+                        <Link to={'/Auth/Register'}>
+                            <button className='styleButton'>Registrarse</button>                   
+                        </Link>
                     </div>
                 ) : (
                     <div className='mt-40'>
-                        <FaHeart />
-                        <FaShoppingCart />
-                        <img src="" alt="" className='w-8 h-8 rounded-full border' />
-                        <button>Mis mascotas</button>
+                        <ul >
+                            <Link to={'/wishlist'} >
+                                <li className='styleLinksMobile mt-2'>
+                                    Wishlist<FaHeart />
+                                </li>
+                            </Link>
+                            <Link to={'/car'} >
+                                <li className='styleLinksMobile mt-2'>
+                                    Mi carrito<FaShoppingCart />
+                                </li>
+                            </Link>
+                        </ul>
+                        <div className='mt-20'>
+                            <Link to={'/myperfil'} className='flex flex-row items-center '>
+                                <img src={userPng} alt="imagen de perfil" className='w-12 h-12 rounded-full ' />
+                                <div className=' flex flex-col ml-5 font-light text-[14px] space-x-1'>
+                                    <label>{userData.name} {userData.lastName}</label>
+                                    <label>Customer</label>
+                                    {/*Aqui perfectamente caben otros datos pero luego pondre mas */}
+
+                                </div>
+                            </Link>                            
+                        </div>
                     </div>
                 )}
             </div>

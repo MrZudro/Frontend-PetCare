@@ -31,6 +31,7 @@
     .styleButton{
 
         padding: 7px 15px;
+        width: 150px;
         background-color: var(--color-acento-primario);
         border-radius: 30px;
         color: var(--color-texto-secundario);
@@ -44,6 +45,13 @@
                 color: var(--color-acento-primario);
                 transform: translateY(-2px); 
             }
+    }
+
+    .styleLinksMobile{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
     }
 }
 
@@ -59,6 +67,7 @@
 body{
     font-family: var(--font-poppins);
     background: var(--color-background);
+    color: var(--color-texto);
 }
 
 body::-webkit-scrollbar {
