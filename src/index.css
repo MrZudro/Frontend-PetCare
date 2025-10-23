@@ -53,6 +53,17 @@
         align-items: center;
         justify-content: space-between;
     }
+
+    /* Sombras reutilizables */
+    .sombra-superior{
+        /* sombra que proyecta hacia arriba */
+        box-shadow: 0 -10px 15px -3px rgba(0,0,0,0.1), 0 -4px 6px -2px rgba(0,0,0,0.05);
+    }
+
+    .sombra-inferior{
+        /* sombra que proyecta hacia abajo */
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+    }
 }
 
 /* === Tema Oscuro === */

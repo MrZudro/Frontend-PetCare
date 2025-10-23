@@ -1,3 +1,4 @@
+import FooterMq from "../components/ui/FooterMq";
 import NavBarMq from "../components/ui/NavBarMq";
 
 export default function HomeMq() {
@@ -12,6 +13,7 @@ export default function HomeMq() {
                 <button className="bg-primary hover:bg-primary-hover w-20 h-10 rounded-3xl"> Click me</button>
             </div>
         </div>
+        <FooterMq/>
     </>
     )
 }

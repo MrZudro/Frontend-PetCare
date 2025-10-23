@@ -22,7 +22,7 @@ export default function NavBarMq() {
     return (
         <>
             {/* === Barra de navegación principal === */}
-            <nav className='flex justify-between h-18 p-4 relative bg-card text-texto shadow-2xl
+            <nav className='flex justify-between h-18 p-4 relative bg-card text-texto sombra-inferior
                             2xl:mx-[10vw] rounded-2xl'>
                 {/* Logo + título */}
                 <div className='flex items-center cursor-pointer'>
