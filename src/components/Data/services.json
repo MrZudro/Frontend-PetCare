@@ -1,0 +1,110 @@
+[
+    {
+        "id": 1,
+        "name": "Consulta Veterinaria General",
+        "description": "Examen completo de salud, vacunación y desparasitación básica. Revisión profunda del estado físico y evaluación nutricional.",
+        "imageUrl": "https://placehold.co/600x400/A0B9E2/000000?text=Consulta+Vet",
+        "category": "Salud",
+        "colors": [],
+        "sizes": []
+    },
+    {
+        "id": 2,
+        "name": "Baño y Peluquería Premium",
+        "description": "Incluye corte, cepillado, limpieza de oídos, glándulas y tratamiento de hidratación con aceites esenciales.",
+        "imageUrl": "https://placehold.co/600x400/98DD98/000000?text=Grooming+Premium",
+        "category": "Estética",
+        "colors": [],
+        "sizes": []
+    },
+    {
+        "id": 3,
+        "name": "Entrenamiento de Obediencia",
+        "description": "Curso intensivo de 8 sesiones para cachorros y adultos. Cubre comandos básicos (sentado, quieto, venir) y socialización guiada.",
+        "imageUrl": "https://placehold.co/600x400/FAD7A0/000000?text=Adiestramiento",
+        "category": "Adiestramiento",
+        "colors": [],
+        "sizes": []
+    },
+    {
+        "id": 4,
+        "name": "Cirugía Programada (Menor)",
+        "description": "Procedimientos quirúrgicos menores bajo anestesia supervisada, incluyendo monitoreo y cuidados post-operatorios iniciales.",
+        "imageUrl": "https://placehold.co/600x400/D9A9B4/000000?text=Cirugia+Vet",
+        "category": "Salud",
+        "colors": [],
+        "sizes": []
+    },
+    {
+        "id": 5,
+        "name": "Hotel Canino Día y Noche",
+        "description": "Estadía completa con alimentación, paseos supervisados y áreas de juego seguras. Máximo confort y supervisión 24/7.",
+        "imageUrl": "https://placehold.co/600x400/A0B9E2/000000?text=Hotel+Canino",
+        "category": "Hospedaje",
+        "colors": [],
+        "sizes": []
+    },
+    {
+        "id": 6,
+        "name": "Fisioterapia y Rehabilitación",
+        "description": "Sesiones especializadas para recuperar la movilidad tras una lesión o cirugía, utilizando hidroterapia y ejercicios asistidos.",
+        "imageUrl": "https://placehold.co/600x400/98DD98/000000?text=Fisioterapia",
+        "category": "Salud",
+        "colors": [],
+        "sizes": []
+    },
+    {
+        "id": 7,
+        "name": "Adiestramiento Avanzado",
+        "description": "Enfoque en obediencia compleja, control remoto y solución de problemas de comportamiento (agresión, ansiedad por separación).",
+        "imageUrl": "https://placehold.co/600x400/FAD7A0/000000?text=Adiestramiento+Avanzado",
+        "category": "Adiestramiento",
+        "colors": [],
+        "sizes": []
+    },
+    {
+        "id": 8,
+        "name": "Spa Felino Relajante",
+        "description": "Baño sin estrés, deslanado, masaje suave y corte de uñas, ideal para gatos sensibles. Incluye cepillado anti-bolas de pelo.",
+        "imageUrl": "https://placehold.co/600x400/D9A9B4/000000?text=Spa+Felino",
+        "category": "Estética",
+        "colors": [],
+        "sizes": []
+    },
+    {
+        "id": 9,
+        "name": "Radiología y Ecografía",
+        "description": "Diagnóstico por imagen avanzado. Incluye lectura por especialista y reporte detallado en 24 horas.",
+        "imageUrl": "https://placehold.co/600x400/A0B9E2/000000?text=Diagnostico+Imagen",
+        "category": "Salud",
+        "colors": [],
+        "sizes": []
+    },
+    {
+        "id": 10,
+        "name": "Paseos Educativos Diarios",
+        "description": "Paseos de 45 minutos con enfoque en obediencia urbana, socialización controlada y ejercicio. Paquetes mensuales disponibles.",
+        "imageUrl": "https://placehold.co/600x400/98DD98/000000?text=Paseos+Educativos",
+        "category": "Servicio Diario",
+        "colors": [],
+        "sizes": []
+    },
+    {
+        "id": 11,
+        "name": "Consulta Nutricional",
+        "description": "Evaluación de dieta actual, plan de alimentación personalizado para problemas de peso, alergias o condiciones médicas específicas.",
+        "imageUrl": "https://placehold.co/600x400/FAD7A0/000000?text=Nutricion+Mascotas",
+        "category": "Salud",
+        "colors": [],
+        "sizes": []
+    },
+    {
+        "id": 12,
+        "name": "Limpieza Dental con Ultrasonido",
+        "description": "Procedimiento completo de higiene oral bajo anestesia segura, eliminando sarro y puliendo esmalte. Previene enfermedades periodontales.",
+        "imageUrl": "https://placehold.co/600x400/D9A9B4/000000?text=Limpieza+Dental",
+        "category": "Salud",
+        "colors": [],
+        "sizes": []
+    }
+]
