@@ -187,8 +187,8 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
 
     const renderServiceFilters = () => (
         <>
-            {renderFilterSection('Categoría de Servicio', 'category')} 
-            {renderFilterSection('Clínicas Destacadas', 'clinic')} 
+            {renderFilterSection('Categoría', 'category')} 
+            {renderFilterSection('Veterinaria', 'clinic')} 
         </>
     );
 
@@ -202,23 +202,10 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
 
             <div className="mb-4 text-sm text-gray-600">
                 <div className="flex justify-between items-center mb-3">
+                    {/* Conteo de Resultados */}
                     <span className="font-medium">
                         {isMobileView ? `Resultados: ${totalResults}` : `Mostrando 1-${Math.min(12, totalResults)} de ${totalResults} resultados`}
                     </span>
-                    
-                    {/* SELECTOR DE ORDENAMIENTO (Solo para Productos y Desktop/Tablet) */}
-                    {isProductMode && !isMobileView && (
-                        <select 
-                            className="border border-gray-300 rounded-lg p-1 text-sm bg-white hover:border-indigo-400 cursor-pointer"
-                            onChange={handleSortSelect}
-                            value={currentSort}
-                        >
-                            <option value="default">Ordenar por</option>
-                            <option value="price-asc">Precio: Menor a Mayor</option>
-                            <option value="price-desc">Precio: Mayor a Menor</option>
-                            <option value="rating-desc">Mejor valorados</option>
-                        </select>
-                    )}
                 </div>
 
                 {activeTags.length > 0 && (
@@ -249,6 +236,24 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
                         </button>
                     </div>
                 )}
+                
+                {/* SELECTOR DE ORDENAMIENTO: Ahora solo comprueba si es modo Producto */}
+                {isProductMode && ( 
+                    <div className='mt-4 pt-4 border-t border-gray-200'>
+                        <span className="block mb-2 font-medium text-gray-700">Ordenar Resultados:</span>
+                        <select 
+                            className="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white hover:border-indigo-400 cursor-pointer focus:ring-indigo-500 focus:border-indigo-500"
+                            onChange={handleSortSelect}
+                            value={currentSort}
+                        >
+                            <option value="default">Seleccionar orden</option>
+                            <option value="price-asc">Precio: Menor a Mayor</option>
+                            <option value="price-desc">Precio: Mayor a Menor</option>
+                        </select>
+                    </div>
+                )}
+                {/* FIN SELECTOR DE ORDENAMIENTO */}
+
             </div>
 
             {/* Renderizado Condicional de Filtros */}
@@ -303,7 +308,8 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
 
                             {/* Contenido REAL de los filtros */}
                             <div className="pt-4">
-                                {renderFilterContent(true)}
+                                {/* Nota: El isMobileView=true aquí asegura que el modal se vea bien en móvil */}
+                                {renderFilterContent(true)} 
                                 <div className='p-4 border-t'>
                                     {/* Botón para aplicar y cerrar en móvil */}
                                     <button 

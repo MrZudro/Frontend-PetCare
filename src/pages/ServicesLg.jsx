@@ -99,7 +99,7 @@ const ServicesLg = () => {
                             </div>
                         ) : (
                             // Se corrige el grid para evitar el Syntax Error (imagen 25defc.png)
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 1xl:grid-cols-4 gap-6">
                                 {/* Mapear servicios filtrados */}
                                 {filteredServices.map(service => (
                                     <ServiceCard 
