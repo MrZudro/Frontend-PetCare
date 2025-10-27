@@ -1,97 +1,126 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+// IMPORTACIÓN ACTUAL: Usando JSON. LISTO PARA SER REEMPLAZADO por fetch/axios y useEffect
 import initialProducts from '../components/Data/products.json'; 
+// Asegúrate de que la ruta a ProductCardLg y QuickViewModalLg sea correcta
 import ProductCard from '../components/products/ProductCardLg'; 
 import QuickViewModal from '../components/products/QuickViewModalLg'; 
+// NUEVA IMPORTACIÓN: El componente de barra lateral de filtros
 import FilterSidebarLg from '../components/common/FilterSidebarLg'; 
 
-// --- [ LÓGICA DE ORDENAMIENTO ] ---
-const sortProducts = (products, sortKey) => {
-    if (!sortKey || sortKey === 'default') {
-        return products;
-    }
-    const sorted = [...products]; 
-    switch (sortKey) {
-        case 'price-asc':
-            return sorted.sort((a, b) => a.price - b.price);
-        case 'price-desc':
-            return sorted.sort((a, b) => b.price - a.price);
-        case 'rating-desc': 
-            return sorted.sort((a, b) => a.name.localeCompare(b.name)); 
-        default:
-            return products;
-    }
-};
-
-// --- [ LÓGICA DE FILTRADO ] ---
-const filterProducts = (products, filterState) => {
-    let result = products;
-    
-    const activeCategory = filterState.filters.category?.find(f => f.active)?.name;
-    const activeType = filterState.filters.type?.find(f => f.active)?.name;
-    const activeBrand = filterState.filters.brand?.find(f => f.active)?.name;
-    
-    if (activeCategory) {
-        result = result.filter(product => product.category === activeCategory);
-    }
-    if (activeType) {
-        result = result.filter(product => product.type === activeType);
-    }
-    if (activeBrand) {
-        result = result.filter(product => product.brand === activeBrand);
-    }
-    if (filterState.searchTerm) {
-        const term = filterState.searchTerm.toLowerCase();
-        result = result.filter(product => 
-            product.name.toLowerCase().includes(term) || 
-            product.description.toLowerCase().includes(term)
-        );
-    }
-    return result;
-};
-
-
-const ProductsLg= () => {
-    const [products] = useState(initialProducts);
+const ProductsLg = () => {
+    // Definición de estados
+    const [products, setProducts] = useState(initialProducts);
     const [quickViewProduct, setQuickViewProduct] = useState(null);
     const [wishlist, setWishlist] = useState([]);
-    const [sortKey, setSortKey] = useState('default'); 
-    const [filterState, setFilterState] = useState({ filters: {}, searchTerm: '', mode: 'products' });
+    
+    // ESTADOS PARA FILTRO Y ORDENAMIENTO
+    const [currentFilters, setCurrentFilters] = useState({});
+    const [currentSort, setCurrentSort] = useState('default');
 
+    // Maneja la actualización de los filtros desde el Sidebar
+    const handleFilterChange = ({ filters, searchTerm, mode }) => {
+        // Solo nos interesa el objeto 'filters' para la lógica aquí
+        setCurrentFilters(filters);
+    };
 
+    // Maneja la actualización del ordenamiento desde el Sidebar
+    const handleSortChange = (sortKey) => {
+        setCurrentSort(sortKey);
+    };
+
+    /**
+     * LÓGICA DE FILTRADO Y ORDENAMIENTO CENTRAL
+     * Usa useMemo para recalcular la lista solo cuando cambien products, currentFilters o currentSort.
+     */
+    const filteredAndSortedProducts = useMemo(() => {
+        let list = [...products];
+
+        // 1. FILTRADO
+        const activeFilters = Object.keys(currentFilters).reduce((acc, key) => {
+            const activeValues = currentFilters[key]
+                ?.filter(f => f.active)
+                .map(f => f.name);
+            if (activeValues && activeValues.length > 0) {
+                acc[key] = activeValues;
+            }
+            return acc;
+        }, {});
+
+        // Aplicar filtros
+        if (Object.keys(activeFilters).length > 0) {
+            list = list.filter(product => {
+                let matchesAllActiveFilters = true;
+
+                // Para cada grupo de filtros activos (e.g., category, brand, type)
+                for (const key of Object.keys(activeFilters)) {
+                    const filterValues = activeFilters[key];
+                    const productValue = product[key];
+                    
+                    // Nota: 'clinic' en servicios, 'brand/type' en productos. Usamos la clave del filtro.
+                    if (key === 'brand') { // Caso especial: El filtro de marca es simple
+                        if (!filterValues.includes(productValue)) {
+                            matchesAllActiveFilters = false;
+                            break;
+                        }
+                    } else { // Asumimos que category, type son simples (o implementa lógica OR si es necesario)
+                         if (!filterValues.includes(productValue)) {
+                            matchesAllActiveFilters = false;
+                            break;
+                        }
+                    }
+                }
+                return matchesAllActiveFilters;
+            });
+        }
+
+        // 2. ORDENAMIENTO
+        if (currentSort !== 'default') {
+            list.sort((a, b) => {
+                switch (currentSort) {
+                    case 'price-asc':
+                        return a.price - b.price;
+                    case 'price-desc':
+                        return b.price - a.price;
+                    default:
+                        return 0;
+                }
+            });
+        }
+        
+        return list;
+    }, [products, currentFilters, currentSort]); // Dependencias para la re-ejecución
+
+    // Maneja la acción de Vista Rápida
     const handleQuickView = (product) => {
         setQuickViewProduct(product);
     };
 
+    // Maneja el toggle de Wishlist
     const handleToggleWishlist = (productId) => {
         setWishlist(prevWishlist => {
             if (prevWishlist.includes(productId)) {
+                console.log(`Producto ${productId} ELIMINADO de Wishlist.`);
                 return prevWishlist.filter(id => id !== productId);
             } else {
+                console.log(`Producto ${productId} AÑADIDO a Wishlist.`);
                 return [...prevWishlist, productId];
             }
         });
     };
     
+    // Función de remoción (mantengo el placeholder)
     const handleRemoveProduct = (id) => {
         console.log(`Demo: Intentando remover producto con ID ${id}.`);
     };
-    
-    const handleFilterChange = (newState) => {
-        setFilterState(newState);
-    };
-    
-    const handleSortChange = (newSortKey) => {
-        setSortKey(newSortKey);
-    };
-    
-    const filteredAndSortedProducts = useMemo(() => {
-        const filtered = filterProducts(products, filterState);
-        return sortProducts(filtered, sortKey);
-    }, [products, filterState, sortKey]);
-
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-sans">
+            {/* INYECCIÓN DE ESTILOS (Solo para el entorno de demostración) */}
+            <script src="https://cdn.tailwindcss.com"></script>
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+                body { font-family: 'Inter', sans-serif; }
+            `}</style>
             
             <header className="mb-10 pt-4">
                 <h1 className="text-4xl font-extrabold text-gray-900 text-center">
@@ -102,46 +131,52 @@ const ProductsLg= () => {
                 </p>
             </header>
 
-            <main className="max-w-screen-2xl mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    
-                    {/* 1. BARRA DE FILTROS */}
-                    <div className="lg:col-span-1">
-                        <FilterSidebarLg 
-                            onFilterChange={handleFilterChange} 
-                            onSortChange={handleSortChange}
-                            totalResults={filteredAndSortedProducts.length} 
-                            mode="products" 
-                        />
-                    </div>
+            {/* CONTENEDOR PRINCIPAL: Grid para Sidebar + Contenido */}
+            <main className="max-w-screen-2xl mx-auto grid lg:grid-cols-[280px_1fr] gap-8">
+                
+                {/* COLUMNA 1: SIDEBAR DE FILTROS */}
+                <div>
+                    <FilterSidebarLg 
+                        onFilterChange={handleFilterChange}
+                        onSortChange={handleSortChange}
+                        totalResults={filteredAndSortedProducts.length}
+                        mode="products" // Modo: Productos (para renderizar los filtros correctos)
+                    />
+                </div>
 
-                    {/* 2. CONTENIDO PRINCIPAL (Cuadrícula) */}
-                    <div className="lg:col-span-3">
-                        {filteredAndSortedProducts.length === 0 ? (
-                            <div className="text-center p-12 bg-white rounded-xl shadow-lg mt-10 border border-gray-200">
-                                <p className="text-xl text-gray-700 font-bold">No se encontraron productos que coincidan con los filtros aplicados. 🔎</p>
-                                <p className="text-gray-500 mt-2">Intenta limpiar los filtros o ajusta tu búsqueda.</p>
-                            </div>
-                        ) : (
-                            // La cuadrícula mapea los productos filtrados Y ordenados
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 1xl:grid-cols-4 gap-6">
+                {/* COLUMNA 2: LISTA DE PRODUCTOS */}
+                <section>
+                    {filteredAndSortedProducts.length === 0 ? (
+                        <div className="text-center p-12 bg-white rounded-xl shadow-lg mt-0 border border-gray-200">
+                            <p className="text-2xl text-red-500 font-bold">
+                                ¡No se encontraron productos con estos filtros! 😿
+                            </p>
+                            <p className="text-gray-600 mt-2">
+                                Intenta limpiar algunos filtros para ver más resultados.
+                            </p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* GRANDE Y EXTRA GRANDE: Transición fluida de 1 -> 2 -> 3 -> 4 -> 5 -> 6 columnas */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 gap-6">
                                 {filteredAndSortedProducts.map(product => (
                                     <ProductCard 
                                         key={product.id} 
                                         product={product} 
                                         onQuickView={handleQuickView}
                                         onRemove={handleRemoveProduct}
+                                        // PROPS DE WISHLIST
                                         onToggleWishlist={handleToggleWishlist}
-                                        isWishlisted={wishlist.includes(product.id)}
+                                        isWishlisted={wishlist.includes(product.id)} // VERIFICA si el ID está en la lista
                                     />
                                 ))}
                             </div>
-                        )}
-                    </div>
-                </div>
+                        </>
+                    )}
+                </section>
             </main>
 
-            {/* Renderiza el modal solo si quickViewProduct tiene un valor (Función de vista previa no tocada) */}
+            {/* Renderiza el modal solo si quickViewProduct tiene un valor */}
             {quickViewProduct && (
                 <QuickViewModal 
                     product={quickViewProduct} 

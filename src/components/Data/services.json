@@ -54,5 +54,62 @@
         "imageUrl": "https://placehold.co/600x400/FAD7A0/000000?text=Adiestramiento+Avanzado",
         "category": "Adiestramiento",
         "clinicName": "Adiestramiento Pro"
+    },
+    {
+        "id": 8,
+        "name": "Vacunación Completa",
+        "description": "Aplicación del esquema de vacunas esenciales según la edad y condición de la mascota. Incluye revisión previa.",
+        "imageUrl": "https://placehold.co/600x400/D9A9B4/000000?text=Vacunación",
+        "category": "Salud",
+        "clinicName": "Vet Pet Amigos"
+    },
+    {
+        "id": 9,
+        "name": "Corte de Uñas y Limpieza de Oídos",
+        "description": "Servicio de higiene rápida y segura. Ideal para mascotas nerviosas o de razas que requieren cuidado frecuente.",
+        "imageUrl": "https://placehold.co/600x400/98DD98/000000?text=Higiene+Express",
+        "category": "Estética",
+        "clinicName": "Estética Canina Guapos"
+    },
+    {
+        "id": 10,
+        "name": "Paseador Profesional",
+        "description": "Paseos seguros en espacios abiertos, diseñados para estimular y ejercitar a perros jóvenes y adultos. Duración: 45 minutos.",
+        "imageUrl": "https://placehold.co/600x400/A0B9E2/000000?text=Paseos",
+        "category": "Hospedaje",
+        "clinicName": "Clínica 24h Patitas"
+    },
+    {
+        "id": 11,
+        "name": "Ultrasonido y Rayos X",
+        "description": "Diagnóstico por imagen para patologías óseas y de tejidos internos. Informe entregado por veterinario especialista.",
+        "imageUrl": "https://placehold.co/600x400/D9A9B4/000000?text=Diagnóstico",
+        "category": "Salud",
+        "clinicName": "Clínica 24h Patitas"
+    },
+    {
+        "id": 12,
+        "name": "Guardería Diurna",
+        "description": "Cuidado durante el día, con áreas de juego, socialización controlada y seguimiento personalizado.",
+        "imageUrl": "https://placehold.co/600x400/A0B9E2/000000?text=Guardería",
+        "category": "Hospedaje",
+        "clinicName": "Clínica 24h Patitas"
+    },
+    {
+        "id": 13,
+        "name": "Terapia Conductual",
+        "description": "Tratamiento para problemas de conducta como miedos, ladridos excesivos o estrés. Atención especializada.",
+        "imageUrl": "https://placehold.co/600x400/FAD7A0/000000?text=Conductual",
+        "category": "Adiestramiento",
+        "clinicName": "Adiestramiento Pro"
+    },
+    {
+        "id": 14,
+        "name": "Spa y Aromaterapia",
+        "description": "Tratamiento relajante con productos naturales para disminuir el estrés y mejorar la salud del pelaje.",
+        "imageUrl": "https://placehold.co/600x400/98DD98/000000?text=Spa+Mascotas",
+        "category": "Estética",
+        "clinicName": "Estética Canina Guapos"
     }
 ]
+
