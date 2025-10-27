@@ -1,5 +1,6 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import "tailwindcss";
+
 
 @theme{
     /* Paleta de colores aquí */
@@ -7,23 +8,79 @@
     --color-primary-hover: #0DAAA8;       
 
     /* === Tema Claro === */
-    --color-background: #F8F9FA;
-    --color-card: #FFFFFF;
-    --color-text-primary: #1A202C;
-    --color-text-secondary: #4A5568;
-    --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --color-fondo: #FFFFFF;
+    --color-texto: #161728;
+    --color-texto-secundario:#FFF;
+    --shadow-pred: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+    --color-acento-primario:#F2055C;
+    --color-acento-secundario:#0388A6;
+    --color-acento-terciario:#024059;
+    --color-acento-cuaternario:#F04560;
+
+    --color-sombra-sutil:#D9308D;
+    --color-alerta: #BF0436;
 
     /* Fuente predeterminada y tamanos*/
 
-    --font-poppins: Poppins, sans-serif;
+    --font-poppins: 'Poppins', sans-serif;
 
 }
 
-    /* === Tema Oscuro === */
-    .dark {
-    --color-background: #0D1117;
-    --color-card: #161B22;
-    --color-text-primary: #E6EDF3;
-    --color-text-secondary: #8B949E;
-    --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.25);
+@layer components{
+    .styleButton{
+
+        padding: 7px 15px;
+        width: 150px;
+        background-color: var(--color-acento-primario);
+        border-radius: 30px;
+        color: var(--color-texto-secundario);
+        cursor: pointer;
     }
+
+    .styleLinks{
+        cursor: pointer;
+        transition: color 0.3s ease, transform 0.3s ease;
+            @variant hover{
+                color: var(--color-acento-primario);
+                transform: translateY(-2px); 
+            }
+    }
+
+    .styleLinksMobile{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    /* Sombras reutilizables */
+    .sombra-superior{
+        /* sombra que proyecta hacia arriba */
+        box-shadow: 0 -10px 15px -3px rgba(0,0,0,0.1), 0 -4px 6px -2px rgba(0,0,0,0.05);
+    }
+
+    .sombra-inferior{
+        /* sombra que proyecta hacia abajo */
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+    }
+}
+
+/* === Tema Oscuro === */
+.dark {
+--color-background: #0D1117;
+--color-card: #161B22;
+--color-text-primary: #E6EDF3;
+--color-text-secondary: #8B949E;
+--shadow-card: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+body{
+    font-family: var(--font-poppins);
+    background: var(--color-background);
+    color: var(--color-texto);
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
