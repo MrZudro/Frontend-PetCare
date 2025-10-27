@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-// Importaciones ajustadas: FaStar fue eliminada
 import { FaTimes } from 'react-icons/fa';
 
 // Función auxiliar para combinar clases de Tailwind
@@ -11,11 +10,16 @@ const combineClasses = (...classes) => classes.filter(Boolean).join(' ');
 const QuickViewModalLg = ({ product, onClose }) => {
     if (!product) return null;
 
-    // Estado local para selecciones del producto
-    const [selectedColor, setSelectedColor] = useState(product.colors?.[0]?.id || null);
-    const [selectedSize, setSelectedSize] = useState(product.sizes?.[0]?.name || null);
+    // --- CORRECCIÓN CLAVE 1: Usar encadenamiento opcional (?.) para evitar 'undefined' ---
+    // Si product.colors o product.sizes es undefined, usamos un array vacío ([]) por defecto.
+    const colors = product.colors ?? [];
+    const sizes = product.sizes ?? [];
 
-    // NOTA: La lógica de estrellas (modalStars) y rating ha sido ELIMINADA.
+    // Estado local para selecciones del producto
+    // Inicialización segura: si el array 'colors' está vacío, usamos 'null'.
+    const [selectedColor, setSelectedColor] = useState(colors[0]?.id || null);
+    const [selectedSize, setSelectedSize] = useState(sizes[0]?.name || null);
+
 
     return (
         // Diálogo / Backdrop (Fondo Oscuro)
@@ -27,7 +31,7 @@ const QuickViewModalLg = ({ product, onClose }) => {
                 {/* Panel del Diálogo / Contenido Principal */}
                 <div className="relative flex w-full max-w-lg transform items-center overflow-hidden rounded-xl bg-white px-4 pt-14 pb-8 shadow-2xl transition-all sm:px-6 sm:pt-8 md:p-6 lg:max-w-4xl lg:p-8">
                     
-                    {/* Botón de Cerrar, usando FaTimes */}
+                    {/* Botón de Cerrar */}
                     <button
                         type="button"
                         onClick={onClose}
@@ -56,10 +60,9 @@ const QuickViewModalLg = ({ product, onClose }) => {
                                 <h3 id="information-heading" className="sr-only">Información del Producto</h3>
                                 
                                 <p className="text-3xl font-extrabold text-indigo-600 mt-2">
-                                    ${product.price.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+                                    {/* CORRECCIÓN: Usar el formato de moneda de peso colombiano ($) de forma segura */}
+                                    {`$${product.price?.toLocaleString('es-CO', { minimumFractionDigits: 0 }) ?? 'N/A'}`}
                                 </p>
-
-                                {/* NOTA: La sección de Reviews fue eliminada */}
                             </section>
                             
                             {/* Descripción Completa */}
@@ -78,11 +81,12 @@ const QuickViewModalLg = ({ product, onClose }) => {
 
                                 <form>
                                     {/* Colores */}
-                                    {product.colors.length > 0 && (
+                                    {/* CORRECCIÓN CLAVE 2: Usar el array 'colors' ya seguro */}
+                                    {colors.length > 0 && (
                                         <fieldset aria-label="Elige un color">
                                             <legend className="text-sm font-medium text-gray-900">Color</legend>
                                             <div className="mt-2 flex items-center gap-x-3">
-                                                {product.colors.map((color) => (
+                                                {colors.map((color) => (
                                                     <button
                                                         key={color.id}
                                                         type="button"
@@ -102,19 +106,21 @@ const QuickViewModalLg = ({ product, onClose }) => {
                                     )}
 
                                     {/* Tallas/Tamaños */}
-                                    {product.sizes.length > 0 && (
+                                    {/* CORRECCIÓN CLAVE 3: Usar el array 'sizes' ya seguro */}
+                                    {sizes.length > 0 && (
                                         <fieldset className="mt-4" aria-label="Elige un tamaño">
                                             <legend className="text-sm font-medium text-gray-900">Tamaño</legend>
                                             <div className="mt-2 flex flex-wrap gap-2">
-                                                {product.sizes.map((size) => (
+                                                {sizes.map((size) => (
                                                     <button
                                                         key={size.name}
                                                         type="button"
-                                                        disabled={!size.inStock}
+                                                        // Hacemos una comprobación de inStock más segura
+                                                        disabled={size.inStock === false} 
                                                         onClick={() => setSelectedSize(size.name)}
                                                         className={combineClasses(
                                                             'px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-150',
-                                                            !size.inStock ? 
+                                                            size.inStock === false ? 
                                                                 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through' :
                                                                 size.name === selectedSize ? 
                                                                     'bg-indigo-600 text-white border-indigo-600 shadow-md' : 
@@ -122,7 +128,7 @@ const QuickViewModalLg = ({ product, onClose }) => {
                                                         )}
                                                     >
                                                         {size.name}
-                                                        {!size.inStock && <span className="sr-only"> - Agotado</span>}
+                                                        {size.inStock === false && <span className="sr-only"> - Agotado</span>}
                                                     </button>
                                                 ))}
                                             </div>
@@ -133,7 +139,8 @@ const QuickViewModalLg = ({ product, onClose }) => {
                                     <button
                                         type="submit"
                                         className="mt-6 flex w-full items-center justify-center rounded-lg border border-transparent bg-green-500 px-8 py-3 text-base font-bold text-white shadow-md hover:bg-green-600 transition-colors focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-hidden active:scale-[0.99]"
-                                        disabled={product.sizes.some(s => s.name === selectedSize && !s.inStock)}
+                                        // La lógica de deshabilitar ahora usa el array 'sizes' seguro
+                                        disabled={sizes.some(s => s.name === selectedSize && s.inStock === false)}
                                     >
                                         Añadir al Carrito
                                     </button>
