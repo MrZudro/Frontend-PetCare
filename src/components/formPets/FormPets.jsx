@@ -128,7 +128,6 @@ const FormPets = () => {
               placeholder="Ej: 5.5"
             />
           </div>
-          
         </div>
 
         {/* Botón de Enviar */}
