@@ -1,0 +1,147 @@
+[
+    {
+        "id": 1,
+        "id_user": 101,
+        "id_document_type": 1,
+        "document_number": "900123456-1",
+        "name": "Veterinaria\nAmigos",
+        "address": "Calle Falsa 123, Bogotá",
+        "phone": "3101234567"
+    },
+    {
+        "id": 2,
+        "id_user": 102,
+        "id_document_type": 1,
+        "document_number": "900765432-2",
+        "name": "Veterinaria\nFeliz",
+        "address": "Avenida Siempre Viva 45, Medellín",
+        "phone": "3119876543"
+    },
+    {
+        "id": 3,
+        "id_user": 103,
+        "id_document_type": 2,
+        "document_number": "800555111-3",
+        "name": "Clínica\nAnimalia",
+        "address": "Carrera 7 No 2-10, Cali",
+        "phone": "3123334455"
+    },
+    {
+        "id": 4,
+        "id_user": 104,
+        "id_document_type": 1,
+        "document_number": "900222888-4",
+        "name": "Salud\nVeterinaria",
+        "address": "Diagonal 50 # 15-20, Barranquilla",
+        "phone": "3136667788"
+    },
+    {
+        "id": 5,
+        "id_user": 105,
+        "id_document_type": 2,
+        "document_number": "800999000-5",
+        "name": "Centro\nVetCare",
+        "address": "Calle 100 con 19, Bogotá",
+        "phone": "3141112233"
+    },
+    {
+        "id": 6,
+        "id_user": 106,
+        "id_document_type": 1,
+        "document_number": "900101202-6",
+        "name": "Hospital\nMascotas",
+        "address": "Transversal 80 # 70-50, Envigado",
+        "phone": "3154445566"
+    },
+    {
+        "id": 7,
+        "id_user": 107,
+        "id_document_type": 2,
+        "document_number": "800303404-7",
+        "name": "Clínica\nPeluditos",
+        "address": "Calle 80 No 80-80, Pasto",
+        "phone": "3167778899"
+    },
+    {
+        "id": 8,
+        "id_user": 108,
+        "id_document_type": 1,
+        "document_number": "900505606-8",
+        "name": "Veterinaria\nVida",
+        "address": "Carrera 15 No 5-50, Pereira",
+        "phone": "3170001122"
+    },
+    
+    {
+        "id": 9,
+        "id_user": 201,
+        "id_document_type": 1,
+        "document_number": "900123456-9",
+        "name": "Consultorio\nPatitas",
+        "address": "Carrera 10, Local 5, Cartagena",
+        "phone": "3182223344"
+    },
+    {
+        "id": 10,
+        "id_user": 202,
+        "id_document_type": 1,
+        "document_number": "900765432-10",
+        "name": "Veterinaria\nCanina",
+        "address": "Calle 93 No 15-20, Bogotá",
+        "phone": "3195556677"
+    },
+    {
+        "id": 11,
+        "id_user": 203,
+        "id_document_type": 2,
+        "document_number": "800555111-11",
+        "name": "Mi Mascota\nSana",
+        "address": "Avenida El Poblado 12-34, Medellín",
+        "phone": "3208889900"
+    },
+    {
+        "id": 12,
+        "id_user": 204,
+        "id_document_type": 1,
+        "document_number": "900222888-12",
+        "name": "Animal\nCheckup",
+        "address": "Calle 13 No 50-60, Cali",
+        "phone": "3211112233"
+    },
+    {
+        "id": 13,
+        "id_user": 205,
+        "id_document_type": 2,
+        "document_number": "800999000-13",
+        "name": "Unidad\nVeterinaria",
+        "address": "Carrera 46 No 80-10, Barranquilla",
+        "phone": "3224445566"
+    },
+    {
+        "id": 14,
+        "id_user": 206,
+        "id_document_type": 1,
+        "document_number": "900101202-14",
+        "name": "Clínica\nIntegral",
+        "address": "Diagonal 61 Sur, No 2-4, Bogotá",
+        "phone": "3237778899"
+    },
+    {
+        "id": 15,
+        "id_user": 207,
+        "id_document_type": 2,
+        "document_number": "800303404-15",
+        "name": "Salud\nPeluda",
+        "address": "Calle 25 No 10-10, Cúcuta",
+        "phone": "3240001122"
+    },
+    {
+        "id": 16,
+        "id_user": 208,
+        "id_document_type": 1,
+        "document_number": "900505606-16",
+        "name": "Emergencia\nVet",
+        "address": "Transversal 50, No 1-1, Bucaramanga",
+        "phone": "3253334455"
+    }
+]
