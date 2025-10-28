@@ -151,6 +151,7 @@ const ProductsLg= () => {
                             </div>
                         )}
                     </div>
+                </div>    
                 ) : (
                     <>
                         {/* GRANDE Y EXTRA GRANDE: Transición fluida de 1 -> 2 -> 3 -> 4 -> 5 -> 6 columnas */}
@@ -168,7 +169,7 @@ const ProductsLg= () => {
                             ))}
                         </div>
                     </>
-                )}
+                )
             </main>
 
             {/* Renderiza el modal de vista rápida (Igual que en Servicios) */}
@@ -180,6 +181,6 @@ const ProductsLg= () => {
             )}
         </div>
     );
-};
+}
 
 export default ProductsLg;
