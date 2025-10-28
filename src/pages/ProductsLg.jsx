@@ -136,7 +136,7 @@ const ProductsLg= () => {
                                 <p className="text-gray-500 mt-2">Intenta limpiar los filtros o ajusta tu búsqueda.</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
                                 {/* Mapea los productos */}
                                 {filteredAndSortedProducts.map(product => (
                                     <ProductCard 
@@ -152,24 +152,6 @@ const ProductsLg= () => {
                         )}
                     </div>
                 </div>    
-                ) : (
-                    <>
-                        {/* GRANDE Y EXTRA GRANDE: Transición fluida de 1 -> 2 -> 3 -> 4 -> 5 -> 6 columnas */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
-                            {products.map(product => (
-                                <ProductCard 
-                                    key={product.id} 
-                                    product={product} 
-                                    onQuickView={handleQuickView}
-                                    onRemove={handleRemoveProduct}
-                                    // PROPS DE WISHLIST
-                                    onToggleWishlist={handleToggleWishlist}
-                                    isWishlisted={wishlist.includes(product.id)} // VERIFICA si el ID está en la lista
-                                />
-                            ))}
-                        </div>
-                    </>
-                )
             </main>
 
             {/* Renderiza el modal de vista rápida (Igual que en Servicios) */}
