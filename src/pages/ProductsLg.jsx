@@ -1,49 +1,110 @@
-import React, { useState } from 'react';
-// IMPORTACIÓN ACTUAL: Usando JSON. LISTO PARA SER REEMPLAZADO por fetch/axios y useEffect
-import initialProducts from '../components/Data/products.json'; 
-// Asegúrate de que la ruta a ProductCardLg y QuickViewModalLg sea correcta
+import React, { useState, useMemo } from 'react';
+// Importamos los componentes específicos de productos y el filtro común
 import ProductCard from '../components/products/ProductCardLg'; 
 import QuickViewModal from '../components/products/QuickViewModalLg'; 
+import FilterSidebarLg from '../components/common/FilterSidebarLg'; 
+// Importamos los datos simulados de productos
+import initialProducts from '../components/Data/products.json'; 
+
+// --- [ LÓGICA DE ORDENAMIENTO ] ---
+const sortProducts = (products, sortKey) => {
+    if (!sortKey || sortKey === 'default') {
+        return products;
+    }
+    const sorted = [...products]; 
+    switch (sortKey) {
+        case 'price-asc':
+            return sorted.sort((a, b) => a.price - b.price);
+        case 'price-desc':
+            return sorted.sort((a, b) => b.price - a.price);
+        case 'rating-desc': 
+            // Si no hay 'rating' real, se ordena por nombre
+            return sorted.sort((a, b) => a.name.localeCompare(b.name)); 
+        default:
+            return products;
+    }
+};
+
+// --- [ LÓGICA DE FILTRADO ] ---
+const filterProducts = (products, filterState) => {
+    let result = products;
+    
+    // Obtener filtros activos
+    const activeCategory = filterState.filters.category?.find(f => f.active)?.name;
+    const activeType = filterState.filters.type?.find(f => f.active)?.name;
+    const activeBrand = filterState.filters.brand?.find(f => f.active)?.name;
+    
+    // 1. Filtrar por Categoría
+    if (activeCategory) {
+        result = result.filter(product => product.category === activeCategory);
+    }
+    // 2. Filtrar por Tipo
+    if (activeType) {
+        result = result.filter(product => product.type === activeType);
+    }
+    // 3. Filtrar por Marca
+    if (activeBrand) {
+        result = result.filter(product => product.brand === activeBrand);
+    }
+    // 4. Filtrar por Búsqueda de Texto
+    if (filterState.searchTerm) {
+        const term = filterState.searchTerm.toLowerCase();
+        result = result.filter(product => 
+            product.name.toLowerCase().includes(term) || 
+            product.description.toLowerCase().includes(term)
+        );
+    }
+    return result;
+};
+
 
 const ProductsLg= () => {
-    // Definición de estados
-    const [products, setProducts] = useState(initialProducts);
+    // Estados de datos
+    const [products] = useState(initialProducts);
     const [quickViewProduct, setQuickViewProduct] = useState(null);
     const [wishlist, setWishlist] = useState([]);
+    
+    // Estados de filtrado y ordenamiento (IDÉNTICO al de Servicios)
+    const [sortKey, setSortKey] = useState('default'); 
+    const [filterState, setFilterState] = useState({ filters: {}, searchTerm: '', mode: 'products' });
 
-    // Maneja la acción de Vista Rápida
+
+    // Handlers
     const handleQuickView = (product) => {
         setQuickViewProduct(product);
     };
 
-    /**
-     * FUNCIÓN CENTRAL DE WISHLIST: Usa la variable 'wishlist' para el toggle.
-     */
     const handleToggleWishlist = (productId) => {
         setWishlist(prevWishlist => {
             if (prevWishlist.includes(productId)) {
-                console.log(`Producto ${productId} ELIMINADO de Wishlist.`);
                 return prevWishlist.filter(id => id !== productId);
             } else {
-                console.log(`Producto ${productId} AÑADIDO a Wishlist.`);
                 return [...prevWishlist, productId];
             }
         });
     };
     
-    // Función de remoción (mantengo el placeholder)
     const handleRemoveProduct = (id) => {
         console.log(`Demo: Intentando remover producto con ID ${id}.`);
     };
+    
+    const handleFilterChange = (newState) => {
+        setFilterState(newState);
+    };
+    
+    const handleSortChange = (newSortKey) => {
+        setSortKey(newSortKey);
+    };
+    
+    // Lógica principal: filtra y luego ordena (Uso de useMemo como en Servicios)
+    const filteredAndSortedProducts = useMemo(() => {
+        const filtered = filterProducts(products, filterState);
+        return sortProducts(filtered, sortKey);
+    }, [products, filterState, sortKey]);
+
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-sans">
-            {/* INYECCIÓN DE ESTILOS (Solo para el entorno de demostración) */}
-            <script src="https://cdn.tailwindcss.com"></script>
-            <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-                body { font-family: 'Inter', sans-serif; }
-            `}</style>
             
             <header className="mb-10 pt-4">
                 <h1 className="text-4xl font-extrabold text-gray-900 text-center">
@@ -54,12 +115,41 @@ const ProductsLg= () => {
                 </p>
             </header>
 
-            {/* CONTENEDOR AJUSTADO A max-w-screen-2xl para pantallas más grandes */}
             <main className="max-w-screen-2xl mx-auto">
-                {products.length === 0 ? (
-                    <div className="text-center p-12 bg-white rounded-xl shadow-lg mt-10 border border-gray-200">
-                        <p className="text-2xl text-red-500 font-bold">¡Catálogo temporalmente vacío! 😿</p>
-                        <p className="text-gray-600 mt-2">Regresa pronto para ver nuestras novedades.</p>
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    
+                    {/* 1. BARRA DE FILTROS (Mismo componente que Servicios) */}
+                    <div className="lg:col-span-1">
+                        <FilterSidebarLg 
+                            onFilterChange={handleFilterChange} 
+                            onSortChange={handleSortChange}
+                            totalResults={filteredAndSortedProducts.length} 
+                            mode="products" // Se mantiene el modo 'products'
+                        />
+                    </div>
+
+                    {/* 2. CONTENIDO PRINCIPAL (Cuadrícula) */}
+                    <div className="lg:col-span-3">
+                        {filteredAndSortedProducts.length === 0 ? (
+                            <div className="text-center p-12 bg-white rounded-xl shadow-lg mt-10 border border-gray-200">
+                                <p className="text-xl text-gray-700 font-bold">No se encontraron productos que coincidan con los filtros aplicados. 🔎</p>
+                                <p className="text-gray-500 mt-2">Intenta limpiar los filtros o ajusta tu búsqueda.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {/* Mapea los productos */}
+                                {filteredAndSortedProducts.map(product => (
+                                    <ProductCard 
+                                        key={product.id} 
+                                        product={product} 
+                                        onQuickView={handleQuickView}
+                                        onRemove={handleRemoveProduct}
+                                        onToggleWishlist={handleToggleWishlist}
+                                        isWishlisted={wishlist.includes(product.id)}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 ) : (
                     <>
@@ -81,7 +171,7 @@ const ProductsLg= () => {
                 )}
             </main>
 
-            {/* Renderiza el modal solo si quickViewProduct tiene un valor */}
+            {/* Renderiza el modal de vista rápida (Igual que en Servicios) */}
             {quickViewProduct && (
                 <QuickViewModal 
                     product={quickViewProduct} 

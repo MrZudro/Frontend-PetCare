@@ -1,0 +1,58 @@
+[
+    {
+        "id": 1,
+        "name": "Consulta Veterinaria General",
+        "description": "Examen completo de salud, vacunación y desparasitación básica. Revisión profunda del estado físico y evaluación nutricional.",
+        "imageUrl": "https://placehold.co/600x400/A0B9E2/000000?text=Consulta+Vet",
+        "category": "Salud",
+        "clinicName": "Vet Pet Amigos"
+    },
+    {
+        "id": 2,
+        "name": "Baño y Peluquería Premium",
+        "description": "Incluye corte, cepillado, limpieza de oídos, glándulas y tratamiento de hidratación con aceites esenciales.",
+        "imageUrl": "https://placehold.co/600x400/98DD98/000000?text=Grooming+Premium",
+        "category": "Estética",
+        "clinicName": "Estética Canina Guapos"
+    },
+    {
+        "id": 3,
+        "name": "Entrenamiento de Obediencia",
+        "description": "Curso intensivo de 8 sesiones para cachorros y adultos. Cubre comandos básicos (sentado, quieto, venir) y socialización guiada.",
+        "imageUrl": "https://placehold.co/600x400/FAD7A0/000000?text=Adiestramiento",
+        "category": "Adiestramiento",
+        "clinicName": "Vet Pet Amigos"
+    },
+    {
+        "id": 4,
+        "name": "Cirugía Programada (Menor)",
+        "description": "Procedimientos quirúrgicos menores bajo anestesia supervisada, incluyendo monitoreo y cuidados post-operatorios iniciales.",
+        "imageUrl": "https://placehold.co/600x400/D9A9B4/000000?text=Cirugia+Vet",
+        "category": "Salud",
+        "clinicName": "Clínica 24h Patitas"
+    },
+    {
+        "id": 5,
+        "name": "Hotel Canino Día y Noche",
+        "description": "Estadía completa con alimentación, paseos supervisados y áreas de juego seguras. Máximo confort y supervisión 24/7.",
+        "imageUrl": "https://placehold.co/600x400/A0B9E2/000000?text=Hotel+Canino",
+        "category": "Hospedaje",
+        "clinicName": "Clínica 24h Patitas"
+    },
+    {
+        "id": 6,
+        "name": "Fisioterapia y Rehabilitación",
+        "description": "Sesiones especializadas para recuperar la movilidad tras una lesión o cirugía, utilizando hidroterapia y ejercicios asistidos.",
+        "imageUrl": "https://placehold.co/600x400/98DD98/000000?text=Fisioterapia",
+        "category": "Salud",
+        "clinicName": "Vet Pet Amigos"
+    },
+    {
+        "id": 7,
+        "name": "Adiestramiento Avanzado",
+        "description": "Enfoque en obediencia compleja, control remoto y solución de problemas de comportamiento (agresión, ansiedad por separación).",
+        "imageUrl": "https://placehold.co/600x400/FAD7A0/000000?text=Adiestramiento+Avanzado",
+        "category": "Adiestramiento",
+        "clinicName": "Adiestramiento Pro"
+    }
+]
