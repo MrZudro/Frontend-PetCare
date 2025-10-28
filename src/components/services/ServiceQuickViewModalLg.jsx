@@ -5,13 +5,7 @@ import { FiShoppingCart } from 'react-icons/fi'; // Aunque no se usa visiblement
 // Función auxiliar para combinar clases de Tailwind (Copia la original)
 const combineClasses = (...classes) => classes.filter(Boolean).join(' ');
 
-/**
- * Componente Modal de Vista Rápida para Servicios (Copia de QuickViewModalLg)
- * Cambios: 
- * 1. Precio está ausente.
- * 2. Botón dice "Agendar Servicio" y usa color verde.
- * 3. Se asume que el objeto 'service' tiene estructura similar a 'product'.
- */
+
 const ServiceQuickViewModalLg = ({ service, onClose }) => {
     // Usamos 'service' en lugar de 'product' para mayor claridad
     if (!service) return null;
@@ -53,26 +47,28 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
                     </button>
 
                     {/* Contenido del Producto (Grid) */}
-                    <div className="grid w-full grid-cols-1 items-start gap-x-6 gap-y-8 sm:grid-cols-12 lg:gap-x-8">
-                        
+                    <div className="grid w-full grid-cols-1 items-start lg:grid-cols-12 lg:gap-x-8">
+                    
                         {/* Imagen del Servicio */}
                         <img
-                            alt={service.imageAlt}
+                            alt={service.imageAlt || service.name} // Usar service.name como fallback
                             src={service.imageUrl}
                             className="aspect-square w-full rounded-lg bg-gray-100 object-cover sm:col-span-4 lg:col-span-5 shadow-lg"
                         />
 
                         {/* Detalles del Servicio */}
-                        <div className="sm:col-span-8 lg:col-span-7">
-                            <span className="text-sm font-semibold text-indigo-600 mb-1 block">{service.category}</span>
+                        <div className="**mt-6 sm:mt-0** sm:col-span-8 lg:col-span-7">
+                            {/* 🌟 CAMBIO CLAVE 1: Mostrar service.clinicName en lugar de category 🌟 */}
+                            <span className="text-sm font-semibold text-blue-600 mb-1 block">
+                                {service.clinicName || "Clínica Veterinaria"}
+                            </span>
+                            
                             <h2 className="text-3xl font-bold text-gray-900 sm:pr-12">{service.name}</h2>
 
                             <section aria-labelledby="information-heading" className="mt-4 border-b pb-4">
                                 <h3 id="information-heading" className="sr-only">Información del Servicio</h3>
                                 
                                 {/* ELIMINACIÓN CLAVE: EL PRECIO YA NO ESTÁ AQUÍ */}
-                                {/* <p className="text-3xl font-extrabold text-indigo-600 mt-2">${service.price.toLocaleString('es-CO', { minimumFractionDigits: 2 })}</p> */}
-
                             </section>
                             
                             {/* Descripción Completa */}
@@ -133,7 +129,7 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
                                                                     'bg-indigo-600 text-white border-indigo-600 shadow-md' : 
                                                                     'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                                                         )}
-                                                    >
+                                                        >
                                                         {size.name}
                                                         {!size.inStock && <span className="sr-only"> - Agotado</span>}
                                                     </button>
@@ -142,10 +138,10 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
                                         </fieldset>
                                     )}
 
-                                    {/* CAMBIO CLAVE: Botón de Agendar Servicio */}
+                                    {/* CAMBIO CLAVE 2: Botón de Agendar Servicio con color azul/indigo ajustado */}
                                     <button
                                         type="submit"
-                                        className="mt-6 flex w-full items-center justify-center rounded-lg border border-transparent bg-pink-400 px-8 py-3 text-base font-bold text-white shadow-md hover:bg-blue-500 transition-colors focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-hidden active:scale-[0.99]"
+                                        className="mt-6 flex w-full items-center justify-center rounded-lg border border-transparent bg-pink-500 px-8 py-3 text-base font-bold text-white shadow-md hover:bg-blue-500 transition-colors focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden active:scale-[0.99]"
                                         disabled={serviceSizes.some(s => s.name === selectedSize && !s.inStock)}
                                     >
                                         Agendar Servicio
