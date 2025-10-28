@@ -89,29 +89,18 @@ const ServicesLg = () => {
                             // onSortChange se omite intencionalmente para no mostrar el selector de ordenamiento
                         />
                     </div>
-
-                    {/* 2. CONTENIDO PRINCIPAL (Cuadrícula de Servicios) */}
-                    <div className="lg:col-span-3">
-                        {filteredServices.length === 0 ? (
-                            <div className="text-center p-12 bg-white rounded-xl shadow-lg mt-10 border border-gray-200">
-                                <p className="text-xl text-gray-700 font-bold">No se encontraron servicios que coincidan con los filtros aplicados. 🔎</p>
-                                <p className="text-gray-500 mt-2">Intenta limpiar los filtros o ajusta tu búsqueda.</p>
-                            </div>
-                        ) : (
-                            // Se corrige el grid para evitar el Syntax Error (imagen 25defc.png)
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {/* Mapear servicios filtrados */}
-                                {filteredServices.map(service => (
-                                    <ServiceCard 
-                                        key={service.id} 
-                                        service={service} 
-                                        onQuickView={handleQuickView}
-                                        onToggleWishlist={handleToggleWishlist}
-                                        isWishlisted={wishlist.includes(service.id)} 
-                                    />
-                                ))}
-                            </div>
-                        )}
+                ) : (
+                    // La grilla es la que define el tamaño y número de columnas, manteniendo la misma que ProductsLg
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+                        {services.map(service => (
+                            <ServiceCard 
+                                key={service.id} 
+                                service={service} 
+                                onQuickView={handleQuickView}
+                                onToggleWishlist={handleToggleWishlist}
+                                isWishlisted={wishlist.includes(service.id)} 
+                            />
+                        ))}
                     </div>
                 </div>
             </main>
