@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
@@ -19,7 +20,6 @@ const QuickViewModalLg = ({ product, onClose }) => {
     // Inicialización segura: si el array 'colors' está vacío, usamos 'null'.
     const [selectedColor, setSelectedColor] = useState(colors[0]?.id || null);
     const [selectedSize, setSelectedSize] = useState(sizes[0]?.name || null);
-
 
     return (
         // Diálogo / Backdrop (Fondo Oscuro)
