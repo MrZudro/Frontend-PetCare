@@ -1,159 +1,82 @@
 [
   {
-    "id": 101,
-    "name": "Concentrado Súper Premium (Salmón)",
-    "description": "Alimento seco de alta calidad con salmón y arroz. Rico en Omega-3 para un pelaje brillante y articulaciones sanas. Ideal para razas medianas y grandes. Presentación de 15kg.",
-    "price": 239960.00,
-    "imageUrl": "https://media.istockphoto.com/id/2065963403/es/foto/alimento-seco-para-perros-de-razas-peque%C3%B1as-en-plato-de-pl%C3%A1stico.jpg?s=1024x1024&w=is&k=20&c=wB7I-lQ_r-qK55Q_YlD1I9PzI8pC5x55e-gK8GgR58s=",
-    "imageAlt": "Bolsa de concentrado premium sabor salmón.",
-    "colors": [
-      {
-        "id": "na",
-        "name": "Original",
-        "classes": "bg-yellow-600 checked:outline-yellow-700"
-      }
-    ],
-    "sizes": [
-      {
-        "name": "3kg",
-        "inStock": true
-      },
-      {
-        "name": "7kg",
-        "inStock": true
-      },
-      {
-        "name": "15kg",
-        "inStock": true
-      }
-    ],
-    "category": "Perro - Comida"
+    "id": 1,
+    "name": "Comida Seca Premium para Perros",
+    "description": "Fórmula avanzada con pollo y arroz, ideal para perros adultos de razas medianas. Contiene vitaminas A, E y omega-3.",
+    "price": 45.99,
+    "category": "Alimento",
+    "type": "Concentrado",
+    "brand": "HILLS",
+    "imageUrl": "https://placehold.co/400x300/a3e1ff/000000?text=Comida+Seca+Premium"
   },
   {
-    "id": 102,
-    "name": "Juguete Cuerda de Algodón Antisarro",
-    "description": "Cuerda de algodón extra-resistente con nudos. Ideal para juegos de 'tira y afloja' y limpieza dental. Perfecto para cachorros y perros adultos de mordida fuerte.",
-    "price": 38000.00,
-    "imageUrl": "https://images.unsplash.com/photo-1623943362145-21d746569107?q=80&w=800&auto=format&fit=crop",
-    "imageAlt": "Juguete de cuerda trenzada para perro.",
-    "colors": [
-      {
-        "id": "green",
-        "name": "Verde Selva",
-        "classes": "bg-green-500 checked:outline-green-600"
-      },
-      {
-        "id": "red",
-        "name": "Rojo Café",
-        "classes": "bg-red-500 checked:outline-red-600"
-      }
-    ],
-    "sizes": [
-      {
-        "name": "S (Pequeño)",
-        "inStock": true
-      },
-      {
-        "name": "L (Grande)",
-        "inStock": true
-      }
-    ],
-    "category": "Perro - Juguete"
+    "id": 2,
+    "name": "Juguete Dispensador de Premios",
+    "description": "Juguete interactivo que estimula mentalmente a tu mascota. Perfecto para razas pequeñas y medianas. Fácil de limpiar.",
+    "price": 12.50,
+    "category": "Juguetes",
+    "type": "Interactivo",
+    "brand": "CHUNKY",
+    "imageUrl": "https://placehold.co/400x300/b8e8b8/000000?text=Juguete+Interactivo"
   },
   {
-    "id": 103,
-    "name": "Colchoneta Ortopédica 'Descanso Real'",
-    "description": "Cama de espuma viscoelástica con memoria. Ideal para perros mayores o con problemas articulares. Forro lavable, resistente a pelos. Borde elevado para soporte de cabeza.",
-    "price": 300000.00,
-    "imageUrl": "https://images.unsplash.com/photo-1541364994060-ec7b49460595?q=80&w=800&auto=format&fit=crop",
-    "imageAlt": "Cama ortopédica gris con un perro labrador durmiendo.",
-    "colors": [
-      {
-        "id": "grey",
-        "name": "Antracita",
-        "classes": "bg-gray-700 checked:outline-gray-800"
-      }
-    ],
-    "sizes": [
-      {
-        "name": "M (60cm)",
-        "inStock": true
-      },
-      {
-        "name": "L (80cm)",
-        "inStock": false
-      },
-      {
-        "name": "XL (100cm)",
-        "inStock": true
-      }
-    ],
-    "category": "Perro - Accesorios"
+    "id": 3,
+    "name": "Champú Hipoalergénico",
+    "description": "Fórmula suave con avena, ideal para pieles sensibles y cachorros. Deja el pelaje brillante y sedoso.",
+    "price": 18.75,
+    "category": "Higiene",
+    "type": "Líquido",
+    "brand": "HILLS",
+    "imageUrl": "https://placehold.co/400x300/f7d3e2/000000?text=Champú+Hipoalergénico"
   },
   {
-    "id": 201,
-    "name": "Comida Húmeda Paté (Pavo y Verduras)",
-    "description": "Alimento húmedo completo para gatos con pavo. Bajo en carbohidratos. Incluye Taurina para el corazón y la vista. Paquete de 12 latas de 85g.",
-    "price": 72800.00,
-    "imageUrl": "https://images.unsplash.com/photo-1596854341517-5789a7428801?q=80&w=800&auto=format&fit=crop",
-    "imageAlt": "Latas de comida húmeda para gato, sabor pavo.",
-    "colors": [
-      {
-        "id": "na",
-        "name": "Pavo",
-        "classes": "bg-red-500 checked:outline-red-600"
-      }
-    ],
-    "sizes": [
-      {
-        "name": "Paquete 12",
-        "inStock": true
-      }
-    ],
-    "category": "Gato - Comida"
+    "id": 4,
+    "name": "Cama Ortopédica Grande",
+    "description": "Cama de espuma viscoelástica, perfecta para perros mayores con problemas articulares. Cubierta lavable.",
+    "price": 89.99,
+    "category": "Camas",
+    "type": "Memoria",
+    "brand": "CHUNKY",
+    "imageUrl": "https://placehold.co/400x300/c7c7f7/000000?text=Cama+Ortopédica"
   },
   {
-    "id": 202,
-    "name": "Rascador Torre de Lujo (1.5m)",
-    "description": "Torre rascador de varios niveles con cueva y postes de sisal natural. Proporciona ejercicio y un refugio seguro. Altura de 1.5 metros. Color beige neutro.",
-    "price": 440000.00,
-    "imageUrl": "https://images.unsplash.com/photo-1517466170624-949fe1c7f070?q=80&w=800&auto=format&fit=crop",
-    "imageAlt": "Torre rascador grande de color beige con un gato maine coon.",
-    "colors": [
-      {
-        "id": "beige",
-        "name": "Crema",
-        "classes": "bg-yellow-100 checked:outline-gray-300"
-      }
-    ],
-    "sizes": [
-      {
-        "name": "1.5m",
-        "inStock": true
-      }
-    ],
-    "category": "Gato - Juguete/Accesorio"
+    "id": 5,
+    "name": "Snacks de Salmón Naturales",
+    "description": "100% salmón deshidratado, sin aditivos ni conservantes. Alto en omega-3. Ideal como recompensa de entrenamiento.",
+    "price": 24.90,
+    "category": "Alimento",
+    "type": "Natural",
+    "brand": "HILLS",
+    "imageUrl": "https://placehold.co/400x300/ffd8a6/000000?text=Snacks+Salmón"
   },
   {
-    "id": 203,
-    "name": "Set de Pelotas con Catnip",
-    "description": "Paquete de 5 pelotas ligeras de espuma con infusión de Catnip (hierba gatera). Estimulan el juego y reducen el estrés en gatos de interior.",
-    "price": 27960.00,
-    "imageUrl": "https://images.unsplash.com/photo-1599818858204-c3614917419e?q=80&w=800&auto=format&fit=crop",
-    "imageAlt": "Cinco pelotas de juguete con menta gatuna para gatos.",
-    "colors": [
-      {
-        "id": "multi",
-        "name": "Surtido",
-        "classes": "bg-blue-500 checked:outline-blue-600"
-      }
-    ],
-    "sizes": [
-      {
-        "name": "Única (Set 5)",
-        "inStock": true
-      }
-    ],
-    "category": "Gato - Juguete"
+    "id": 6,
+    "name": "Plato de Cerámica Antivuelco",
+    "description": "Diseño ergonómico y pesado para evitar que el perro o gato lo mueva. Apto para lavavajillas.",
+    "price": 9.99,
+    "category": "Accesorios",
+    "type": "Fijo",
+    "brand": "GENERIC",
+    "imageUrl": "https://placehold.co/400x300/e9ffcf/000000?text=Plato+Cerámica"
+  },
+  {
+    "id": 7,
+    "name": "Rascador para Gatos de Tres Niveles",
+    "description": "Estructura alta con múltiples postes de sisal y plataformas de descanso. Incluye un pequeño nido.",
+    "price": 59.99,
+    "category": "Juguetes",
+    "type": "Vertical",
+    "brand": "GENERIC",
+    "imageUrl": "https://placehold.co/400x300/ffb3ba/000000?text=Rascador+Gatos"
+  },
+  {
+    "id": 8,
+    "name": "Comida Húmeda de Pavo (Pack)",
+    "description": "Pack de 6 latas de pavo y vegetales. Alta palatabilidad y fácil digestión. Ideal para perros exigentes.",
+    "price": 29.99,
+    "category": "Alimento",
+    "type": "Húmedo",
+    "brand": "CHUNKY",
+    "imageUrl": "https://placehold.co/400x300/a3e1ff/000000?text=Comida+Húmeda+Pavo"
   }
 ]
