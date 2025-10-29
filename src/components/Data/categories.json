@@ -1,0 +1,22 @@
+[
+  {
+    "categoryName": "Alimento",
+    "subcategories": ["Concentrado", "Natural", "Húmedo"]
+  },
+  {
+    "categoryName": "Juguetes",
+    "subcategories": ["Interactivo", "Vertical", "Masticación"]
+  },
+  {
+    "categoryName": "Higiene",
+    "subcategories": ["Líquido", "Mineral", "Cepillado"]
+  },
+  {
+    "categoryName": "Camas",
+    "subcategories": ["Memoria", "Protección"]
+  },
+  {
+    "categoryName": "Accesorios",
+    "subcategories": ["Fijo", "Paseo", "Viaje", "Automático"]
+  }
+]

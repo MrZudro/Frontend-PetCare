@@ -1,18 +1,22 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { FaChevronUp, FaChevronDown, FaCheck, FaTimes, FaSearch } from 'react-icons/fa'; 
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { FaChevronUp, FaChevronDown, FaCheck, FaTimes } from 'react-icons/fa';
 import { FiSliders } from 'react-icons/fi';
 
-// IMPORTACIÓN DE DATOS (Asegúrate de que la ruta sea correcta)
-import productData from '../Data/products.json'; 
-import serviceData from '../Data/services.json'; 
+import productData from '../Data/products.json';
+import serviceData from '../Data/services.json';
+import categoriesMap from '../Data/categories.json'; 
 
-// Función de utilidad para extraer filtros únicos y sus conteos (API-like)
-const processFilterData = (data, keyName) => {
+// --- FUNCIONES DE UTILIDAD (Fuera del componente) ---
+
+// 🚨 CORRECCIÓN: Usar 'subcategories' en lugar de 'type'
+const allProductSubcategories = [...new Set(productData.map(p => p.subcategories))];
+
+const processFilterData = (data, keyName, allowedValues = null) => {
     if (!data || data.length === 0) return [];
-    
+
     const counts = data.reduce((acc, item) => {
         const value = item[keyName];
-        if (value) {
+        if (value && (!allowedValues || allowedValues.includes(value))) {
             acc[value] = (acc[value] || 0) + 1;
         }
         return acc;
@@ -25,63 +29,186 @@ const processFilterData = (data, keyName) => {
     }));
 };
 
-// Generar datos de filtro iniciales
-const initialProductFiltersData = {
-    category: processFilterData(productData, 'category'),
-    type: processFilterData(productData, 'type'),
-    brand: processFilterData(productData, 'brand'),
+const getInitialCategories = () => {
+    const categoryCounts = {};
+
+    productData.forEach(product => {
+        // 🚨 CORRECCIÓN: Usar 'subcategories' en lugar de 'type'
+        const productSubcategory = product.subcategories; 
+        
+        // 🎯 Buscar en la clave 'subcategories' del mapa
+        const categoryEntry = categoriesMap.find(c => c.subcategories.includes(productSubcategory));
+
+        if (categoryEntry) {
+            const categoryName = categoryEntry.categoryName;
+            categoryCounts[categoryName] = (categoryCounts[categoryName] || 0) + 1;
+        }
+    });
+
+    return Object.keys(categoryCounts).map(name => ({
+        name,
+        count: categoryCounts[name],
+        active: false,
+    }));
 };
 
-const initialServiceFiltersData = {
-    category: processFilterData(serviceData, 'category'),
-    clinic: processFilterData(serviceData, 'clinicName'),
+const getInitialFilterData = (mode) => {
+    if (mode === 'products') {
+        return {
+            category: getInitialCategories(),
+            subcategories: [], 
+            brand: processFilterData(productData, 'brand'),
+        };
+    } else {
+        // 🚀 CORRECCIÓN CLAVE: Solo retornar el filtro de 'clinic' para el modo 'services'
+        return {
+            clinic: processFilterData(serviceData, 'clinicName'),
+        };
+    }
 };
-// ----------------------------------
 
 /**
- * Componente de Barra Lateral de Filtros (Responsive: Sidebar en LG+, Modal/Botón fijo en <LG)
+ * 🚀 FUNCIÓN CLAVE DE FILTRADO (Productos): Aplica los filtros activos a la lista de productos.
  */
-const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode = 'products' }) => {
-    
-    const isProductMode = mode === 'products';
-    
-    const getCurrentInitialData = () => 
-        isProductMode 
-            ? initialProductFiltersData 
-            : initialServiceFiltersData;
+const filterProducts = (data, activeFilters) => {
+    const { category, subcategories, brand } = activeFilters;
 
-    const [filters, setFilters] = useState(getCurrentInitialData);
+    if ((category?.length || 0) === 0 && (subcategories?.length || 0) === 0 && (brand?.length || 0) === 0) {
+        return data;
+    }
+
+    return data.filter(product => {
+        let passesCategory = true;
+        let passesSubcategory = true;
+        let passesBrand = true;
+
+        // 🚨 CORRECCIÓN: Usar 'subcategories' en lugar de 'type'
+        const productSubcategory = product.subcategories; 
+
+        // 1. Filtrar por Categoría (Radio Button)
+        if ((category?.length || 0) > 0) {
+            const activeCategoryName = category[0];
+            // 🎯 Buscar en la clave 'subcategories' del mapa
+            const allowedSubcategories = categoriesMap.find(c => c.categoryName === activeCategoryName)?.subcategories || [];
+            passesCategory = allowedSubcategories.includes(productSubcategory);
+        }
+
+        // 2. Filtrar por Subcategoría (Checkbox)
+        if ((subcategories?.length || 0) > 0) {
+            passesSubcategory = subcategories.includes(productSubcategory);
+        } else if ((category?.length || 0) > 0 && passesCategory) {
+             // Si hay categoría activa y el producto pasa, y no hay subcategorías seleccionadas, se considera válido.
+            passesSubcategory = true;
+        } else if ((category?.length || 0) > 0 && !passesCategory) {
+            // Si hay categoría activa y NO pasa, fallará.
+            passesSubcategory = false;
+        } else {
+            // Si no hay categoría y no hay subcategoría, pasa.
+            passesSubcategory = true;
+        }
+
+        // 3. Filtrar por Marca (Radio Button)
+        if ((brand?.length || 0) > 0) {
+            passesBrand = brand.includes(product.brand);
+        }
+
+        return passesCategory && passesSubcategory && passesBrand;
+    });
+};
+
+
+// --- COMPONENTE PRINCIPAL ---
+
+const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode = 'products' }) => {
+
+    const isProductMode = mode === 'products';
+    const initialData = useMemo(() => getInitialFilterData(mode), [mode]);
+
+    const [filters, setFilters] = useState(initialData);
     const [currentSort, setCurrentSort] = useState('default');
-    const [isMobileModalOpen, setIsMobileModalOpen] = useState(false); // <-- Estado para el modal móvil
-    
+    const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
+
+    // Estado local para almacenar y mostrar los productos filtrados (para esta demo)
+    const [localFilteredProducts, setLocalFilteredProducts] = useState(isProductMode ? productData : serviceData);
+
     const [openSections, setOpenSections] = useState(
-        Object.keys(getCurrentInitialData()).reduce((acc, key) => ({ ...acc, [key]: true }), {})
+        Object.keys(initialData).reduce((acc, key) => ({ ...acc, [key]: true }), {})
     );
 
-    // 1. Sincronizar y reiniciar filtros al cambiar de modo
+    // 1. Resetear filtros al cambiar de modo/inicializar
     useEffect(() => {
-        const newData = getCurrentInitialData();
-        setFilters(newData);
-        setCurrentSort('default'); 
-        setOpenSections(Object.keys(newData).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
-        
-        if (onFilterChange) {
-            onFilterChange({ filters: newData, searchTerm: '', mode: mode });
-        }
-    }, [mode]); 
+        setFilters(initialData);
+        setCurrentSort('default');
+        setLocalFilteredProducts(isProductMode ? productData : serviceData); // Resetear datos según el modo
+        setOpenSections(Object.keys(initialData).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
+    }, [mode, initialData, isProductMode]);
 
-    // 2. Notificar al componente padre sobre los cambios de FILTRO (Mantiene la funcionalidad en tiempo real)
+    // 🌟 LÓGICA CLAVE: Recalcular Subcategorías ('subcategories') - Solo para Productos 🌟
     useEffect(() => {
-        if (onFilterChange) {
-            onFilterChange({
-                filters: filters,
-                searchTerm: '', 
-                mode: mode,
+        if (!isProductMode) return;
+
+        const activeCategory = filters.category?.find(f => f.active);
+        let newSubcategories = [];
+
+        if (activeCategory) {
+            const activeCategoryName = activeCategory.name;
+            // 🎯 Buscar en la clave 'subcategories' del mapa
+            const allowedSubcategories = categoriesMap.find(c => c.categoryName === activeCategoryName)?.subcategories || [];
+
+            // 🚨 Comparar con las subcategorías reales presentes en los productos
+            const subcategoriesInProducts = allProductSubcategories.filter(sub => allowedSubcategories.includes(sub));
+
+            // 🚨 CORRECCIÓN: Usar 'subcategories' como clave de referencia para contar
+            newSubcategories = processFilterData(productData, 'subcategories', subcategoriesInProducts);
+
+            newSubcategories = newSubcategories.map(f => {
+                const prevFilter = filters.subcategories?.find(pt => pt.name === f.name);
+                return { ...f, active: !!prevFilter?.active };
             });
         }
-    }, [filters, mode, onFilterChange]);
-    
-    // --- LÓGICA DE FILTRADO Y MANEJO DE ESTADO (TU LÓGICA ORIGINAL) ---
+
+        setFilters(prevFilters => ({
+            ...prevFilters,
+            subcategories: newSubcategories,
+        }));
+
+    }, [filters.category, isProductMode]);
+
+    // 🚀 LÓGICA DE FILTRADO REAL Y NOTIFICACIÓN
+    useEffect(() => {
+        const activeFilters = Object.keys(filters).reduce((acc, key) => {
+            acc[key] = filters[key]?.filter(f => f.active).map(f => f.name) || [];
+            return acc;
+        }, {});
+
+        // Ejecutar el filtrado localmente
+        let results = [];
+        if (isProductMode) {
+            results = filterProducts(productData, activeFilters);
+        } else {
+            // El modo 'services' se filtra con una lógica más simple que el componente padre (ServicesLg) necesita implementar
+            // Aquí solo pasamos los filtros activos.
+            results = isProductMode ? productData : serviceData; 
+        }
+        
+        // Actualizamos los datos para obtener el conteo correcto y manejar el estado de las tags
+        // En el modo 'services' el componente padre ServicesLg hace el filtrado real, aquí solo mostramos el conteo del padre
+        setLocalFilteredProducts(results); // Esto es solo para la demo
+
+        if (onFilterChange) {
+            onFilterChange({
+                filters: activeFilters,
+                searchTerm: '',
+                mode: mode,
+                // Si estamos en modo producto, usamos el conteo local. Si es servicio, usamos el que viene del padre.
+                totalCount: isProductMode ? results.length : totalResults, 
+            });
+        }
+
+
+    }, [filters, mode, onFilterChange, isProductMode, totalResults]);
+
+    // --- LÓGICA DE MANEJO DE ESTADO ---
 
     const handleSortSelect = (e) => {
         const newSortKey = e.target.value;
@@ -98,23 +225,29 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
     const handleFilterSelection = (sectionKey, filterName) => {
         setFilters(prevFilters => {
             const newFilters = { ...prevFilters };
-            
+            // Category, Brand, y Clinic funcionan como Radio Buttons (selección única)
             const isRadioSection = sectionKey === 'category' || sectionKey === 'brand' || sectionKey === 'clinic';
-            
+
             if (isRadioSection) {
-                 newFilters[sectionKey] = newFilters[sectionKey].map(f => ({
-                     ...f,
-                     // Lógica Radio
-                     active: (f.name === filterName) ? !f.active : false
-                 }));
+                newFilters[sectionKey] = newFilters[sectionKey]?.map(f => {
+                    // Si es el filtro clickeado, togglea; si es otro, desactiva.
+                    const isActiveToggle = (f.name === filterName) ? !f.active : false;
+
+                    // 🎯 Limpiar Subcategoría al cambiar Categoría
+                    if (sectionKey === 'category') {
+                        newFilters.subcategories = newFilters.subcategories?.map(typeF => ({ ...typeF, active: false })) || [];
+                    }
+
+                    return { ...f, active: isActiveToggle };
+                }) || [];
             } else {
-                // Lógica Checkbox
-                newFilters[sectionKey] = newFilters[sectionKey].map(f => {
+                // Checkbox (Subcategoría): Selección múltiple
+                newFilters[sectionKey] = newFilters[sectionKey]?.map(f => {
                     if (f.name === filterName) {
                         return { ...f, active: !f.active };
                     }
                     return f;
-                });
+                }) || [];
             }
             return newFilters;
         });
@@ -123,27 +256,45 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
     const handleTagRemove = (filterName) => {
         setFilters(prevFilters => {
             const newFilters = { ...prevFilters };
+            let categoryRemoved = false;
+
             Object.keys(newFilters).forEach(sectionKey => {
-                newFilters[sectionKey] = newFilters[sectionKey].map(f => {
+                newFilters[sectionKey] = newFilters[sectionKey]?.map(f => {
                     if (f.name === filterName) {
+                        if (sectionKey === 'category' && f.active) {
+                            categoryRemoved = true;
+                        }
                         return { ...f, active: false };
                     }
                     return f;
-                });
+                }) || [];
             });
+
+            if (categoryRemoved) {
+                newFilters.subcategories = newFilters.subcategories?.map(typeF => ({ ...typeF, active: false })) || [];
+            }
             return newFilters;
         });
     };
-    // --- FIN LÓGICA DE FILTRADO ---
 
-
-    const activeTags = Object.keys(filters).flatMap(key => 
+    const activeTags = Object.keys(filters).flatMap(key =>
         filters[key]?.filter(f => f.active).map(f => f.name) || []
     );
 
-    // --- FUNCIÓN DE RENDERING DE CADA SECCIÓN DE FILTRO (REUTILIZADA) ---
+    // Usar el conteo de resultados
+    const finalTotalResults = isProductMode ? localFilteredProducts.length : totalResults;
+
+    // --- FUNCIÓN DE RENDERING DE CADA SECCIÓN DE FILTRO ---
     const renderFilterSection = (title, key) => {
-        if (!filters[key] || filters[key].length === 0) return null;
+        if (!filters[key] || filters[key].length === 0) {
+            // Mostrar Subcategorías solo si hay filtros disponibles
+            if (key === 'subcategories' && isProductMode && filters.category?.find(f => f.active)) return null;
+            if (key === 'subcategories') return null;
+            // Si no hay datos para la sección, la omitimos
+            if (key !== 'subcategories' && key !== 'category' && key !== 'brand' && key !== 'clinic') return null;
+        }
+
+        const isRadioSection = key === 'category' || key === 'brand' || key === 'clinic';
 
         return (
             <div key={key} className="border-b border-gray-200 py-4 last:border-b-0">
@@ -160,13 +311,19 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
                         {filters[key].map((filter) => (
                             <div
                                 key={filter.name}
-                                className={`flex items-center text-sm cursor-pointer py-1 px-1 rounded transition-colors`}
-                                // ESTO HACE QUE FUNCIONE: LLAMADA DIRECTA AL MANEJADOR DE ESTADO
-                                onClick={() => handleFilterSelection(key, filter.name)} 
+                                className={`flex items-center text-sm cursor-pointer py-1 px-1 rounded transition-colors ${filter.active ? 'bg-indigo-50/50' : 'hover:bg-gray-50'}`}
+                                onClick={() => handleFilterSelection(key, filter.name)}
                             >
-                                <span className={`inline-flex items-center justify-center size-4 border rounded mr-2 ${filter.active ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-gray-300 text-transparent'}`}>
-                                    {filter.active && <FaCheck className="size-2 text-white" />}
-                                </span>
+                                {isRadioSection ? (
+                                    <span className={`inline-flex items-center justify-center size-4 border rounded-full mr-2 ${filter.active ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300'}`}>
+                                        {filter.active && <span className="size-2 rounded-full bg-white block" />}
+                                    </span>
+                                ) : (
+                                    <span className={`inline-flex items-center justify-center size-4 border rounded mr-2 ${filter.active ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-gray-300 text-transparent'}`}>
+                                        {filter.active && <FaCheck className="size-2 text-white" />}
+                                    </span>
+                                )}
+
                                 <span className={`truncate ${filter.active ? 'font-medium text-indigo-700' : 'text-gray-600 hover:text-gray-900'}`}>{filter.name}</span>
                                 <span className="ml-auto text-gray-400 font-normal">({filter.count})</span>
                             </div>
@@ -176,23 +333,44 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
             </div>
         );
     };
-    
-    const renderProductFilters = () => (
-        <>
-            {renderFilterSection('Categoría', 'category')}
-            {renderFilterSection('Tipo', 'type')}
-            {renderFilterSection('Marca', 'brand')}
-        </>
-    );
+
+    const renderProductFilters = () => {
+        const isSubcategoryFilterVisible = filters.subcategories?.length > 0;
+
+        return (
+            <>
+                {renderFilterSection('Categoría', 'category')}
+
+                {isSubcategoryFilterVisible && (
+                    <div className='border-b border-gray-200 py-4 last:border-b-0'>
+                        {renderFilterSection('Subcategoría', 'subcategories')}
+                    </div>
+                )}
+
+                {renderFilterSection('Marca', 'brand')}
+            </>
+        );
+    };
 
     const renderServiceFilters = () => (
+        // 🚀 CORRECCIÓN CLAVE: Solo renderizar el filtro de Clínica
         <>
-            {renderFilterSection('Categoría de Servicio', 'category')} 
-            {renderFilterSection('Clínicas Destacadas', 'clinic')} 
+            {renderFilterSection('Filtrar por Veterinaria', 'clinic')}
         </>
     );
 
-    // --- FUNCIÓN QUE CONTIENE TODO EL CONTENIDO DEL FILTRO (REUTILIZABLE) ---
+    const renderSortDropdown = () => (
+        <select
+            className="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white hover:border-indigo-400 cursor-pointer focus:ring-indigo-500 focus:border-indigo-500"
+            onChange={handleSortSelect}
+            value={currentSort}
+        >
+            <option value="default">Ordenar por</option>
+            <option value="price-asc">Precio: Menor a Mayor</option>
+            <option value="price-desc">Precio: Mayor a Menor</option>
+        </select>
+    );
+
     const renderFilterContent = (isMobileView = false) => (
         <div className={`w-full bg-white rounded-xl shadow-lg border border-gray-100 p-4 lg:p-6 ${!isMobileView ? 'sticky top-4 self-start' : ''}`}>
             <h2 className="text-xl font-bold text-gray-900 flex items-center mb-4 border-b pb-4">
@@ -201,47 +379,42 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
             </h2>
 
             <div className="mb-4 text-sm text-gray-600">
+                {/* Contenedor del conteo de resultados */}
                 <div className="flex justify-between items-center mb-3">
                     <span className="font-medium">
-                        {isMobileView ? `Resultados: ${totalResults}` : `Mostrando 1-${Math.min(12, totalResults)} de ${totalResults} resultados`}
+                        {isMobileView ? `Resultados: ${finalTotalResults}` : `Mostrando 1-${Math.min(12, finalTotalResults)} de ${finalTotalResults} resultados`}
                     </span>
-                    
-                    {/* SELECTOR DE ORDENAMIENTO (Solo para Productos y Desktop/Tablet) */}
-                    {isProductMode && !isMobileView && (
-                        <select 
-                            className="border border-gray-300 rounded-lg p-1 text-sm bg-white hover:border-indigo-400 cursor-pointer"
-                            onChange={handleSortSelect}
-                            value={currentSort}
-                        >
-                            <option value="default">Ordenar por</option>
-                            <option value="price-asc">Precio: Menor a Mayor</option>
-                            <option value="price-desc">Precio: Mayor a Menor</option>
-                            <option value="rating-desc">Mejor valorados</option>
-                        </select>
-                    )}
                 </div>
+
+                {/* Dropdown de ordenamiento */}
+                {isProductMode && (
+                    <div className={`mt-2 ${isMobileView ? 'mb-4' : 'mb-3'}`}>
+                        {renderSortDropdown()}
+                    </div>
+                )}
 
                 {activeTags.length > 0 && (
                     <div className="flex flex-wrap items-center mt-3 pt-2 border-t border-gray-200">
                         <span className="mr-3 font-semibold text-gray-700">Filtros Activos:</span>
                         {activeTags.map((tag, index) => (
-                            <span 
-                                key={index} 
+                            <span
+                                key={index}
                                 className="flex items-center bg-indigo-100 text-indigo-800 text-xs font-semibold mr-2 my-1 px-2.5 py-1 rounded-full shadow-sm cursor-pointer hover:bg-indigo-200 transition-colors"
                             >
                                 {tag}
-                                <FaTimes 
-                                    className="ml-1 size-3 text-indigo-600 hover:text-indigo-800" 
-                                    onClick={() => handleTagRemove(tag)} 
+                                <FaTimes
+                                    className="ml-1 size-3 text-indigo-600 hover:text-indigo-800"
+                                    onClick={() => handleTagRemove(tag)}
                                 />
                             </span>
                         ))}
-                        <button 
-                            onClick={() => { 
-                                setFilters(getCurrentInitialData()); 
-                                setCurrentSort('default'); 
-                                if(onSortChange) onSortChange('default');
-                                if(isMobileModalOpen) setIsMobileModalOpen(false); 
+                        <button
+                            onClick={() => {
+                                setFilters(getInitialFilterData(mode));
+                                setCurrentSort('default');
+                                setLocalFilteredProducts(isProductMode ? productData : serviceData);
+                                if(onSortChange && isProductMode) onSortChange('default');
+                                if(isMobileModalOpen) setIsMobileModalOpen(false);
                             }}
                             className="text-xs text-red-500 hover:text-red-700 ml-auto font-medium"
                         >
@@ -251,24 +424,21 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
                 )}
             </div>
 
-            {/* Renderizado Condicional de Filtros */}
             <div className="space-y-0">
                 {isProductMode ? renderProductFilters() : renderServiceFilters()}
             </div>
         </div>
     );
-    // --- FIN FUNCIÓN DE RENDERING DEL CONTENIDO ---
-
 
     return (
         <>
-            {/* 1. Versión Desktop/Tablet (Sidebar estático) - Visible en LG+ */}
+            {/* Versión Desktop/Tablet */}
             <div className="hidden lg:block">
                 {renderFilterContent(false)}
             </div>
 
-            {/* 2. Versión Móvil (Botón Fixed + Modal/Drawer) - Oculto en LG+ */}
-            <div className="lg:hidden"> 
+            {/* Versión Móvil */}
+            <div className="lg:hidden">
                 {/* Botón Flotante Fijo */}
                 <button
                     onClick={() => setIsMobileModalOpen(true)}
@@ -281,17 +451,14 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
                 {/* Modal/Drawer de Filtros */}
                 {isMobileModalOpen && (
                     <div className="fixed inset-0 z-50 overflow-hidden">
-                        {/* Backdrop */}
-                        <div 
-                            className="absolute inset-0 bg-gray-900/70 transition-opacity" 
-                            onClick={() => setIsMobileModalOpen(false)} 
-                            aria-hidden="true" 
+                        <div
+                            className="absolute inset-0 bg-gray-900/70 transition-opacity"
+                            onClick={() => setIsMobileModalOpen(false)}
+                            aria-hidden="true"
                         />
 
-                        {/* Contenido del Drawer (Abre desde la derecha) */}
                         <div className="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl overflow-y-auto">
-                            
-                            {/* Botón de Cerrar */}
+
                             <button
                                 type="button"
                                 onClick={() => setIsMobileModalOpen(false)}
@@ -301,13 +468,11 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
                                 <FaTimes className="size-6" />
                             </button>
 
-                            {/* Contenido REAL de los filtros */}
                             <div className="pt-4">
                                 {renderFilterContent(true)}
                                 <div className='p-4 border-t'>
-                                    {/* Botón para aplicar y cerrar en móvil */}
-                                    <button 
-                                        onClick={() => setIsMobileModalOpen(false)} 
+                                    <button
+                                        onClick={() => setIsMobileModalOpen(false)}
                                         className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold shadow-md hover:bg-indigo-700 transition"
                                     >
                                         Aplicar Filtros

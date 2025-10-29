@@ -19,7 +19,6 @@ const filterServices = (services, filterState) => {
     
     // 1. Filtrar por Categoría de Servicio (Filtro lateral)
     if (activeCategory) {
-        // Corrección: Usar includes para ser más robustos o si la categoría es un array
         result = result.filter(service => service.category === activeCategory);
     }
 
@@ -85,17 +84,15 @@ const ServicesLg = () => {
                     <div className="lg:col-span-1">
                         <FilterSidebarLg 
                             onFilterChange={handleFilterChange} 
-                            // Pasamos el total de resultados para que se muestre en el filtro
                             totalResults={filteredServices.length}
                             mode="services" 
                             // onSortChange se omite intencionalmente para no mostrar el selector de ordenamiento
                         />
                     </div>
-                
-                    {/* 2. LISTA DE SERVICIOS FILTRADOS */}
-                    <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {/* 🌟 CORRECCIÓN CLAVE: Usar filteredServices en lugar de services 🌟 */}
-                        {filteredServices.map(service => (
+                ) : (
+                    // La grilla es la que define el tamaño y número de columnas, manteniendo la misma que ProductsLg
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+                        {services.map(service => (
                             <ServiceCard 
                                 key={service.id} 
                                 service={service} 
@@ -104,18 +101,6 @@ const ServicesLg = () => {
                                 isWishlisted={wishlist.includes(service.id)} 
                             />
                         ))}
-                        
-                        {/* Manejo de Cero Resultados */}
-                        {filteredServices.length === 0 && (
-                            <div className="sm:col-span-2 lg:col-span-3 p-10 text-center bg-white rounded-xl shadow-md">
-                                <p className="text-xl font-semibold text-gray-700">
-                                    No se encontraron servicios que coincidan con los filtros aplicados. 😔
-                                </p>
-                                <p className="text-gray-500 mt-2">
-                                    Intenta ajustar tu selección de categoría o clínica.
-                                </p>
-                            </div>
-                        )}
                     </div>
                 </div>
             </main>
