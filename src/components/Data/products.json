@@ -2,81 +2,163 @@
   {
     "id": 1,
     "name": "Comida Seca Premium para Perros",
-    "description": "Fórmula avanzada con pollo y arroz, ideal para perros adultos de razas medianas. Contiene vitaminas A, E y omega-3.",
-    "price": 45.99,
-    "category": "Alimento",
-    "type": "Concentrado",
+    "description": "Fórmula avanzada con pollo y arroz, ideal para perros adultos de razas medianas.",
+    "price": 45990,
+    "subcategories": "Concentrado",
     "brand": "HILLS",
     "imageUrl": "https://placehold.co/400x300/a3e1ff/000000?text=Comida+Seca+Premium"
   },
   {
     "id": 2,
     "name": "Juguete Dispensador de Premios",
-    "description": "Juguete interactivo que estimula mentalmente a tu mascota. Perfecto para razas pequeñas y medianas. Fácil de limpiar.",
-    "price": 12.50,
-    "category": "Juguetes",
-    "type": "Interactivo",
+    "description": "Juguete interactivo que estimula mentalmente a tu mascota.",
+    "price": 12500,
+    "subcategories": "Interactivo",
     "brand": "CHUNKY",
     "imageUrl": "https://placehold.co/400x300/b8e8b8/000000?text=Juguete+Interactivo"
   },
   {
     "id": 3,
     "name": "Champú Hipoalergénico",
-    "description": "Fórmula suave con avena, ideal para pieles sensibles y cachorros. Deja el pelaje brillante y sedoso.",
-    "price": 18.75,
-    "category": "Higiene",
-    "type": "Líquido",
+    "description": "Fórmula suave con avena, ideal para pieles sensibles y cachorros.",
+    "price": 18750,
+    "subcategories": "Líquido",
     "brand": "HILLS",
     "imageUrl": "https://placehold.co/400x300/f7d3e2/000000?text=Champú+Hipoalergénico"
   },
   {
     "id": 4,
     "name": "Cama Ortopédica Grande",
-    "description": "Cama de espuma viscoelástica, perfecta para perros mayores con problemas articulares. Cubierta lavable.",
-    "price": 89.99,
-    "category": "Camas",
-    "type": "Memoria",
+    "description": "Cama de espuma viscoelástica, perfecta para perros mayores con problemas articulares.",
+    "price": 89990,
+    "subcategories": "Memoria",
     "brand": "CHUNKY",
     "imageUrl": "https://placehold.co/400x300/c7c7f7/000000?text=Cama+Ortopédica"
   },
   {
     "id": 5,
     "name": "Snacks de Salmón Naturales",
-    "description": "100% salmón deshidratado, sin aditivos ni conservantes. Alto en omega-3. Ideal como recompensa de entrenamiento.",
-    "price": 24.90,
-    "category": "Alimento",
-    "type": "Natural",
+    "description": "100% salmón deshidratado, sin aditivos ni conservantes.",
+    "price": 24900,
+    "subcategories": "Natural",
     "brand": "HILLS",
     "imageUrl": "https://placehold.co/400x300/ffd8a6/000000?text=Snacks+Salmón"
   },
   {
     "id": 6,
     "name": "Plato de Cerámica Antivuelco",
-    "description": "Diseño ergonómico y pesado para evitar que el perro o gato lo mueva. Apto para lavavajillas.",
-    "price": 9.99,
-    "category": "Accesorios",
-    "type": "Fijo",
+    "description": "Diseño ergonómico y pesado para evitar que el perro o gato lo mueva.",
+    "price": 9990,
+    "subcategories": "Fijo",
     "brand": "GENERIC",
     "imageUrl": "https://placehold.co/400x300/e9ffcf/000000?text=Plato+Cerámica"
   },
   {
     "id": 7,
     "name": "Rascador para Gatos de Tres Niveles",
-    "description": "Estructura alta con múltiples postes de sisal y plataformas de descanso. Incluye un pequeño nido.",
-    "price": 59.99,
-    "category": "Juguetes",
-    "type": "Vertical",
+    "description": "Estructura alta con múltiples postes de sisal y plataformas de descanso.",
+    "price": 59990,
+    "subcategories": "Vertical",
     "brand": "GENERIC",
     "imageUrl": "https://placehold.co/400x300/ffb3ba/000000?text=Rascador+Gatos"
   },
   {
     "id": 8,
     "name": "Comida Húmeda de Pavo (Pack)",
-    "description": "Pack de 6 latas de pavo y vegetales. Alta palatabilidad y fácil digestión. Ideal para perros exigentes.",
-    "price": 29.99,
-    "category": "Alimento",
-    "type": "Húmedo",
+    "description": "Pack de 6 latas de pavo y vegetales.",
+    "price": 29990,
+    "subcategories": "Húmedo",
     "brand": "CHUNKY",
     "imageUrl": "https://placehold.co/400x300/a3e1ff/000000?text=Comida+Húmeda+Pavo"
+  },
+  {
+    "id": 9,
+    "name": "Arena Sanitaria Aglomerante",
+    "description": "Arena de bentonita con control de olor avanzado.",
+    "price": 32500,
+    "subcategories": "Mineral",
+    "brand": "GENERIC",
+    "imageUrl": "https://placehold.co/400x300/c0c0c0/000000?text=Arena+Sanitaria"
+  },
+  {
+    "id": 10,
+    "name": "Collar de Cuero Reforzado",
+    "description": "Collar de cuero genuino con hebilla de alta resistencia.",
+    "price": 41200,
+    "subcategories": "Paseo",
+    "brand": "CHUNKY",
+    "imageUrl": "https://placehold.co/400x300/a0522d/ffffff?text=Collar+Cuero"
+  },
+  {
+    "id": 11,
+    "name": "Transportadora Rígida para Viaje",
+    "description": "Transportadora de plástico resistente, aprobada por aerolíneas.",
+    "price": 68990,
+    "subcategories": "Viaje",
+    "brand": "HILLS",
+    "imageUrl": "https://placehold.co/400x300/808080/ffffff?text=Transportadora"
+  },
+  {
+    "id": 12,
+    "name": "Pelota de Goma Ultrarresistente",
+    "description": "Pelota maciza de goma natural, indestructible.",
+    "price": 14990,
+    "subcategories": "Masticación",
+    "brand": "HILLS",
+    "imageUrl": "https://placehold.co/400x300/ff6347/ffffff?text=Pelota+Resistente"
+  },
+  {
+    "id": 13,
+    "name": "Comida Seca Senior (Bajo en Calorías)",
+    "description": "Dieta balanceada baja en grasas y alta en fibra.",
+    "price": 51500,
+    "subcategories": "Concentrado",
+    "brand": "CHUNKY",
+    "imageUrl": "https://placehold.co/400x300/4682b4/ffffff?text=Comida+Senior"
+  },
+  {
+    "id": 14,
+    "name": "Cepillo Deslanador Profesional",
+    "description": "Herramienta para reducir la muda de pelo hasta en un 90%.",
+    "price": 27800,
+    "subcategories": "Cepillado",
+    "brand": "GENERIC",
+    "imageUrl": "https://placehold.co/400x300/a0a0a0/ffffff?text=Cepillo+Deslanador"
+  },
+  {
+    "id": 15,
+    "name": "Manta Térmica Impermeable",
+    "description": "Material doble capa, cálido e impermeable.",
+    "price": 38900,
+    "subcategories": "Protección",
+    "brand": "HILLS",
+    "imageUrl": "https://placehold.co/400x300/778899/ffffff?text=Manta+Térmica"
+  },
+  {
+    "id": 16,
+    "name": "Comida Húmeda para Gatos (Atún)",
+    "description": "Receta gourmet de atún en salsa, fortificada con taurina.",
+    "price": 15000,
+    "subcategories": "Húmedo",
+    "brand": "GENERIC",
+    "imageUrl": "https://placehold.co/400x300/00ced1/ffffff?text=Comida+Gato+Atún"
+  },
+  {
+    "id": 17,
+    "name": "Hueso de Nylon Sabor Pollo",
+    "description": "Juguete de larga duración para satisfacer la necesidad de masticación.",
+    "price": 11500,
+    "subcategories": "Masticación",
+    "brand": "CHUNKY",
+    "imageUrl": "https://placehold.co/400x300/f0e68c/000000?text=Hueso+Nylon"
+  },
+  {
+    "id": 18,
+    "name": "Bebedero Automático de Fuente",
+    "description": "Mantiene el agua fresca y circulando.",
+    "price": 49990,
+    "subcategories": "Automático",
+    "brand": "HILLS",
+    "imageUrl": "https://placehold.co/400x300/add8e6/000000?text=Bebedero+Fuente"
   }
 ]

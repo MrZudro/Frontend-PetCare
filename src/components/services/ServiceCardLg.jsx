@@ -1,20 +1,19 @@
 import React from 'react';
 import ProductCardLg from '../products/ProductCardLg'; 
 
-/**
- * Adaptador que reutiliza ProductCardLg para Servicios.
- * * CAMBIO CLAVE: Asigna service.clinicName a la propiedad 'category' 
- * para que ProductCardLg muestre el nombre de la veterinaria 
- * en el lugar donde normalmente iría la categoría.
- */
+
 const ServiceCardLg = ({ service, onQuickView, onToggleWishlist, isWishlisted }) => {
     
     // Adaptamos el servicio al shape del producto.
     const adaptedService = {
         ...service,
-        // 🌟 CAMBIO CLAVE: Reemplazar la 'category' real por el nombre de la clínica
-        // Esto asume que ProductCardLg renderiza 'category' en una posición visible.
-        category: service.clinicName || "Clínica Asociada",
+        // 🌟 CORRECCIÓN CLAVE: Asignar el nombre de la clínica a 'subcategories' 🌟
+        // para que se renderice como la etiqueta de color.
+        subcategories: service.clinicName || "Clínica Asociada",
+        
+        // La 'category' original del servicio puede ser nula o "Servicio" si es necesario, 
+        // pero ProductCardLg esperará una cadena.
+        category: "Servicio", // Opcional: Puedes dejarlo en blanco o poner un valor genérico.
         
         // Forzamos un precio para que el componente ProductCardLg no falle, aunque lo ocultaremos
         price: 0.00, 
@@ -23,7 +22,8 @@ const ServiceCardLg = ({ service, onQuickView, onToggleWishlist, isWishlisted })
     return (
         <div className="service-card"> {/* Clase de identificación */}
             
-            {/* INYECCIÓN DE CSS NECESARIA PARA OCULTAR ELEMENTOS EN LA TARJETA BASE */}
+            {/* 🚨 CSS ELIMINADO: Ya no necesitamos sobrescribir estilos para la 'category' */}
+            {/* El estilo de la etiqueta de subcategoría (clinicName) será el predeterminado de ProductCardLg */}
             <style>{`
                 /* Oculta el precio en la tarjeta */
                 .service-card .text-xl.font-bold { 
@@ -40,17 +40,18 @@ const ServiceCardLg = ({ service, onQuickView, onToggleWishlist, isWishlisted })
                     padding-top: 0 !important;
                     margin-top: 0 !important;
                 }
-                /* Estilos opcionales para destacar el clinicName */
-                .service-card .text-sm.font-medium.text-gray-500 {
-                    font-weight: 600 !important; /* Semi-negrita */
-                    color: #4f46e5 !important; /* Color índigo */
-                }
+                /* Ya no necesitamos sobrescribir el estilo de la categoría */
+                /* .service-card .text-sm.font-medium.text-gray-500 {
+                    font-weight: 600 !important;
+                    color: #4f46e5 !important;
+                } */
             `}</style>
 
             <ProductCardLg 
                 product={adaptedService} 
                 onQuickView={onQuickView}
                 onToggleWishlist={onToggleWishlist}
+                onRemove={() => {}} // Añadir onRemove dummy para evitar errores si ProductCardLg lo espera
                 isWishlisted={isWishlisted}
             />
         </div>
