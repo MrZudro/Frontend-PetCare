@@ -33,7 +33,7 @@ const ProductCardLg = ({ product, onQuickView, onToggleWishlist, isWishlisted })
                 />
                 
                 <span className="absolute top-2 left-2 px-3 py-1 text-xs font-semibold rounded-full bg-indigo-500 text-white shadow-md">
-                    {product.category}
+                    {product.subcategories}
                 </span>
             </div>
 
