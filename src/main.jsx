@@ -7,6 +7,27 @@ import './index.css'
 
 //Paginas completas con las rutas
 import HomeMq from './pages/HomeMq';
+import Layout from './components/layout/Layout';
+import WishlistMq from './pages/WishlistMq';
+
+//Aqui se asignan las rutas, al final del desarrollo se agregara la seguridad
+const rutas = createBrowserRouter([
+  {
+    path: '/',
+    element: (
+      <Layout>
+        <HomeMq />
+      </Layout>
+    ),
+  },
+  {
+    path: '/wishlist',
+    element:(
+      <Layout>
+        <WishlistMq/>
+      </Layout>
+    )
+  }
 import VeterinaryLw from './pages/VeterinaryLw';
 import ProductsLg from './pages/ProductsLg';
 import ServicesLg from './pages/ServicesLg';
@@ -24,5 +45,5 @@ const rutas = createBrowserRouter([
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <RouterProvider router={rutas}/>
-  </StrictMode>,
+  </StrictMode>
 )
