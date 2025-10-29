@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "name": "Comida Seca Premium para Perros",
+    "description": "Fórmula avanzada con pollo y arroz, ideal para perros adultos de razas medianas. Contiene vitaminas A, E y omega-3.",
+    "price": 45.99,
+    "category": "Alimento",
+    "type": "Concentrado",
+    "brand": "HILLS",
+    "imageUrl": "https://placehold.co/400x300/a3e1ff/000000?text=Comida+Seca+Premium"
+  },
+  {
+    "id": 2,
+    "name": "Juguete Dispensador de Premios",
+    "description": "Juguete interactivo que estimula mentalmente a tu mascota. Perfecto para razas pequeñas y medianas. Fácil de limpiar.",
+    "price": 12.50,
+    "category": "Juguetes",
+    "type": "Interactivo",
+    "brand": "CHUNKY",
+    "imageUrl": "https://placehold.co/400x300/b8e8b8/000000?text=Juguete+Interactivo"
+  },
+  {
+    "id": 3,
+    "name": "Champú Hipoalergénico",
+    "description": "Fórmula suave con avena, ideal para pieles sensibles y cachorros. Deja el pelaje brillante y sedoso.",
+    "price": 18.75,
+    "category": "Higiene",
+    "type": "Líquido",
+    "brand": "HILLS",
+    "imageUrl": "https://placehold.co/400x300/f7d3e2/000000?text=Champú+Hipoalergénico"
+  },
+  {
+    "id": 4,
+    "name": "Cama Ortopédica Grande",
+    "description": "Cama de espuma viscoelástica, perfecta para perros mayores con problemas articulares. Cubierta lavable.",
+    "price": 89.99,
+    "category": "Camas",
+    "type": "Memoria",
+    "brand": "CHUNKY",
+    "imageUrl": "https://placehold.co/400x300/c7c7f7/000000?text=Cama+Ortopédica"
+  },
+  {
+    "id": 5,
+    "name": "Snacks de Salmón Naturales",
+    "description": "100% salmón deshidratado, sin aditivos ni conservantes. Alto en omega-3. Ideal como recompensa de entrenamiento.",
+    "price": 24.90,
+    "category": "Alimento",
+    "type": "Natural",
+    "brand": "HILLS",
+    "imageUrl": "https://placehold.co/400x300/ffd8a6/000000?text=Snacks+Salmón"
+  },
+  {
+    "id": 6,
+    "name": "Plato de Cerámica Antivuelco",
+    "description": "Diseño ergonómico y pesado para evitar que el perro o gato lo mueva. Apto para lavavajillas.",
+    "price": 9.99,
+    "category": "Accesorios",
+    "type": "Fijo",
+    "brand": "GENERIC",
+    "imageUrl": "https://placehold.co/400x300/e9ffcf/000000?text=Plato+Cerámica"
+  },
+  {
+    "id": 7,
+    "name": "Rascador para Gatos de Tres Niveles",
+    "description": "Estructura alta con múltiples postes de sisal y plataformas de descanso. Incluye un pequeño nido.",
+    "price": 59.99,
+    "category": "Juguetes",
+    "type": "Vertical",
+    "brand": "GENERIC",
+    "imageUrl": "https://placehold.co/400x300/ffb3ba/000000?text=Rascador+Gatos"
+  },
+  {
+    "id": 8,
+    "name": "Comida Húmeda de Pavo (Pack)",
+    "description": "Pack de 6 latas de pavo y vegetales. Alta palatabilidad y fácil digestión. Ideal para perros exigentes.",
+    "price": 29.99,
+    "category": "Alimento",
+    "type": "Húmedo",
+    "brand": "CHUNKY",
+    "imageUrl": "https://placehold.co/400x300/a3e1ff/000000?text=Comida+Húmeda+Pavo"
+  }
+]
