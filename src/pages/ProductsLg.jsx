@@ -39,11 +39,11 @@ const filterProducts = (products, filterState) => {
         return products;
     }
 
-    returproducts.filter(product => {
+    return products.filter(product => {
         let passesCategory = true;
         let passesSubcategory = true;
         let passesBrand = true;
-        let passesSearch = true;
+        let passesSearch = true; 
         const productSubcategory = product.subcategories; 
 
         if (activeCategories.length > 0) {
