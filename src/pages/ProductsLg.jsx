@@ -38,7 +38,7 @@ const filterProducts = (products, filterState) => {
         return products;
     }
 
-    return products.filter(product => {
+    returproducts.filter(product => {
         let passesCategory = true;
         let passesSubcategory = true;
         let passesBrand = true;
