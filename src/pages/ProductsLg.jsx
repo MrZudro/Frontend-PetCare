@@ -1,13 +1,17 @@
 import React, { useState, useMemo } from 'react';
+// Rutas de importación ajustadas asumiendo una estructura relativa
 import ProductCard from '../components/products/ProductCardLg';
 import QuickViewModal from '../components/products/QuickViewModalLg';
 import FilterSidebarLg from '../components/common/FilterSidebarLg';
+// Importamos PaginacionLg para mantener la coherencia si lo agregas de nuevo
+// import Pagination from '../common/PaginacionLg'; 
 import initialProducts from '../components/Data/products.json'; 
 import categoriesMap from '../components/Data/categories.json'; 
 
 
-// --- [ LÓGICA DE ORDENAMIENTO ] ---
+// --- [ LÓGICA DE ORDENAMIENTO y FILTRADO - (Sin Cambios) ] ---
 const sortProducts = (products, sortKey) => {
+    // ... (Tu lógica de sort) ...
     if (!sortKey || sortKey === 'default') {
         return products;
     }
@@ -18,22 +22,19 @@ const sortProducts = (products, sortKey) => {
         case 'price-desc':
             return sorted.sort((a, b) => b.price - a.price);
         case 'rating-desc':
-            // Si no hay 'rating' real, se ordena por nombre
             return sorted.sort((a, b) => a.name.localeCompare(b.name));
         default:
             return products;
     }
 };
 
-// --- [ LÓGICA DE FILTRADO CORREGIDA ] ---
 const filterProducts = (products, filterState) => {
-    // 1. Extraer los filtros activos como ARRAYS de nombres
+    // ... (Tu lógica de filter) ...
     const activeCategories = filterState.filters.category || [];
     const activeSubcategories = filterState.filters.subcategories || [];
     const activeBrands = filterState.filters.brand || [];
     const searchTerm = filterState.searchTerm?.toLowerCase() || '';
 
-    // Si no hay filtros o búsqueda, retornar todos los productos
     if (activeCategories.length === 0 && activeSubcategories.length === 0 && activeBrands.length === 0 && !searchTerm) {
         return products;
     }
@@ -43,48 +44,58 @@ const filterProducts = (products, filterState) => {
         let passesSubcategory = true;
         let passesBrand = true;
         let passesSearch = true;
-
-        // 🚨 CORRECCIÓN: Usar 'subcategories' en lugar de 'type'
         const productSubcategory = product.subcategories; 
 
-        // --- Criterios de Filtrado ---
-
-        // 1. Filtrar por Categoría (Radio Button - array de 0 o 1 elemento)
         if (activeCategories.length > 0) {
             const activeCategoryName = activeCategories[0];
-            // 🎯 Buscar en la clave 'subcategories' del mapa
             const productCategory = categoriesMap.find(c => c.subcategories.includes(productSubcategory))?.categoryName;
             passesCategory = (productCategory === activeCategoryName);
         }
-
-        // 2. Filtrar por Subcategoría (Checkbox - array de 0 o más elementos)
         if (activeSubcategories.length > 0) {
             passesSubcategory = activeSubcategories.includes(productSubcategory);
         }
-
-        // 3. Filtrar por Marca (Radio Button - array de 0 o 1 elemento)
         if (activeBrands.length > 0) {
             passesBrand = activeBrands.includes(product.brand);
         }
-
-        // 4. Filtrar por Búsqueda de Texto
         if (searchTerm) {
             passesSearch = product.name.toLowerCase().includes(searchTerm) ||
                 (product.description && product.description.toLowerCase().includes(searchTerm));
         }
-
-        // El producto debe pasar TODOS los filtros activos
         return passesCategory && passesSubcategory && passesBrand && passesSearch;
     });
 };
 
 
+// 💡 Función auxiliar para cargar la lista de deseos desde LocalStorage
+const loadWishlistFromLocalStorage = () => {
+    try {
+        const storedWishlist = localStorage.getItem('wishlistIds');
+        // Devuelve el array de IDs parseado o un array vacío si no existe
+        return storedWishlist ? JSON.parse(storedWishlist) : [];
+    } catch (error) {
+        console.error("Error al cargar la lista de deseos del LocalStorage", error);
+        return [];
+    }
+};
+
+// 💡 Función auxiliar para guardar la lista de deseos en LocalStorage
+const saveWishlistToLocalStorage = (wishlistArray) => {
+    try {
+        localStorage.setItem('wishlistIds', JSON.stringify(wishlistArray));
+    } catch (error) {
+        console.error("Error al guardar la lista de deseos en el LocalStorage", error);
+    }
+};
+
+
 const ProductsLg = () => {
+    // 🌟 INICIALIZAR el estado de la lista de deseos desde LocalStorage 🌟
+    const [wishlist, setWishlist] = useState(loadWishlistFromLocalStorage);
+    
     // Estados de datos
     const [products] = useState(initialProducts);
     const [quickViewProduct, setQuickViewProduct] = useState(null);
-    const [wishlist, setWishlist] = useState([]);
-
+    
     // Estados de filtrado y ordenamiento
     const [sortKey, setSortKey] = useState('default');
     const [filterState, setFilterState] = useState({ filters: {}, searchTerm: '', mode: 'products' });
@@ -95,13 +106,23 @@ const ProductsLg = () => {
         setQuickViewProduct(product);
     };
 
+    // 🎯 MODIFICACIÓN: Actualiza el LocalStorage después de cambiar el estado 
     const handleToggleWishlist = (productId) => {
         setWishlist(prevWishlist => {
+            let newWishlist;
+            
             if (prevWishlist.includes(productId)) {
-                return prevWishlist.filter(id => id !== productId);
+                // Quitar ID
+                newWishlist = prevWishlist.filter(id => id !== productId);
             } else {
-                return [...prevWishlist, productId];
+                // Añadir ID
+                newWishlist = [...prevWishlist, productId];
             }
+            
+            // 🚨 Guardar la nueva lista en el LocalStorage inmediatamente después
+            saveWishlistToLocalStorage(newWishlist);
+            
+            return newWishlist;
         });
     };
 
@@ -124,10 +145,8 @@ const ProductsLg = () => {
     }, [products, filterState, sortKey]);
 
     
-    // 🌟 LÓGICA CLAVE: Ocultar filtro si hay 1 o 0 productos inicialmente 🌟
+    // LÓGICA DE LAYOUT
     const showFilterSidebar = products.length > 1; 
-
-    // Ajuste de la cuadrícula basado en la visibilidad del filtro
     const gridLayout = showFilterSidebar ? 'grid-cols-1 lg:grid-cols-4' : 'grid-cols-1';
     const contentSpan = showFilterSidebar ? 'lg:col-span-3' : 'lg:col-span-4';
 
@@ -145,22 +164,21 @@ const ProductsLg = () => {
             </header>
 
             <main className="max-w-screen-2xl mx-auto">
-                {/* 🌟 APLICACIÓN DEL LAYOUT DINÁMICO 🌟 */}
                 <div className={`grid ${gridLayout} gap-6`}>
 
-                    {/* 1. BARRA DE FILTROS: Renderizado Condicional */}
+                    {/* 1. BARRA DE FILTROS */}
                     {showFilterSidebar && (
                         <div className="lg:col-span-1">
                             <FilterSidebarLg
                                 onFilterChange={handleFilterChange}
                                 onSortChange={handleSortChange}
                                 totalResults={filteredAndSortedProducts.length}
-                                mode="products" // Se mantiene el modo 'products'
+                                mode="products"
                             />
                         </div>
                     )}
 
-                    {/* 2. CONTENIDO PRINCIPAL (Cuadrícula): Ajuste del Span */}
+                    {/* 2. CONTENIDO PRINCIPAL (Cuadrícula) */}
                     <div className={`${contentSpan}`}>
                         {filteredAndSortedProducts.length === 0 ? (
                             <div className="text-center p-12 bg-white rounded-xl shadow-lg mt-10 border border-gray-200">
@@ -168,7 +186,6 @@ const ProductsLg = () => {
                                 <p className="text-gray-500 mt-2">Intenta limpiar los filtros o ajusta tu búsqueda.</p>
                             </div>
                         ) : (
-                            // La cuadrícula interna no necesita cambiar el col-span, solo la clase contenedora externa
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
                                 {/* Mapea los productos */}
                                 {filteredAndSortedProducts.map(product => (
@@ -178,7 +195,8 @@ const ProductsLg = () => {
                                         onQuickView={handleQuickView}
                                         onRemove={handleRemoveProduct}
                                         onToggleWishlist={handleToggleWishlist}
-                                        isWishlisted={wishlist.includes(product.id)}
+                                        // La prop isWishlisted usa el estado cargado/actualizado
+                                        isWishlisted={wishlist.includes(product.id)} 
                                     />
                                 ))}
                             </div>
