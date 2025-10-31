@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function NavBarMq() {
-    const user = null; // Por ahora funcional, pero esto debe validar el localStorage
+    const user = true; // Por ahora funcional, pero esto debe validar el localStorage
     const [openMenu, setOpenMenu] = useState(false);
     const userData = {
         "name" : "Manuel",

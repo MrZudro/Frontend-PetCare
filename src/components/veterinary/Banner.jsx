@@ -1,15 +1,22 @@
-const Banner = () => {
+import React from 'react';
+
+/**
+ * Componente de Banner simple y reutilizable.
+ * Muestra un título centrado en una franja gris.
+ * * @param {object} props
+ * @param {string} props.title - El texto que se mostrará como título del banner.
+ */
+const Banner = ({ title }) => {
+  // Aseguramos que 'title' tenga un valor predeterminado si no se proporciona
+  const bannerTitle = title || "Título Predeterminado"; 
+
   return (
     // 1. Contenedor principal del Banner
-    // Se ha ajustado:
-    // - h-16 (Altura por defecto, móvil) -> h-24 (Altura en md/escritorio)
-    <div className="bg-gray-300 h-30 flex justify-center items-center sm:h-20 md:h-40">  
+    <div className="bg-gray-300 h-32 flex justify-center items-center sm:h-20 md:h-40"> 
         {/* 2. Área del Texto (Título) */}
-        {/* Se ha ajustado:
-            - text-xl (Fuente por defecto, móvil) -> text-2xl (Fuente en md/escritorio) 
-        */}
-        <h1 className="text-black text-xl font-bold sm:text-2xl">
-          Veterinarias
+        {/* TAMAÑO DE FUENTE AUMENTADO: text-2xl por defecto, sm:text-4xl en pantallas grandes */}
+        <h1 className="text-black text-2xl font-bold sm:text-4xl">
+          {bannerTitle}
         </h1>
     </div>
   );

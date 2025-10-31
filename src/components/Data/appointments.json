@@ -1,0 +1,22 @@
+[
+    {
+        "id": 1,
+        "serviceId": 1,
+        "serviceName": "Consulta Veterinaria General",
+        "clinicName": "Vet Pet Amigos",
+        "date": "2025-11-15",
+        "time": "10:00",
+        "professional": "Dr. López",
+        "status": "Confirmed"
+    },
+    {
+        "id": 2,
+        "serviceId": 2,
+        "serviceName": "Baño y Peluquería Premium",
+        "clinicName": "Estética Canina Guapos",
+        "date": "2025-12-05",
+        "time": "16:30",
+        "professional": "Dra. García",
+        "status": "Pending"
+    }
+]

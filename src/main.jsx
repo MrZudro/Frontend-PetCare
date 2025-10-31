@@ -1,30 +1,77 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-//Raiz de Tailwind
-import './index.css'
+// Raíz de Tailwind
+import './index.css';
 
-//Paginas completas con las rutas
+// Páginas
 import HomeMq from './pages/HomeMq';
+import WishlistMq from './pages/WishlistMq';
 import VeterinaryLw from './pages/VeterinaryLw';
 import ProductsLg from './pages/ProductsLg';
 import ServicesLg from './pages/ServicesLg';
 import FormPets from './components/formPets/FormPets';
 import BuyCartTL from './pages/BuyCartTL';
 
-//Aqui se asignan las rutas, al final del desarrollo se agregara la seguridad
+// Componentes
+import Layout from './components/layout/Layout';
+
+// Aquí se asignan las rutas
 const rutas = createBrowserRouter([
-  { path:'/', element:<HomeMq/>},
-  {path:'/veterinary', element:<VeterinaryLw/>},
-  { path:'/products', element:<ProductsLg/>},
-  { path:'/services', element:<ServicesLg/>},
-  { path:'/pets', element:<FormPets/>},
-  { path:'/cart', element:<BuyCartTL/>}
+  {
+    path: '/',
+    element: (
+      <Layout>
+        <HomeMq />
+      </Layout>
+    ),
+  },
+  {
+    path: '/wishlist',
+    element: (
+      <Layout>
+        <WishlistMq />
+      </Layout>
+    ),
+  },
+  {
+    path: '/veterinary',
+    element: (
+      <Layout>
+        <VeterinaryLw />
+      </Layout>
+    ),
+  },
+  {
+    path: '/products',
+    element: (
+      <Layout>
+        <ProductsLg />
+      </Layout>
+    ),
+  },
+  {
+    path: '/services',
+    element: (
+      <Layout>
+        <ServicesLg />
+      </Layout>
+    ),
+  },
+  {
+    path: '/pets',
+    element: (
+      <Layout>
+        <FormPets />
+      </Layout>
+    ),
+  },
 ]);
 
+// Renderizado de la aplicación
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RouterProvider router={rutas}/>
-  </StrictMode>,
-)
+    <RouterProvider router={rutas} />
+  </StrictMode>
+);

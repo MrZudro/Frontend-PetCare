@@ -4,7 +4,7 @@ import NavBarMq from "../components/ui/NavBarMq";
 export default function HomeMq() {
     return (
     <>
-        <NavBarMq/>
+        
         <div className="w-screen h-screen flex items-center justify-center bg-fondo">
             <div className="flex flex-col items-center justify-center bg-acento-secundario w-80 h-90 rounded-2xl shadow-card gap-4 p-5">
                 
@@ -13,7 +13,7 @@ export default function HomeMq() {
                 <button className="bg-primary hover:bg-primary-hover w-20 h-10 rounded-3xl"> Click me</button>
             </div>
         </div>
-        <FooterMq/>
+        
     </>
     )
 }
