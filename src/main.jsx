@@ -12,6 +12,7 @@ import VeterinaryLw from './pages/VeterinaryLw';
 import ProductsLg from './pages/ProductsLg';
 import ServicesLg from './pages/ServicesLg';
 import FormPets from './components/formPets/FormPets';
+import BuyCartTL from './pages/BuyCartTL';
 
 // Componentes
 import Layout from './components/layout/Layout';
