@@ -1,0 +1,62 @@
+[
+  {
+    "id": 201,
+    "id_pet": 7,
+    "id_employee": 1,
+    "id_clinic": 10,
+    "created_date": "2024-06-01T11:30:00Z",
+    "reason": "Chequeo general de rutina y control de peso.",
+    "weight": "8.1",
+    "temperature": "38.5",
+    "physical_examination": "Mucosas rosadas, FC: 110, FR: 25. Palpación abdominal sin dolor.",
+    "diagnosis": "Saludable. Leve sobrepeso.",
+    "treatment": "Ajuste de dieta a ración de 280g/día. Control en 3 meses.",
+    "observation": "Mascota activa y amigable. Propietario comprometido.",
+    "state": "Finalizada"
+  },
+  {
+    "id": 202,
+    "id_pet": 7,
+    "id_employee": 3,
+    "id_clinic": 11,
+    "created_date": "2024-04-12T15:00:00Z",
+    "reason": "Revisión por cojera intermitente en pata delantera izquierda.",
+    "weight": "8.0",
+    "temperature": "38.8",
+    "physical_examination": "Dolor leve a la extensión de la articulación del codo izquierdo.",
+    "diagnosis": "Posible Esguince de codo.",
+    "treatment": "Antiinflamatorio (Meloxicam 2mg) por 5 días. Reposo estricto.",
+    "observation": "Se le dio al propietario instrucciones claras sobre el reposo.",
+    "state": "Finalizada"
+  },
+  {
+    "id": 203,
+    "id_pet": 7,
+    "id_employee": 1,
+    "id_clinic": 10,
+    "created_date": "2023-12-05T09:00:00Z",
+    "reason": "Control post-operatorio de limpieza dental.",
+    "weight": "8.3",
+    "temperature": "38.3",
+    "physical_examination": "Encías sanas, suturas de extracciones en buen estado.",
+    "diagnosis": "Recuperación exitosa.",
+    "treatment": "Dieta blanda por 3 días más.",
+    "observation": "Sin infección visible. Se recomienda cepillado diario.",
+    "state": "Finalizada"
+  },
+  {
+    "id": 204,
+    "id_pet": 2,
+    "id_employee": 2,
+    "id_clinic": 12,
+    "created_date": "2024-05-20T16:00:00Z",
+    "reason": "Vómitos y diarrea de 24 horas de evolución.",
+    "weight": "4.5",
+    "temperature": "39.5",
+    "physical_examination": "Deshidratación leve. Abdomen tenso.",
+    "diagnosis": "Gastroenteritis aguda.",
+    "treatment": "Suero subcutáneo y antibiótico oral. Dieta de ayuno 12h.",
+    "observation": "Mascota letárgica. Necesita seguimiento.",
+    "state": "Finalizada"
+  }
+]
