@@ -1,195 +1,89 @@
-import React, { useState, useEffect } from 'react';
-import ChangePassword_Xh from '../Xiomara/CambioContraseña/ChangePassword_Xh';
+import { useEffect, useState } from "react";
+import FormProfileXh from "./FormProfileXh";
+import ChangePasswordXh from "../FormUserConfig/ChangePasswordXh";
+import DeleteXh from "../FormUserConfig/DeleteXh";
+import ModalXh from "../FormUserConfig/ModalXh";
 
 export default function ConfigurationXh() {
-  const [mostrarCambio, setMostrarCambio] = useState(false);
-  const [foto, setFoto] = useState(null);
-  const [formData, setFormData] = useState({
-    nombre: '',
-    apellido: '',
-    correo: '',
-    telefono: '',
-    fecha: '',
-    direccion: ''
-  });
-  
+
+  const [userData, setUserData] = useState(null);
+  const [showModalXh, setShowModalXh] = useState(false);
+  const [showChangePasswordXh, setShowChangePasswordXh] = useState(false);
+  const [showDeleteXh, setShowDeleteXh] = useState(false);
+
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const res = await fetch("/api/user");
+      const data = await res.json();
+      setUserData(data);
+    };
+    fetchUser();
+  }, []);
+
+
+  const handleUpdateProfile = async (updatedForm) => {
+    const res = await fetch("/api/user", {
+      method: "PUT",
+      body: JSON.stringify(updatedForm),
+      headers: { "Content-Type": "application/json" }
+    });
+
+    const data = await res.json();
+    setUserData(data);
+    setShowModalXh(false);
+  };
+
+  if (!userData) return <p>Cargando datos...</p>;
+
   return (
-    <div className="w-full min-h-screen flex justify-center items-start bg-gray-50 py-10 px-4">
-      {!mostrarCambio ? (
-        <div className="w-full max-w-3xl bg-white shadow-lg rounded-2xl p-8 space-y-8">
-          <h2 className="text-2xl font-bold text-gray-800 text-center">
-            Información Personal
-          </h2>
+    <div className="w-full flex flex-col items-center">
 
-          <div className="flex flex-col items-center space-y-3">
-            <div className="relative w-32 h-32">
-              {foto ? (
-                <img
-                  src={foto}
-                  alt="Perfil"
-                  className="w-full h-full object-cover rounded-full border-4 border-gray-200"
-                />
-              ) : (
-                <span className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-400 bg-gray-100 rounded-full border-2 border-dashed">
-                  +
-                </span>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImagen}
-                className="absolute inset-0 opacity-0 cursor-pointer"
-              />
-            </div>
-            <p className="text-sm text-gray-500">
-              Haz clic para cambiar tu foto de perfil
-            </p>
-          </div>
+      <FormProfileXh
+        userData={userData}
+        onUpdate={(form) => {
+          setShowModalXh(true);
+          setUserData(form);
+        }}
+        onChangePassword={() => setShowChangePasswordXh(true)}
+        onDeleteAccount={() => setShowDeleteXh(true)}
+      />
 
-          <div className="space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="nombre" className="block text-sm font-medium text-gray-700">
-                  Nombre
-                </label>
-                <input
-                  id="nombre"
-                  type="text"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-              <div>
-                <label htmlFor="apellido" className="block text-sm font-medium text-gray-700">
-                  Apellido
-                </label>
-                <input
-                  id="apellido"
-                  type="text"
-                  value={formData.apellido}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="correo" className="block text-sm font-medium text-gray-700">
-                  Correo Electrónico
-                </label>
-                <input
-                  id="correo"
-                  type="email"
-                  value={formData.correo}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-              <div>
-                <label htmlFor="telefono" className="block text-sm font-medium text-gray-700">
-                  Teléfono
-                </label>
-                <input
-                  id="telefono"
-                  type="text"
-                  value={formData.telefono}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="fecha" className="block text-sm font-medium text-gray-700">
-                  Fecha de Nacimiento
-                </label>
-                <input
-                  id="fecha"
-                  type="date"
-                  value={formData.fecha}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-              <div>
-                <label htmlFor="direccion" className="block text-sm font-medium text-gray-700">
-                  Dirección
-                </label>
-                <input
-                  id="direccion"
-                  type="text"
-                  value={formData.direccion}
-                  onChange={handleChange}
-                  className="mt-1 w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap justify-between items-center pt-6 gap-4">
-            <button
-              className="px-5 py-2 rounded-xl border border-indigo-600 text-indigo-600 hover:bg-indigo-50 transition font-medium"
-              onClick={() => setMostrarCambio(true)}
-            >
-              Cambiar Contraseña
-            </button>
-
-            <div className="flex gap-4">
-              <button
-                onClick={() => setModal({ tipo: 'actualizar', abierto: true })}
-                className="px-5 py-2 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition"
-              >
-                Guardar Cambios
-              </button>
-
-              <button
-                onClick={() => setModal({ tipo: 'eliminar', abierto: true })}
-                className="px-5 py-2 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition"
-              >
-                Eliminar Cuenta
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <ChangePassword_Xh volver={() => setMostrarCambio(false)} />
+      {showModalXh && (
+        <ModalXh
+          message="¿Confirmas guardar los cambios?"
+          onConfirm={() => handleUpdateProfile(userData)}
+          onClose={() => setShowModalXh(false)}
+        />
       )}
 
+      {showChangePasswordXh && (
+        <ChangePasswordXh
+          onClose={() => setShowChangePasswordXh(false)}
+          onSubmit={async (passwordData) => {
+            await fetch("/api/user/password", {
+              method: "PUT",
+              body: JSON.stringify(passwordData),
+              headers: { "Content-Type": "application/json" }
+            });
+            setShowChangePasswordXh(false);
+          }}
+        />
+      )}
 
-      {modal.abierto && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-80 text-center">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              {modal.tipo === 'actualizar'
-                ? '¿Confirmas actualizar tu información?'
-                : '¿Seguro que deseas eliminar tu cuenta?'}
-            </h3>
-            <div className="flex justify-center gap-3 mt-4">
-              <button
-                onClick={() =>
-                  modal.tipo === 'actualizar' ? handleActualizar() : handleEliminar()
-                }
-                className={`px-4 py-2 rounded-lg text-white font-medium ${
-                  modal.tipo === 'actualizar'
-                    ? 'bg-indigo-600 hover:bg-indigo-700'
-                    : 'bg-red-600 hover:bg-red-700'
-                }`}
-              >
-                Confirmar
-              </button>
-              <button
-                onClick={() => setModal({ tipo: null, abierto: false })}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100"
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
+      {showDeleteXh && (
+        <DeleteXh
+          onClose={() => setShowDeleteXh(false)}
+          onConfirm={() => {
+            fetch("/api/user/delete", { method: "POST" });
+            setShowDeleteXh(false);
+          }}
+        />
       )}
     </div>
   );
 }
+
+
+
+
