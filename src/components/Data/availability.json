@@ -1,0 +1,170 @@
+[
+    {
+        "clinicName": "Vet Pet Amigos",
+        "services": [
+            {
+                "serviceName": "Consulta Veterinaria General",
+                "availability": [
+                    {
+                        "date": "2025-11-01",
+                        "slots": [
+                            { "time": "09:00", "professional": "Dr. López (General)" },
+                            { "time": "11:30", "professional": "Dra. García (General)" },
+                            { "time": "14:00", "professional": "Dr. López (General)" },
+                            { "time": "16:30", "professional": "Dra. García (General)" }
+                        ]
+                    },
+                    {
+                        "date": "2025-11-02",
+                        "slots": [
+                            { "time": "10:00", "professional": "Dra. García (General)" },
+                            { "time": "15:00", "professional": "Dr. López (General)" }
+                        ]
+                    },
+                    {
+                        "date": "2025-11-04",
+                        "slots": [
+                            { "time": "08:00", "professional": "Dr. López (General)" }
+                        ]
+                    }
+                ]
+            },
+            {
+                "serviceName": "Entrenamiento de Obediencia",
+                "availability": [
+                    {
+                        "date": "2025-11-01",
+                        "slots": [
+                            { "time": "16:00", "professional": "Entr. Sofía (Obediencia)" },
+                            { "time": "17:30", "professional": "Entr. Juan (Obediencia)" }
+                        ]
+                    },
+                    {
+                        "date": "2025-11-03",
+                        "slots": [
+                            { "time": "10:00", "professional": "Entr. Sofía (Obediencia)" }
+                        ]
+                    }
+                ]
+            },
+            {
+                "serviceName": "Fisioterapia y Rehabilitación",
+                "availability": [
+                    {
+                        "date": "2025-11-04",
+                        "slots": [
+                            { "time": "08:30", "professional": "Fisio. David (Rehab.)" },
+                            { "time": "10:30", "professional": "Fisio. María (Rehab.)" },
+                            { "time": "11:30", "professional": "Fisio. David (Rehab.)" },
+                            { "time": "13:30", "professional": "Fisio. María (Rehab.)" }
+                        ]
+                    },
+                    {
+                        "date": "2025-11-05",
+                        "slots": [
+                            { "time": "14:00", "professional": "Fisio. María (Rehab.)" }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "clinicName": "Estética Canina Guapos",
+        "services": [
+            {
+                "serviceName": "Baño y Peluquería Premium",
+                "availability": [
+                    {
+                        "date": "2025-11-01",
+                        "slots": [
+                            { "time": "08:00", "professional": "Est. Camila (Peluquería)" },
+                            { "time": "09:30", "professional": "Est. Pedro (Peluquería)" },
+                            { "time": "11:00", "professional": "Est. Camila (Peluquería)" },
+                            { "time": "13:00", "professional": "Est. Pedro (Peluquería)" },
+                            { "time": "15:00", "professional": "Est. Camila (Peluquería)" }
+                        ]
+                    },
+                    {
+                        "date": "2025-11-02",
+                        "slots": [
+                            { "time": "09:00", "professional": "Est. Pedro (Peluquería)" },
+                            { "time": "11:00", "professional": "Est. Camila (Peluquería)" }
+                        ]
+                    },
+                    {
+                        "date": "2025-11-03",
+                        "slots": [
+                            { "time": "14:00", "professional": "Est. Pedro (Peluquería)" }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "clinicName": "Clínica 24h Patitas",
+        "services": [
+            {
+                "serviceName": "Cirugía Programada (Menor)",
+                "availability": [
+                    {
+                        "date": "2025-11-03",
+                        "slots": [
+                            { "time": "08:00", "professional": "Dr. Silva (Cirugía)" },
+                            { "time": "12:00", "professional": "Dra. Ramos (Cirugía)" }
+                        ]
+                    }
+                ]
+            },
+            {
+                "serviceName": "Hotel Canino Día y Noche",
+                "availability": [
+                    {
+                        "date": "2025-11-05",
+                        "slots": [
+                            { "time": "00:00", "professional": "Personal 24h (Recepción)" }
+                        ]
+                    },
+                    {
+                        "date": "2025-11-06",
+                        "slots": [
+                            { "time": "00:00", "professional": "Personal 24h (Recepción)" }
+                        ]
+                    },
+                    {
+                        "date": "2025-11-07",
+                        "slots": [
+                            { "time": "00:00", "professional": "Personal 24h (Recepción)" }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "clinicName": "Adiestramiento Pro",
+        "services": [
+            {
+                "serviceName": "Adiestramiento Avanzado",
+                "availability": [
+                    {
+                        "date": "2025-11-07",
+                        "slots": [
+                            { "time": "10:00", "professional": "Entr. Luisa (Avanzado)" },
+                            { "time": "14:00", "professional": "Entr. Mateo (Avanzado)" },
+                            { "time": "16:30", "professional": "Entr. Luisa (Avanzado)" },
+                            { "time": "18:00", "professional": "Entr. Mateo (Avanzado)" }
+                        ]
+                    },
+                    {
+                        "date": "2025-11-09",
+                        "slots": [
+                            { "time": "11:00", "professional": "Entr. Luisa (Avanzado)" }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]

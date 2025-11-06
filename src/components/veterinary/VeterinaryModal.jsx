@@ -1,56 +1,86 @@
 import React from 'react';
 
-// Este componente recibe la información de la veterinaria y la función para cerrar el modal
 export default function VeterinaryModal({ vet, onClose }) {
-    // Si no hay datos (porque el modal está cerrado), no renderizar nada
     if (!vet) return null;
 
-    // La función 'replace' se usa para convertir el '\n' en un salto de línea real para que se muestre correctamente
-    const displayName = vet.name.replace('\n', ' ');
+    const cleanName = vet.name.replace(/\n/g, ' ');
+
+    // La función auxiliar de fila de detalle
+    const DetailRow = ({ label, value }) => (
+        <p style={{ color: 'var(--color-texto)' }}> {/* Usamos color-texto para el valor */}
+            <strong style={{ color: 'var(--color-texto)' }} className="font-semibold">
+                {label}:
+            </strong> {value}
+        </p>
+    );
 
     return (
-        // Fondo oscuro (Overlay)
+        // 1. Contenedor Principal / Overlay
         <div 
-            className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4"
-            onClick={onClose} // Cierra el modal si se hace clic fuera de la caja
+            className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4"
         >
-            {/* Contenedor principal del Modal */}
-            {/* El 'e.stopPropagation()' evita que el clic dentro del modal cierre el overlay */}
+            
+            {/* 2. Backdrop (Fondo Oscuro) */}
+            {/* Mantenemos el fondo oscuro semi-transparente para el overlay */}
             <div 
-                className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 relative"
+                className="fixed inset-0 bg-gray-900/50 transition-opacity" 
+                aria-hidden="true" 
+                onClick={onClose} 
+            />
+
+            {/* 3. Contenedor del Contenido del Modal (Color de Fondo de la Tarjeta) */}
+            <div 
+                // Cambiamos bg-white a tu variable de fondo
+                style={{ backgroundColor: 'var(--color-fondo)' }}
+                className="relative z-10 rounded-lg shadow-2xl w-full max-w-sm p-6 transform transition-all"
                 onClick={(e) => e.stopPropagation()} 
             >
                 
-                {/* Botón de Cerrar */}
+                {/* 1. Botón de Cerrar */}
+                {/* Usamos color-texto para el icono */}
                 <button
-                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                    style={{ color: 'var(--color-texto)' }}
+                    className="absolute top-2 right-2 hover:opacity-70 text-3xl font-bold p-1 z-20 transition-colors"
                     onClick={onClose}
                 >
                     &times;
                 </button>
                 
-                <h2 className="text-2xl font-bold text-blue-700 border-b pb-2 mb-4">
-                    {displayName}
-                </h2>
-
-                {/* Contenido de Detalles */}
-                <div className="space-y-3 text-gray-700">
-                    <p>
-                        <strong className="font-semibold text-gray-900">Dirección:</strong> {vet.address}
-                    </p>
-                    <p>
-                        <strong className="font-semibold text-gray-900">Teléfono:</strong> {vet.phone}
-                    </p>
-                </div>
-
-                {/* Botón de Acción (Opcional) */}
-                <div className="mt-6 flex justify-end">
-                    {/* <button
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-150"
-                        onClick={onClose}
+                {/* 2. Área de la Imagen Circular */}
+                {vet.image && (
+                    <div className="flex justify-center mb-6 -mt-16">
+                        <div 
+                            // Cambiamos ring-white a ring-color-fondo para que se vea bien
+                            className="h-32 w-32 rounded-full overflow-hidden bg-gray-200 shadow-lg"
+                            style={{ backgroundColor: 'var(--color-fondo)', borderColor: 'var(--color-fondo)', borderWidth: '4px' }}
+                        >
+                            <img 
+                                src={vet.image} 
+                                alt={`Imagen de ${cleanName}`} 
+                                className="w-full h-full object-cover" 
+                            />
+                        </div>
+                    </div>
+                )}
+                
+                {/* 3. Contenido de Detalles */}
+                <div className="text-center">
+                    <h2 
+                        // Cambiamos text-blue-800 a color-acento-secundario
+                        style={{ color: 'var(--color-acento-secundario)', borderBottomColor: 'var(--color-primary)' }}
+                        className="text-3xl font-extrabold pb-3 mb-4 border-b"
                     >
-                        Entendido
-                    </button> */}
+                        {cleanName}
+                    </h2>
+                    
+                    <div className="space-y-3 text-sm text-left">
+                        
+                        {/* El resto de los campos ya usan DetailRow que aplica el estilo */}
+                        <DetailRow label="Horarios" value={vet.schedules} />
+                        <DetailRow label="Dirección" value={vet.address} />
+                        <DetailRow label="Teléfono" value={vet.phone} />
+
+                    </div>
                 </div>
             </div>
         </div>

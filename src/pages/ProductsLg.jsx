@@ -1,9 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react'; // 💡 Importado useCallback
 // Rutas de importación ajustadas asumiendo una estructura relativa
 import ProductCard from '../components/products/ProductCardLg';
 import QuickViewModal from '../components/products/QuickViewModalLg';
 import FilterSidebarLg from '../components/common/FilterSidebarLg';
-// Importamos PaginacionLg para mantener la coherencia si lo agregas de nuevo
 // import Pagination from '../common/PaginacionLg'; 
 import initialProducts from '../components/Data/products.json'; 
 import categoriesMap from '../components/Data/categories.json'; 
@@ -22,7 +21,7 @@ const sortProducts = (products, sortKey) => {
         case 'price-desc':
             return sorted.sort((a, b) => b.price - a.price);
         case 'rating-desc':
-            return sorted.sort((a, b) => a.name.localeCompare(b.name));
+            return sorted.sort((a, b) => b.name.localeCompare(a.name)); // CORREGIDO: Ordena por nombre descendente (Z-A)
         default:
             return products;
     }
@@ -130,9 +129,16 @@ const ProductsLg = () => {
         console.log(`Demo: Intentando remover producto con ID ${id}.`);
     };
 
-    const handleFilterChange = (newState) => {
-        setFilterState(newState);
-    };
+    // 🛑 CORRECCIÓN CRÍTICA (Línea ~134): Uso de useCallback y comparación profunda
+    const handleFilterChange = useCallback((newState) => {
+        
+        // Comparamos el objeto de filtros entrantes con el estado actual
+        if (JSON.stringify(newState.filters) === JSON.stringify(filterState.filters)) {
+            return; // Rompe el bucle si no hay cambio de valor.
+        }
+
+        setFilterState(newState); 
+    }, [filterState]); // Depende de filterState para la comparación
 
     const handleSortChange = (newSortKey) => {
         setSortKey(newSortKey);
@@ -170,7 +176,7 @@ const ProductsLg = () => {
                     {showFilterSidebar && (
                         <div className="lg:col-span-1">
                             <FilterSidebarLg
-                                onFilterChange={handleFilterChange}
+                                onFilterChange={handleFilterChange} // Ahora es estable con useCallback
                                 onSortChange={handleSortChange}
                                 totalResults={filteredAndSortedProducts.length}
                                 mode="products"
