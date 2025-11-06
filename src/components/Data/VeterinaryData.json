@@ -6,7 +6,9 @@
         "document_number": "900123456-1",
         "name": "Veterinaria\nAmigos",
         "address": "Calle Falsa 123, Bogotá",
-        "phone": "3101234567"
+        "phone": "3101234567",
+        "image": "https://example.com/images/veterinaria_amigos.jpg",
+        "schedules": "Lunes a Viernes: 8:00 AM - 6:00 PM | Sábados: 9:00 AM - 1:00 PM | Domingos: Cerrado"
     },
     {
         "id": 2,
@@ -15,7 +17,9 @@
         "document_number": "900765432-2",
         "name": "Veterinaria\nFeliz",
         "address": "Avenida Siempre Viva 45, Medellín",
-        "phone": "3119876543"
+        "phone": "3119876543",
+        "image": "https://example.com/images/veterinaria_feliz.png",
+        "schedules": "Atención 24 Horas / 7 Días a la Semana para Emergencias | Consultas: 7:30 AM - 8:00 PM"
     },
     {
         "id": 3,
@@ -24,7 +28,9 @@
         "document_number": "800555111-3",
         "name": "Clínica\nAnimalia",
         "address": "Carrera 7 No 2-10, Cali",
-        "phone": "3123334455"
+        "phone": "3123334455",
+        "image": "https://example.com/images/clinica_animalia.gif",
+        "schedules": "Lunes a Sábado: 9:00 AM - 7:00 PM | Servicio de peluquería hasta las 5:00 PM"
     },
     {
         "id": 4,
@@ -33,7 +39,9 @@
         "document_number": "900222888-4",
         "name": "Salud\nVeterinaria",
         "address": "Diagonal 50 # 15-20, Barranquilla",
-        "phone": "3136667788"
+        "phone": "3136667788",
+        "image": "https://example.com/images/salud_veterinaria.webp",
+        "schedules": "Lunes a Viernes: 8:00 AM - 5:00 PM | Sábados: 8:00 AM - 12:00 PM | Festivos: Consultar"
     },
     {
         "id": 5,
@@ -42,7 +50,9 @@
         "document_number": "800999000-5",
         "name": "Centro\nVetCare",
         "address": "Calle 100 con 19, Bogotá",
-        "phone": "3141112233"
+        "phone": "3141112233",
+        "image": "https://example.com/images/centro_vetcare.jpg",
+        "schedules": "Abierto de Lunes a Domingo: 10:00 AM - 7:00 PM"
     },
     {
         "id": 6,
@@ -51,7 +61,9 @@
         "document_number": "900101202-6",
         "name": "Hospital\nMascotas",
         "address": "Transversal 80 # 70-50, Envigado",
-        "phone": "3154445566"
+        "phone": "3154445566",
+        "image": "https://example.com/images/hospital_mascotas.png",
+        "schedules": "Emergencias 24h. Citas y Procedimientos: Lunes a Sábado 7:00 AM - 9:00 PM"
     },
     {
         "id": 7,
@@ -60,7 +72,9 @@
         "document_number": "800303404-7",
         "name": "Clínica\nPeluditos",
         "address": "Calle 80 No 80-80, Pasto",
-        "phone": "3167778899"
+        "phone": "3167778899",
+        "image": "https://example.com/images/clinica_peluditos.jpg",
+        "schedules": "Lunes a Viernes: 8:30 AM - 5:30 PM"
     },
     {
         "id": 8,
@@ -69,9 +83,10 @@
         "document_number": "900505606-8",
         "name": "Veterinaria\nVida",
         "address": "Carrera 15 No 5-50, Pereira",
-        "phone": "3170001122"
+        "phone": "3170001122",
+        "image": "https://example.com/images/veterinaria_vida.png",
+        "schedules": "Lunes a Sábado: 8:00 AM - 6:00 PM"
     },
-    
     {
         "id": 9,
         "id_user": 201,
@@ -79,7 +94,9 @@
         "document_number": "900123456-9",
         "name": "Consultorio\nPatitas",
         "address": "Carrera 10, Local 5, Cartagena",
-        "phone": "3182223344"
+        "phone": "3182223344",
+        "image": "https://example.com/images/consultorio_patitas.jpg",
+        "schedules": "Lunes a Viernes: 7:00 AM - 7:00 PM"
     },
     {
         "id": 10,
@@ -88,7 +105,9 @@
         "document_number": "900765432-10",
         "name": "Veterinaria\nCanina",
         "address": "Calle 93 No 15-20, Bogotá",
-        "phone": "3195556677"
+        "phone": "3195556677",
+        "image": "https://example.com/images/veterinaria_canina.png",
+        "schedules": "Abierto 24 Horas"
     },
     {
         "id": 11,
@@ -97,7 +116,9 @@
         "document_number": "800555111-11",
         "name": "Mi Mascota\nSana",
         "address": "Avenida El Poblado 12-34, Medellín",
-        "phone": "3208889900"
+        "phone": "3208889900",
+        "image": "https://example.com/images/mi_mascota_sana.jpg",
+        "schedules": "Lunes a Sábado: 9:00 AM - 6:00 PM"
     },
     {
         "id": 12,
@@ -106,7 +127,9 @@
         "document_number": "900222888-12",
         "name": "Animal\nCheckup",
         "address": "Calle 13 No 50-60, Cali",
-        "phone": "3211112233"
+        "phone": "3211112233",
+        "image": "https://example.com/images/animal_checkup.png",
+        "schedules": "Lunes a Viernes: 7:30 AM - 6:30 PM | Sábados: 8:00 AM - 1:00 PM"
     },
     {
         "id": 13,
@@ -115,7 +138,9 @@
         "document_number": "800999000-13",
         "name": "Unidad\nVeterinaria",
         "address": "Carrera 46 No 80-10, Barranquilla",
-        "phone": "3224445566"
+        "phone": "3224445566",
+        "image": "https://example.com/images/unidad_veterinaria.jpg",
+        "schedules": "Lunes a Domingo: 8:00 AM - 8:00 PM"
     },
     {
         "id": 14,
@@ -124,7 +149,9 @@
         "document_number": "900101202-14",
         "name": "Clínica\nIntegral",
         "address": "Diagonal 61 Sur, No 2-4, Bogotá",
-        "phone": "3237778899"
+        "phone": "3237778899",
+        "image": "https://example.com/images/clinica_integral.png",
+        "schedules": "Lunes a Viernes: 9:00 AM - 7:00 PM"
     },
     {
         "id": 15,
@@ -133,7 +160,9 @@
         "document_number": "800303404-15",
         "name": "Salud\nPeluda",
         "address": "Calle 25 No 10-10, Cúcuta",
-        "phone": "3240001122"
+        "phone": "3240001122",
+        "image": "https://example.com/images/salud_peluda.jpg",
+        "schedules": "Lunes a Sábado: 8:00 AM - 5:00 PM"
     },
     {
         "id": 16,
@@ -142,6 +171,8 @@
         "document_number": "900505606-16",
         "name": "Emergencia\nVet",
         "address": "Transversal 50, No 1-1, Bucaramanga",
-        "phone": "3253334455"
+        "phone": "3253334455",
+        "image": "https://example.com/images/emergencia_vet.png",
+        "schedules": "Solo urgencias. Horario de oficina: Lunes a Viernes 8:00 AM - 4:00 PM"
     }
 ]

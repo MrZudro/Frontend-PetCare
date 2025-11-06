@@ -16,7 +16,7 @@ export default function SidebarXh({ user }) {
       </div>
 
       <nav className="flex flex-col mt-6 text-[var(--color-texto)] gap-4 font-medium">
-        <Link className="styleLinks" to="/cuenta">Configuración</Link>
+        <Link className="styleLinks" to="/perfil">Configuración</Link>
         <Link className="styleLinks" to="/mascotas">Mis mascotas</Link>
         <Link className="styleLinks" to="/pedidos">Historial de pedidos</Link>
 

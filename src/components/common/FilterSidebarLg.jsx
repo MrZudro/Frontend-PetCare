@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FaChevronUp, FaChevronDown, FaCheck, FaTimes } from 'react-icons/fa';
 import { FiSliders } from 'react-icons/fi';
 
@@ -8,10 +8,10 @@ import categoriesMap from '../Data/categories.json';
 
 // --- FUNCIONES DE UTILIDAD (Fuera del componente) ---
 
-// 🚨 CORRECCIÓN: Usar 'subcategories' en lugar de 'type'
 const allProductSubcategories = [...new Set(productData.map(p => p.subcategories))];
 
 const processFilterData = (data, keyName, allowedValues = null) => {
+    // ... (sin cambios, es estable) ...
     if (!data || data.length === 0) return [];
 
     const counts = data.reduce((acc, item) => {
@@ -30,13 +30,12 @@ const processFilterData = (data, keyName, allowedValues = null) => {
 };
 
 const getInitialCategories = () => {
+    // ... (sin cambios, es estable) ...
     const categoryCounts = {};
 
     productData.forEach(product => {
-        // 🚨 CORRECCIÓN: Usar 'subcategories' en lugar de 'type'
         const productSubcategory = product.subcategories; 
         
-        // 🎯 Buscar en la clave 'subcategories' del mapa
         const categoryEntry = categoriesMap.find(c => c.subcategories.includes(productSubcategory));
 
         if (categoryEntry) {
@@ -52,7 +51,8 @@ const getInitialCategories = () => {
     }));
 };
 
-const getInitialFilterData = (mode) => {
+// 🚩 FUNCIÓN DE INICIALIZACIÓN DE ESTADO PARA USAR EN EL LAZY INITIALIZER
+const createInitialFilterState = (mode) => {
     if (mode === 'products') {
         return {
             category: getInitialCategories(),
@@ -60,17 +60,14 @@ const getInitialFilterData = (mode) => {
             brand: processFilterData(productData, 'brand'),
         };
     } else {
-        // 🚀 CORRECCIÓN CLAVE: Solo retornar el filtro de 'clinic' para el modo 'services'
         return {
             clinic: processFilterData(serviceData, 'clinicName'),
         };
     }
 };
 
-/**
- * 🚀 FUNCIÓN CLAVE DE FILTRADO (Productos): Aplica los filtros activos a la lista de productos.
- */
 const filterProducts = (data, activeFilters) => {
+    // ... (sin cambios, es estable) ...
     const { category, subcategories, brand } = activeFilters;
 
     if ((category?.length || 0) === 0 && (subcategories?.length || 0) === 0 && (brand?.length || 0) === 0) {
@@ -82,32 +79,24 @@ const filterProducts = (data, activeFilters) => {
         let passesSubcategory = true;
         let passesBrand = true;
 
-        // 🚨 CORRECCIÓN: Usar 'subcategories' en lugar de 'type'
         const productSubcategory = product.subcategories; 
 
-        // 1. Filtrar por Categoría (Radio Button)
         if ((category?.length || 0) > 0) {
             const activeCategoryName = category[0];
-            // 🎯 Buscar en la clave 'subcategories' del mapa
             const allowedSubcategories = categoriesMap.find(c => c.categoryName === activeCategoryName)?.subcategories || [];
             passesCategory = allowedSubcategories.includes(productSubcategory);
         }
 
-        // 2. Filtrar por Subcategoría (Checkbox)
         if ((subcategories?.length || 0) > 0) {
             passesSubcategory = subcategories.includes(productSubcategory);
         } else if ((category?.length || 0) > 0 && passesCategory) {
-             // Si hay categoría activa y el producto pasa, y no hay subcategorías seleccionadas, se considera válido.
             passesSubcategory = true;
         } else if ((category?.length || 0) > 0 && !passesCategory) {
-            // Si hay categoría activa y NO pasa, fallará.
             passesSubcategory = false;
         } else {
-            // Si no hay categoría y no hay subcategoría, pasa.
             passesSubcategory = true;
         }
 
-        // 3. Filtrar por Marca (Radio Button)
         if ((brand?.length || 0) > 0) {
             passesBrand = brand.includes(product.brand);
         }
@@ -122,28 +111,39 @@ const filterProducts = (data, activeFilters) => {
 const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode = 'products' }) => {
 
     const isProductMode = mode === 'products';
-    const initialData = useMemo(() => getInitialFilterData(mode), [mode]);
 
-    const [filters, setFilters] = useState(initialData);
+    // 1. 🚩 Inicialización Lazy del estado. Se ejecuta SOLO en el primer render.
+    const [filters, setFilters] = useState(() => createInitialFilterState(mode));
     const [currentSort, setCurrentSort] = useState('default');
     const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
 
+    const initialDataForMode = useMemo(() => createInitialFilterState(mode), [mode]); // Versión memoizada del objeto inicial
+    
     // Estado local para almacenar y mostrar los productos filtrados (para esta demo)
     const [localFilteredProducts, setLocalFilteredProducts] = useState(isProductMode ? productData : serviceData);
 
-    const [openSections, setOpenSections] = useState(
-        Object.keys(initialData).reduce((acc, key) => ({ ...acc, [key]: true }), {})
-    );
+    const [openSections, setOpenSections] = useState(() => {
+        // Inicializa secciones abiertas con las keys del estado inicial (basado en el modo)
+        return Object.keys(createInitialFilterState(mode)).reduce((acc, key) => ({ ...acc, [key]: true }), {});
+    });
 
-    // 1. Resetear filtros al cambiar de modo/inicializar
+    // 2. 🌟 Reiniciar filtros SÓLO cuando el modo cambia 🌟
+    // Usamos el objeto memoizado 'initialDataForMode'
     useEffect(() => {
-        setFilters(initialData);
-        setCurrentSort('default');
-        setLocalFilteredProducts(isProductMode ? productData : serviceData); // Resetear datos según el modo
-        setOpenSections(Object.keys(initialData).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
-    }, [mode, initialData, isProductMode]);
+        // Si el estado actual es idéntico a la inicialización del nuevo modo, no hacemos nada.
+        // Esto previene bucles si el padre re-renderiza con el mismo 'mode'.
+        if (JSON.stringify(filters) === JSON.stringify(initialDataForMode)) {
+            return; 
+        }
 
-    // 🌟 LÓGICA CLAVE: Recalcular Subcategorías ('subcategories') - Solo para Productos 🌟
+        setFilters(initialDataForMode);
+        setCurrentSort('default');
+        setLocalFilteredProducts(isProductMode ? productData : serviceData); 
+        setOpenSections(Object.keys(initialDataForMode).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
+    }, [mode, isProductMode, initialDataForMode]); // Dependencia estable: initialDataForMode
+
+    // 3. 🌟 LÓGICA CLAVE: Recalcular Subcategorías ('subcategories') - Solo para Productos 🌟
+    // **NOTA:** Esta es la sección donde estaba el error más persistente (Líneas 177, 183, 196)
     useEffect(() => {
         if (!isProductMode) return;
 
@@ -152,13 +152,10 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
 
         if (activeCategory) {
             const activeCategoryName = activeCategory.name;
-            // 🎯 Buscar en la clave 'subcategories' del mapa
             const allowedSubcategories = categoriesMap.find(c => c.categoryName === activeCategoryName)?.subcategories || [];
 
-            // 🚨 Comparar con las subcategorías reales presentes en los productos
             const subcategoriesInProducts = allProductSubcategories.filter(sub => allowedSubcategories.includes(sub));
 
-            // 🚨 CORRECCIÓN: Usar 'subcategories' como clave de referencia para contar
             newSubcategories = processFilterData(productData, 'subcategories', subcategoriesInProducts);
 
             newSubcategories = newSubcategories.map(f => {
@@ -167,48 +164,67 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
             });
         }
 
-        setFilters(prevFilters => ({
-            ...prevFilters,
-            subcategories: newSubcategories,
-        }));
+        // 🛑 CORRECCIÓN ROBUSTA para evitar el bucle (Línea ~196):
+        setFilters(prevFilters => {
+            // Aseguramos que ambas variables sean arrays válidos para JSON.stringify
+            const currentSubcategories = prevFilters.subcategories || [];
+            const finalNewSubcategories = newSubcategories || [];
+            
+            // Si el contenido del array 'subcategories' es idéntico, NO actualizamos el estado.
+            if (JSON.stringify(finalNewSubcategories) === JSON.stringify(currentSubcategories)) {
+                return prevFilters; // Rompe el ciclo si no hay cambio de valor.
+            }
+            return {
+                ...prevFilters,
+                subcategories: finalNewSubcategories,
+            };
+        });
 
     }, [filters.category, isProductMode]);
 
-    // 🚀 LÓGICA DE FILTRADO REAL Y NOTIFICACIÓN
-    useEffect(() => {
-        const activeFilters = Object.keys(filters).reduce((acc, key) => {
+    // 4. Estabilizar los filtros activos (Dependencia del useEffect de filtrado)
+    const memoizedActiveFilters = useMemo(() => {
+        return Object.keys(filters).reduce((acc, key) => {
             acc[key] = filters[key]?.filter(f => f.active).map(f => f.name) || [];
             return acc;
         }, {});
+    }, [filters]);
 
-        // Ejecutar el filtrado localmente
+
+    // 5. 🚀 LÓGICA DE FILTRADO REAL Y NOTIFICACIÓN
+    // **NOTA:** Esta es la sección donde estaba el error (Línea 266)
+    useEffect(() => {
+        const activeFilters = memoizedActiveFilters;
+
         let results = [];
         if (isProductMode) {
             results = filterProducts(productData, activeFilters);
         } else {
-            // El modo 'services' se filtra con una lógica más simple que el componente padre (ServicesLg) necesita implementar
-            // Aquí solo pasamos los filtros activos.
-            results = isProductMode ? productData : serviceData; 
+            // En modo servicio, el filtrado es trivial si solo es por clínica
+            results = serviceData; 
+            if ((activeFilters.clinic?.length || 0) > 0) {
+                results = results.filter(s => activeFilters.clinic.includes(s.clinicName));
+            }
         }
         
-        // Actualizamos los datos para obtener el conteo correcto y manejar el estado de las tags
-        // En el modo 'services' el componente padre ServicesLg hace el filtrado real, aquí solo mostramos el conteo del padre
-        setLocalFilteredProducts(results); // Esto es solo para la demo
+        // 🚩 Si setLocalFilteredProducts no cambia el valor, React optimizará y no re-renderizará.
+        setLocalFilteredProducts(results);
 
         if (onFilterChange) {
+            // 🚩 Asegurarse de que onFilterChange sea estable o memoizada en el componente padre.
             onFilterChange({
                 filters: activeFilters,
                 searchTerm: '',
                 mode: mode,
-                // Si estamos en modo producto, usamos el conteo local. Si es servicio, usamos el que viene del padre.
-                totalCount: isProductMode ? results.length : totalResults, 
+                totalCount: results.length, // Usar el conteo LOCAL para evitar bucles con prop externa
             });
         }
 
-
-    }, [filters, mode, onFilterChange, isProductMode, totalResults]);
+    // Usar la dependencia memoizada
+    }, [memoizedActiveFilters, mode, onFilterChange, isProductMode]); // Se eliminó totalResults como dependencia
 
     // --- LÓGICA DE MANEJO DE ESTADO ---
+    // ... (El resto del código de handlers, renderizado y UI no tiene cambios relevantes para el bucle) ...
 
     const handleSortSelect = (e) => {
         const newSortKey = e.target.value;
@@ -225,23 +241,19 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
     const handleFilterSelection = (sectionKey, filterName) => {
         setFilters(prevFilters => {
             const newFilters = { ...prevFilters };
-            // Category, Brand, y Clinic funcionan como Radio Buttons (selección única)
             const isRadioSection = sectionKey === 'category' || sectionKey === 'brand' || sectionKey === 'clinic';
 
             if (isRadioSection) {
                 newFilters[sectionKey] = newFilters[sectionKey]?.map(f => {
-                    // Si es el filtro clickeado, togglea; si es otro, desactiva.
                     const isActiveToggle = (f.name === filterName) ? !f.active : false;
 
-                    // 🎯 Limpiar Subcategoría al cambiar Categoría
-                    if (sectionKey === 'category') {
-                        newFilters.subcategories = newFilters.subcategories?.map(typeF => ({ ...typeF, active: false })) || [];
+                    if (sectionKey === 'category' && f.name === filterName && (!f.active || !isActiveToggle)) { 
+                         newFilters.subcategories = newFilters.subcategories?.map(typeF => ({ ...typeF, active: false })) || [];
                     }
 
                     return { ...f, active: isActiveToggle };
                 }) || [];
             } else {
-                // Checkbox (Subcategoría): Selección múltiple
                 newFilters[sectionKey] = newFilters[sectionKey]?.map(f => {
                     if (f.name === filterName) {
                         return { ...f, active: !f.active };
@@ -281,17 +293,17 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
         filters[key]?.filter(f => f.active).map(f => f.name) || []
     );
 
-    // Usar el conteo de resultados
     const finalTotalResults = isProductMode ? localFilteredProducts.length : totalResults;
 
-    // --- FUNCIÓN DE RENDERING DE CADA SECCIÓN DE FILTRO ---
     const renderFilterSection = (title, key) => {
+        if (key === 'subcategories') {
+            const activeCategory = filters.category?.find(f => f.active);
+            if (!activeCategory || filters[key].length === 0) return null;
+        }
+        
         if (!filters[key] || filters[key].length === 0) {
-            // Mostrar Subcategorías solo si hay filtros disponibles
-            if (key === 'subcategories' && isProductMode && filters.category?.find(f => f.active)) return null;
-            if (key === 'subcategories') return null;
-            // Si no hay datos para la sección, la omitimos
-            if (key !== 'subcategories' && key !== 'category' && key !== 'brand' && key !== 'clinic') return null;
+             if (key !== 'subcategories' && key !== 'category' && key !== 'brand' && key !== 'clinic') return null;
+             if (key !== 'subcategories' && filters[key].length === 0) return null;
         }
 
         const isRadioSection = key === 'category' || key === 'brand' || key === 'clinic';
@@ -335,25 +347,16 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
     };
 
     const renderProductFilters = () => {
-        const isSubcategoryFilterVisible = filters.subcategories?.length > 0;
-
         return (
             <>
                 {renderFilterSection('Categoría', 'category')}
-
-                {isSubcategoryFilterVisible && (
-                    <div className='border-b border-gray-200 py-4 last:border-b-0'>
-                        {renderFilterSection('Subcategoría', 'subcategories')}
-                    </div>
-                )}
-
+                {renderFilterSection('Subcategoría', 'subcategories')} 
                 {renderFilterSection('Marca', 'brand')}
             </>
         );
     };
 
     const renderServiceFilters = () => (
-        // 🚀 CORRECCIÓN CLAVE: Solo renderizar el filtro de Clínica
         <>
             {renderFilterSection('Filtrar por Veterinaria', 'clinic')}
         </>
@@ -379,14 +382,12 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
             </h2>
 
             <div className="mb-4 text-sm text-gray-600">
-                {/* Contenedor del conteo de resultados */}
                 <div className="flex justify-between items-center mb-3">
                     <span className="font-medium">
                         {isMobileView ? `Resultados: ${finalTotalResults}` : `Mostrando 1-${Math.min(12, finalTotalResults)} de ${finalTotalResults} resultados`}
                     </span>
                 </div>
 
-                {/* Dropdown de ordenamiento */}
                 {isProductMode && (
                     <div className={`mt-2 ${isMobileView ? 'mb-4' : 'mb-3'}`}>
                         {renderSortDropdown()}
@@ -410,7 +411,7 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
                         ))}
                         <button
                             onClick={() => {
-                                setFilters(getInitialFilterData(mode));
+                                setFilters(createInitialFilterState(mode));
                                 setCurrentSort('default');
                                 setLocalFilteredProducts(isProductMode ? productData : serviceData);
                                 if(onSortChange && isProductMode) onSortChange('default');
