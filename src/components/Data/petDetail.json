@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "id_customer": 100,
+    "id_race": 1,
+    "name": "Max",
+    "birthdate": "2020-05-15",
+    "microchip": "900001234567890",
+    "color": "Marrón",
+    "weight": "25 kg",
+    "gender": "Macho",
+    "picture": "https://example.com/max.jpg"
+  },
+  {
+    "id": 2,
+    "id_customer": 101,
+    "id_race": 2,
+    "name": "Luna",
+    "birthdate": "2022-01-20",
+    "microchip": null,
+    "color": "Negro",
+    "weight": "4 kg",
+    "gender": "Hembra",
+    "picture": null
+  },
+  {
+    "id": 3,
+    "id_customer": 102,
+    "id_race": 1,
+    "name": "Rocky",
+    "birthdate": "2019-11-01",
+    "microchip": "900009876543210",
+    "color": null,
+    "weight": "30 kg",
+    "gender": "Macho",
+    "picture": "https://example.com/rocky.jpg"
+  },
+  {
+    "id": 4,
+    "id_customer": 100,
+    "id_race": 2,
+    "name": "Nala",
+    "birthdate": "2023-08-10",
+    "microchip": null,
+    "color": "Blanco",
+    "weight": null,
+    "gender": "Hembra",
+    "picture": null
+  },
+  {
+    "id": 5,
+    "id_customer": 103,
+    "id_race": 1,
+    "name": "Toby",
+    "birthdate": "2021-03-25",
+    "microchip": "900001122334455",
+    "color": "Negro y Blanco",
+    "weight": "15 kg",
+    "gender": "Macho",
+    "picture": null
+  },
+  {
+    "id": 6,
+    "id_customer": 104,
+    "id_race": 2,
+    "name": "Milo",
+    "birthdate": "2024-02-14",
+    "microchip": null,
+    "color": "Gris Atigrado",
+    "weight": "3.5 kg",
+    "gender": "Macho",
+    "picture": "https://example.com/milo.jpg"
+  },
+  {
+    "id": 7,
+    "id_customer": 105,
+    "id_race": 1,
+    "name": "Daisy",
+    "birthdate": "2018-07-30",
+    "microchip": "900006677889900",
+    "color": "Dorado",
+    "weight": "20 kg",
+    "gender": "Hembra",
+    "picture": "https://example.com/daisy.jpg"
+  },
+  {
+    "id": 8,
+    "id_customer": 106,
+    "id_race": 2,
+    "name": "Kira",
+    "birthdate": "2021-09-05",
+    "microchip": null,
+    "color": null,
+    "weight": "4.2 kg",
+    "gender": "Hembra",
+    "picture": null
+  },
+  {
+    "id": 9,
+    "id_customer": 107,
+    "id_race": 1,
+    "name": "Buster",
+    "birthdate": "2017-12-12",
+    "microchip": "900004455667788",
+    "color": "Blanco",
+    "weight": "18 kg",
+    "gender": "Macho",
+    "picture": "https://example.com/buster.jpg"
+  },
+  {
+    "id": 10,
+    "id_customer": 108,
+    "id_race": 2,
+    "name": "Cleo",
+    "birthdate": "2023-04-01",
+    "microchip": null,
+    "color": "Cálido",
+    "weight": null,
+    "gender": "Hembra",
+    "picture": null
+  }
+]

@@ -1,0 +1,6 @@
+[
+  { "id": 1, "name": "Dr. Andrés Pérez", "title": "Veterinario Jefe" },
+  { "id": 2, "name": "Dra. Sofía Gómez", "title": "Asistente Médico" },
+  { "id": 3, "name": "Dr. Javier Castro", "title": "Veterinario Emergencias" },
+  { "id": 5, "name": "Dra. Laura Díaz", "title": "Cirujano" }
+]

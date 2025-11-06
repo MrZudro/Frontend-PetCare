@@ -12,6 +12,7 @@ import VeterinaryLw from './pages/VeterinaryLw';
 import ProductsLg from './pages/ProductsLg';
 import ServicesLg from './pages/ServicesLg';
 import FormPets from './components/formPets/FormPets';
+import PetDetailLw from './pages/PetDetailLw';
 import BuyCartTL from './pages/BuyCartTL';
 
 // Componentes
@@ -64,6 +65,14 @@ const rutas = createBrowserRouter([
     element: (
       <Layout>
         <FormPets />
+      </Layout>
+    ),
+  },
+  {
+    path: '/pethistory',
+    element: (
+      <Layout>
+        <PetDetailLw />
       </Layout>
     ),
   },

@@ -1,0 +1,72 @@
+[
+  {
+    "id": 101,
+    "id_pet": 7,
+    "id_employee": 5,
+    "id_vaccines": 2,
+    "create_date": "2024-05-15T10:00:00Z",
+    "next_vaccine": "2025-05-15",
+    "observations": "Refuerzo anual. Excelente estado de salud.",
+    "certificate": "cert-101-2024.pdf"
+  },
+  {
+    "id": 102,
+    "id_pet": 7,
+    "id_employee": 3,
+    "id_vaccines": 1,
+    "create_date": "2024-05-15T10:05:00Z",
+    "next_vaccine": "2025-05-15",
+    "observations": "Antirrábica aplicada sin novedades.",
+    "certificate": "cert-102-2024.pdf"
+  },
+  {
+    "id": 103,
+    "id_pet": 7,
+    "id_employee": 5,
+    "id_vaccines": 6,
+    "create_date": "2023-11-01T09:30:00Z",
+    "next_vaccine": "2024-11-01",
+    "observations": "Primera dosis de Leptospirosis por recomendación de zona.",
+    "certificate": "cert-103-2023.pdf"
+  },
+  {
+    "id": 104,
+    "id_pet": 7,
+    "id_employee": 5,
+    "id_vaccines": 4,
+    "create_date": "2023-05-15T09:30:00Z",
+    "next_vaccine": "2024-05-15",
+    "observations": "Refuerzo específico de Moquillo (Individual).",
+    "certificate": "cert-104-2023.pdf"
+  },
+  {
+    "id": 105,
+    "id_pet": 7,
+    "id_employee": 1,
+    "id_vaccines": 5,
+    "create_date": "2023-05-15T09:35:00Z",
+    "next_vaccine": "2024-05-15",
+    "observations": "Refuerzo específico de Parvovirus (Individual).",
+    "certificate": "cert-105-2023.pdf"
+  },
+  {
+    "id": 106,
+    "id_pet": 2,
+    "id_employee": 1,
+    "id_vaccines": 3,
+    "create_date": "2024-01-20T14:00:00Z",
+    "next_vaccine": "2025-01-20",
+    "observations": "Vacuna Triple Felina. Gata muy nerviosa.",
+    "certificate": "cert-106-2024.pdf"
+  },
+  {
+    "id": 107,
+    "id_pet": 2,
+    "id_employee": 1,
+    "id_vaccines": 1,
+    "create_date": "2024-01-20T14:05:00Z",
+    "next_vaccine": "2025-01-20",
+    "observations": "Antirrábica felina.",
+    "certificate": "cert-107-2024.pdf"
+  }
+]

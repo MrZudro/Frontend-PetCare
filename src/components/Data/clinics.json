@@ -1,0 +1,5 @@
+[
+  { "id": 10, "name": "Veterinaria Central", "address": "Av. Principal #123" },
+  { "id": 11, "name": "Sucursal Norte", "address": "Calle 45 #789" },
+  { "id": 12, "name": "Clínica 24 Horas", "address": "Ruta Sur km 5" }
+]

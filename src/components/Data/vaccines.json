@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "name": "Vacuna Antirrábica",
+    "laboratory": "VeteriLab",
+    "description": "Protección contra el virus de la Rabia. Obligatoria anualmente.",
+    "stock": 50
+  },
+  {
+    "id": 2,
+    "name": "Vacuna Séxtuple Canina",
+    "laboratory": "BioVax",
+    "description": "Protección combinada esencial para cachorros y perros adultos contra moquillo, parvovirus, hepatitis, etc.",
+    "stock": 120
+  },
+  {
+    "id": 3,
+    "name": "Vacuna Triple Felina",
+    "laboratory": "FelineCare",
+    "description": "Protección contra Rinotraqueítis, Calicivirus y Panleucopenia.",
+    "stock": 80
+  },
+  {
+    "id": 4,
+    "name": "Moquillo Canino",
+    "laboratory": "DogHealth",
+    "description": "Vacuna de refuerzo específico para la prevención del moquillo.",
+    "stock": 30
+  },
+  {
+    "id": 5,
+    "name": "Parvovirus Canino",
+    "laboratory": "DogHealth",
+    "description": "Vacuna de refuerzo específico para la prevención del parvovirus.",
+    "stock": 35
+  },
+  {
+    "id": 6,
+    "name": "Leptospirosis",
+    "laboratory": "BioVax",
+    "description": "Protege contra la bacteria Leptospira, zoonosis común en zonas húmedas.",
+    "stock": 70
+  }
+]
