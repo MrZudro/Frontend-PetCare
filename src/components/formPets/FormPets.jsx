@@ -76,10 +76,6 @@ const handleImageChange = (e) => {
               <option value="">Selecciona una opción</option>
               <option value="perro">Perro</option>
               <option value="gato">Gato</option>
-              <option value="pajaro">Pajaro</option>
-              <option value="pez">Pez</option>
-              <option value="conejo">Conejo</option>
-              <option value="roedor">Roedor</option>
             </select>
           </div>
 

@@ -76,6 +76,14 @@ const rutas = createBrowserRouter([
       </Layout>
     ),
   },
+    {
+    path: '/car',
+    element: (
+      <Layout>
+        <BuyCartTL/>
+      </Layout>
+    ),
+  },
 ]);
 
 // Renderizado de la aplicación

@@ -300,7 +300,7 @@ export default function PetDetailPage() {
                                     borderColor: 'var(--color-acento-cuaternario, #F04560)', 
                                     backgroundColor: 'rgba(240, 69, 96, 0.1)',
                                     '--tw-divide-y-reverse': '0',
-                                    'border-color': 'var(--color-acento-cuaternario, #F04560)'
+                                    'borderColor': 'var(--color-acento-cuaternario, #F04560)'
                                 }}
                             >
                                 {pet.active_prescription && pet.active_prescription.list && pet.active_prescription.list.length > 0 ? (
