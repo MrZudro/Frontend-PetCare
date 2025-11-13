@@ -25,10 +25,18 @@ export default function VeterinaryLw() {
     const singleVetData = isSingleView ? veterinaries[0] : null;
 
     return (
-        <div className="w-full">
+        <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-sans">
             
             {/* 1. Banner */}
-            <Banner title="Veterinarias" />
+            <header className="mb-10 pt-4">
+                <h1 className="text-4xl font-extrabold text-gray-900 text-center">
+                    Veterinarias🏥⚕️
+                </h1>
+                <p className="text-center text-gray-500 mt-2 text-lg">
+                    Cuidamos la salud y felicidad de tu perro o gato con productos de calidad y confianza.
+                </p>
+            </header>
+
             
             {/* 2. Contenedor Principal: Lógica Condicional */}
             {isSingleView ? (
