@@ -1,62 +1,30 @@
 import React from 'react';
-import SummaryTL from './SummaryTL';
+import { FaCreditCard, FaMoneyBillWave, FaUniversity } from 'react-icons/fa';
 
-export default function PaymentMethodTL({ products, subtotal, goToNextStep }) {
-
-    const paymentOptions = [
-        { id: 'debito', label: 'Nueva tarjeta de débito', icon: 'fas fa-credit-card' },
-        { id: 'credito', label: 'Nueva tarjeta de crédito', icon: 'fas fa-credit-card' },
-        { id: 'pse', label: 'Transferencia con PSE', icon: 'fas fa-wallet' }, 
-        { id: 'efecty', label: 'Efecty', icon: 'fas fa-money-bill-wave' },
+export default function PaymentMethodTL({ onContinue }) {
+    const methods = [
+        { id: 1, name: "Nueva tarjeta de débito", icon: <FaCreditCard /> },
+        { id: 2, name: "Nueva tarjeta de crédito", icon: <FaCreditCard /> },
+        { id: 3, name: "Transferencia con PSE", icon: <FaUniversity /> },
+        { id: 4, name: "Efecty", icon: <FaMoneyBillWave /> },
     ];
 
-    const handlePaymentSelection = (id) => {
-        console.log(`Method selected: ${id}`);
-    };
-
     return (
-        <div className="flex flex-col md:flex-row gap-8">
-            
-            <div className="md:flex-3 bg-white p-6 rounded-lg shadow-xl">
-                <h1 className="text-2xl font-bold mb-6 text-gray-900">Elige cómo pagar</h1>
-                
-                <div className="space-y-4">
-                    {paymentOptions.map((option) => (
-                        <div 
-                            key={option.id}
-                            className="border border-gray-200 rounded-lg p-5 flex justify-between items-center cursor-pointer hover:shadow-md transition"
-                            onClick={() => handlePaymentSelection(option.id)}
-                        >
-                            <label className="flex items-center space-x-4 w-full">
-                                <input 
-                                    type="radio" 
-                                    name="paymentMethod" 
-                                    value={option.id} 
-                                    className="text-blue-600 focus:ring-blue-500"
-                                    defaultChecked={option.id === 'debito'}
-                                    onChange={() => handlePaymentSelection(option.id)}
-                                />
-                                <i className={`${option.icon} text-xl text-gray-600`}></i>
-                                <span className="font-semibold text-gray-900">{option.label}</span>
-                            </label>
-                        </div>
-                    ))}
-                </div>
-
-                <button 
-                    className="w-48 mt-8 py-3 bg-black text-white font-bold rounded-md hover:bg-gray-800 transition float-right"
-                    onClick={goToNextStep}
-                >
-                    Continuar
-                </button>
+        <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="space-y-4 mb-8">
+                {methods.map((m) => (
+                    <div key={m.id} className="border border-gray-200 rounded-lg p-4 flex items-center gap-4 cursor-pointer hover:border-blue-500 transition">
+                        <input type="radio" name="payment" className="w-5 h-5 text-blue-600" />
+                        <span className="text-xl text-gray-600">{m.icon}</span>
+                        <span className="font-medium text-gray-900">{m.name}</span>
+                    </div>
+                ))}
             </div>
 
-            <div className="md:flex-1">
-                <SummaryTL 
-                    products={products} 
-                    subtotal={subtotal} 
-                    isDeliveryView={true} 
-                />
+            <div className="flex justify-end">
+                <button onClick={onContinue} className="bg-acento-primario text-white font-bold py-3 px-8 rounded-lg hover:bg-acento-secundario transition">
+                    Continuar
+                </button>
             </div>
         </div>
     );
