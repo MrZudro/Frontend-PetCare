@@ -1,20 +1,30 @@
 import React from 'react';
-import { FaTrashAlt } from 'react-icons/fa';
+import { FaTrashAlt, FaMinus, FaPlus } from 'react-icons/fa'; // Usaremos FaMinus y FaPlus para los botones
 
-// 1. Recibir las nuevas funciones como props
 export default function ProductListTL({ 
     products, 
     increaseQuantity, 
     decreaseQuantity,
-    handleRemoveProduct // Nueva función para eliminar
+    handleRemoveProduct 
 }) {
+    
+    // 1. Manejo de Carrito Vacío
+    if (!products || products.length === 0) {
+        return (
+            <div className="bg-white p-12 rounded-xl shadow-lg text-center border-2 border-dashed border-gray-300">
+                <p className="text-2xl font-bold text-gray-700 mb-2">Tu Carrito Está Vacío 🛒</p>
+                <p className="text-gray-500">¡Regresa a la sección de productos para llenarlo!</p>
+            </div>
+        );
+    }
+
     return (
         <div className="bg-white rounded-xl shadow-lg p-6 mb-4">
             {/* Encabezados */}
             <div className="hidden md:flex justify-between text-gray-700 font-bold text-lg border-b pb-3 mb-4">
                 <span className="w-1/2">Producto</span>
                 <span className="w-1/4 text-center">Cantidad</span>
-                <span className="w-1/4 text-right">Precio / Eliminar</span> {/* Encabezado ajustado */}
+                <span className="w-1/4 text-right">Subtotal / Eliminar</span>
             </div>
 
             {/* Items */}
@@ -25,54 +35,55 @@ export default function ProductListTL({
                         {/* Info Producto */}
                         <div className="flex items-center w-full md:w-1/2 mb-4 md:mb-0">
                             <div className="w-20 h-20 bg-gray-200 rounded-lg shrink-0 mr-4 overflow-hidden">
-                                {/* Asegúrate de que item.imageUrl existe */}
                                 <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                             </div>
                             <div>
                                 <h3 className="font-bold text-gray-900 text-base">{item.name}</h3>
                                 <p className="text-sm text-gray-500">{item.subcategories}</p>
+                                <p className="text-sm text-gray-400 mt-1 hidden md:block">${item.price.toLocaleString('es-CO')} c/u</p>
                             </div>
                         </div>
 
-                        {/* Controles Cantidad (MODIFICADO) */}
+                        {/* Controles Cantidad (CONECTADO) */}
                         <div className="flex items-center justify-center w-full md:w-1/4 mb-4 md:mb-0">
-                            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                            <div className="flex items-center border border-indigo-300 rounded-lg overflow-hidden">
                                 
                                 {/* Botón DISMINUIR (-) */}
                                 <button 
-                                    onClick={() => decreaseQuantity(item.id)} // 2. Conectado
-                                    className="px-3 py-1 hover:bg-gray-100 font-bold text-gray-600"
+                                    onClick={() => decreaseQuantity(item.id)}
+                                    className="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 font-bold text-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    // ⚠️ MEJORA: Deshabilitar si la cantidad es 1 para no ir a 0
+                                    disabled={item.quantity <= 1} 
                                 >
-                                    -
+                                    <FaMinus className="w-3 h-3"/>
                                 </button>
                                 
                                 <input 
                                     type="text" 
                                     value={item.quantity} 
                                     readOnly 
-                                    className="w-10 text-center border-l border-r border-gray-300 py-1 text-gray-800 outline-none"
+                                    className="w-10 text-center py-2 text-gray-800 outline-none border-l border-r border-indigo-300 bg-white font-semibold"
                                 />
                                 
                                 {/* Botón AUMENTAR (+) */}
                                 <button 
-                                    onClick={() => increaseQuantity(item.id)} // 2. Conectado
-                                    className="px-3 py-1 hover:bg-gray-100 font-bold text-gray-600"
+                                    onClick={() => increaseQuantity(item.id)}
+                                    className="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 font-bold text-indigo-600"
                                 >
-                                    +
+                                    <FaPlus className="w-3 h-3"/>
                                 </button>
                             </div>
                         </div>
 
-                        {/* Precio y Eliminar (MODIFICADO) */}
+                        {/* Subtotal y Eliminar (CONECTADO) */}
                         <div className="w-full md:w-1/4 flex justify-between md:justify-end items-center">
-                            <p className="font-bold text-xl text-gray-900 md:mr-6">
-                                {/* Asegúrate de que el precio se muestre correctamente */}
+                            <p className="font-bold text-xl text-indigo-700 md:mr-6">
                                 ${(item.price * item.quantity).toLocaleString('es-CO')}
                             </p>
                             
-                            {/* Botón ELIMINAR (MODIFICADO) */}
+                            {/* Botón ELIMINAR */}
                             <button 
-                                onClick={() => handleRemoveProduct(item.id)} // 3. Conectado
+                                onClick={() => handleRemoveProduct(item.id)}
                                 className="text-red-400 hover:text-red-600 transition-colors p-2 rounded-full hover:bg-red-50"
                                 aria-label={`Eliminar ${item.name}`}
                             >
