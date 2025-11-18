@@ -37,26 +37,23 @@ export default function VeterinaryLw() {
                 </p>
             </header>
 
-            
             {/* 2. Contenedor Principal: Lógica Condicional */}
             {isSingleView ? (
                 // CASO 1: Solo una veterinaria (Vista Detallada Completa)
                 <VeterinaryDetailView vet={singleVetData} />
             ) : (
                 // CASO 2: Múltiples veterinarias (Cuadrícula de Tarjetas)
-                <div 
-                    className="mt-8 mx-4 grid grid-cols-2 gap-y-4 gap-x-3 justify-items-center sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4"
-                >
-                    
-                    {veterinaries.map((vet) => (
-                        <Card 
-                            key={vet.id} 
-                            name={vet.name}
-                            imageUrl={vet.image} 
-                            onClick={() => handleCardClick(vet)}
-                        />
-                    ))}
-
+                <div className="mt-8 2xl:mx-[10vw]">
+                    <div className="grid grid-cols-1 justify-items-center sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-6">
+                        {veterinaries.map((vet) => (
+                            <Card 
+                                key={vet.id} 
+                                name={vet.name}
+                                imageUrl={vet.image} 
+                                onClick={() => handleCardClick(vet)}
+                            />
+                        ))}
+                    </div>
                 </div>
             )}
 
@@ -67,7 +64,6 @@ export default function VeterinaryLw() {
                     onClose={handleCloseModal}
                 />
             )}
-
         </div>
     )
 }
