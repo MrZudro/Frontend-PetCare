@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react'; // 💡 IMPORTADO useCallback
 // Importamos los datos JSON
 import servicesData from '../components/Data/services.json';
-import clinicsData from '../components/veterinary/VeterinaryData.json';
+import clinicsData from '../components/Data/VeterinaryData.json';
 // Importamos el hook para obtener el estado global de citas
 import { useAppointmentStore } from '../components/services/useAppointmentStore';
 

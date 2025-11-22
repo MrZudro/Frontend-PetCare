@@ -66,7 +66,14 @@ const rutas = createBrowserRouter([
         <FormPets />
       </Layout>
     ),
-  },
+  },  {
+    path: '/car',
+    element: (
+      <Layout>
+        <BuyCartTL/>
+      </Layout>
+    ),
+  }
 ]);
 
 // Renderizado de la aplicación
