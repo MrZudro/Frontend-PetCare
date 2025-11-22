@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 
 // Raíz de Tailwind
 import './index.css';
@@ -14,8 +15,15 @@ import ServicesLg from './pages/ServicesLg';
 import FormPets from './components/formPets/FormPets';
 import BuyCartTL from './pages/BuyCartTL';
 
+// Auth Pages
+import Login from './pages/Auth/Login';
+import Register from './pages/Auth/Register';
+import ForgotPassword from './pages/Auth/ForgotPassword';
+import ResetPassword from './pages/Auth/ResetPassword';
+
 // Componentes
 import Layout from './components/layout/Layout';
+import AuthLayout from './layouts/AuthLayout';
 
 // Aquí se asignan las rutas
 const rutas = createBrowserRouter([
@@ -66,19 +74,44 @@ const rutas = createBrowserRouter([
         <FormPets />
       </Layout>
     ),
-  },  {
+  }, {
     path: '/car',
     element: (
       <Layout>
-        <BuyCartTL/>
+        <BuyCartTL />
       </Layout>
     ),
-  }
+  },
+  // Auth Routes
+  {
+    element: <AuthLayout />,
+    children: [
+      {
+        path: '/login',
+        element: <Login />,
+      },
+
+      {
+        path: '/forgot-password',
+        element: <ForgotPassword />,
+      },
+      {
+        path: '/reset-password',
+        element: <ResetPassword />,
+      },
+    ],
+  },
+  {
+    path: '/register',
+    element: <Register />,
+  },
 ]);
 
 // Renderizado de la aplicación
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RouterProvider router={rutas} />
+    <AuthProvider>
+      <RouterProvider router={rutas} />
+    </AuthProvider>
   </StrictMode>
 );
