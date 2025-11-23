@@ -20,7 +20,11 @@ const Login = () => {
         const result = await login(email, password);
 
         if (result.success) {
-            navigate('/'); // Redirect to dashboard/home
+            if (result.role === 'EMPLOYEE') {
+                navigate('/dashboard');
+            } else {
+                navigate('/');
+            }
         } else {
             setError(result.message);
         }

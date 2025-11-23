@@ -1,17 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { uploadImageToCloudinary } from '../../services/cloudinaryService';
-import axios from '../../services/axiosConfig'; // Assuming this is the configured axios instance
+import api from '../../services/axiosConfig';
 import { useNavigate } from 'react-router-dom';
+import { FaPaw, FaPlus, FaArrowLeft, FaMars, FaVenus, FaWeight, FaBirthdayCake, FaPalette, FaMicrochip } from 'react-icons/fa';
 
 const FormPets = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
 
-  const [petData, setPetData] = useState({
+  // Data States
+  const [pets, setPets] = useState([]);
+  const [species, setSpecies] = useState([]);
+  const [races, setRaces] = useState([]);
+
+  // UI States
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [error, setError] = useState('');
+
+  // Form State
+  const [formData, setFormData] = useState({
     name: '',
-    raza: '', // This will hold the ID of the race if we had a list, or just a string if API allows
+    specieId: '',
+    idRace: '',
     microchip: '',
     color: '',
     gender: '',
@@ -19,277 +32,425 @@ const FormPets = () => {
     birthdate: '',
     imageUrl: '',
   });
-
   const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
+  // Derived State
+  const filteredRaces = races.filter(race => race.specieId === parseInt(formData.specieId));
 
   useEffect(() => {
-    if (!isAuthenticated || !user) {
-      // Redirect if not logged in
-      // navigate('/login'); // Uncomment to enforce redirect
-      // alert("Debes iniciar sesión para registrar una mascota.");
+    if (!isAuthenticated) {
+      // navigate('/login'); // Optional: Redirect if not authenticated
+      return;
     }
+
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        // Fetch dependencies in parallel
+        const [speciesRes, racesRes] = await Promise.all([
+          api.get('/api/species'),
+          api.get('/api/races')
+        ]);
+
+        setSpecies(speciesRes.data);
+        setRaces(racesRes.data);
+
+        // Fetch User's Pets
+        if (user && user.id) {
+          try {
+            const petsRes = await api.get(`/api/pets/user/${user.id}`);
+            setPets(petsRes.data);
+            // If user has no pets, show form by default
+            if (petsRes.data.length === 0) {
+              setShowForm(true);
+            }
+          } catch (err) {
+            console.error("Error fetching pets:", err);
+            // If error fetching pets (e.g., 404 if none found), assume empty
+            setPets([]);
+            setShowForm(true);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading initial data:", err);
+        setError("Error al cargar los datos necesarios.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, [isAuthenticated, user, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setPetData(prevData => ({
-      ...prevData,
+    setFormData(prev => ({
+      ...prev,
       [name]: value,
+      // Reset race if specie changes
+      ...(name === 'specieId' ? { idRace: '' } : {})
     }));
   };
 
   const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setImageFile(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user || !user.id) {
-      alert("Error: No se ha identificado el usuario logueado.");
+      setError("Usuario no identificado.");
       return;
     }
 
-    setLoading(true);
-    try {
-      let imageUrl = petData.imageUrl;
+    setSubmitting(true);
+    setError('');
 
-      // 1. Upload Image to Cloudinary if selected
+    try {
+      let imageUrl = formData.imageUrl;
+
       if (imageFile) {
-        try {
-          imageUrl = await uploadImageToCloudinary(imageFile);
-        } catch (error) {
-          console.error("Error uploading image:", error);
-          alert("Error al subir la imagen. Intente de nuevo.");
-          setLoading(false);
-          return;
-        }
+        imageUrl = await uploadImageToCloudinary(imageFile);
       }
 
-      // 2. Prepare Payload
-      // Note: 'raza' expects a Race entity or ID. Since we don't have a race selector with IDs yet,
-      // we might need to adjust this. For now, we'll send it as is, but typically you'd send { id: raceId }.
-      // If the backend expects a Race object:
-      // const racePayload = { id: parseInt(petData.raza) }; // Assuming value is ID
-
       const payload = {
-        name: petData.name,
-        birthdate: petData.birthdate,
-        microchip: petData.microchip || null,
-        color: petData.color,
-        weight: petData.weight || null,
-        gender: petData.gender,
+        name: formData.name,
+        birthdate: formData.birthdate,
+        microchip: formData.microchip || null,
+        color: formData.color,
+        weight: formData.weight || null,
+        gender: formData.gender,
         imageUrl: imageUrl,
-        user: { id: user.id }, // Associate with logged in user
-        // raza: { id: 1 } // Placeholder: You need to implement race selection fetching from API
-        // For now, we are not sending 'raza' properly because we lack the ID list. 
-        // If the API requires it, this will fail. 
-        // Assuming for this task we focus on the structure and user association.
+        idRace: parseInt(formData.idRace),
+        idUser: user.id
       };
 
-      console.log('Enviando payload:', payload);
+      await api.post('/api/pets', payload);
 
-      // 3. Send to API
-      // await axios.post('/pets', payload); 
+      // Refresh pets list
+      const petsRes = await api.get(`/api/pets/user/${user.id}`);
+      setPets(petsRes.data);
 
-      alert('Mascota registrada con éxito (Simulación). URL Imagen: ' + imageUrl);
+      // Reset form and return to list
+      resetForm();
+      setShowForm(false);
 
-      // Reset form
-      setPetData({
-        name: '',
-        raza: '',
-        microchip: '',
-        color: '',
-        gender: '',
-        weight: '',
-        birthdate: '',
-        imageUrl: '',
-      });
-      setImageFile(null);
-
-    } catch (error) {
-      console.error("Error saving pet:", error);
-      alert("Error al registrar la mascota.");
+    } catch (err) {
+      console.error("Error creating pet:", err);
+      setError("Error al registrar la mascota. Verifique los datos.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  return (
-    <div className="max-w-xl mx-auto my-10 p-8 bg-white shadow-xl/15 rounded-xl content-center">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">
-        FORMULARIO PARA LA CREACION DE MASCOTAS
-      </h2>
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      specieId: '',
+      idRace: '',
+      microchip: '',
+      color: '',
+      gender: '',
+      weight: '',
+      birthdate: '',
+      imageUrl: '',
+    });
+    setImageFile(null);
+    setImagePreview(null);
+  };
 
-      {!isAuthenticated && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-          <p className="text-sm text-yellow-700">
-            Debes iniciar sesión como cliente para registrar una mascota.
-          </p>
+  const calculateAge = (birthdate) => {
+    const today = new Date();
+    const birthDate = new Date(birthdate);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // --- VIEW: PET LIST ---
+  if (!showForm && pets.length > 0) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900">Mis Mascotas</h2>
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-full shadow-lg transition-all duration-300 transform hover:-translate-y-1"
+          >
+            <FaPlus /> Nueva Mascota
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {pets.map((pet) => (
+            <div key={pet.id} className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300 border border-gray-100">
+              <div className="h-48 overflow-hidden relative group">
+                {pet.imageUrl ? (
+                  <img src={pet.imageUrl} alt={pet.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                ) : (
+                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                    <FaPaw className="text-6xl text-gray-300" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                  <span className="text-white font-medium">{pet.raceName || 'Raza desconocida'}</span>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-800">{pet.name}</h3>
+                    <p className="text-sm text-gray-500">{pet.specieName || 'Mascota'}</p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${pet.gender === 'Macho' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800'}`}>
+                    {pet.gender}
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <FaBirthdayCake className="text-primary" />
+                    <span>{calculateAge(pet.birthdate)} años ({pet.birthdate})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FaPalette className="text-primary" />
+                    <span>{pet.color}</span>
+                  </div>
+                  {pet.weight && (
+                    <div className="flex items-center gap-2">
+                      <FaWeight className="text-primary" />
+                      <span>{pet.weight} kg</span>
+                    </div>
+                  )}
+                  {pet.microchip && (
+                    <div className="flex items-center gap-2">
+                      <FaMicrochip className="text-primary" />
+                      <span>Chip: {pet.microchip}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // --- VIEW: FORM ---
+  return (
+    <div className="max-w-3xl mx-auto my-10 p-8 bg-white shadow-2xl rounded-2xl">
+      <div className="flex items-center mb-8 border-b pb-4">
+        {pets.length > 0 && (
+          <button
+            onClick={() => setShowForm(false)}
+            className="mr-4 text-gray-500 hover:text-primary transition-colors"
+          >
+            <FaArrowLeft size={20} />
+          </button>
+        )}
+        <h2 className="text-3xl font-bold text-gray-800">
+          {pets.length === 0 ? '¡Bienvenido! Registra tu primera mascota' : 'Registrar Nueva Mascota'}
+        </h2>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r">
+          <p className="text-red-700">{error}</p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-6">
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          {/* Campo: Nombre */}
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nombre</label>
-            <input
-              type="text"
-              name="name"
-              id="name"
-              value={petData.name}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-
-          {/* Campo: Raza (Select) - NOTE: This should ideally load from API */}
-          <div>
-            <label htmlFor="raza" className="block text-sm font-medium text-gray-700">Raza / Especie</label>
-            <select
-              id="raza"
-              name="raza"
-              value={petData.raza}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full border border-gray-300 bg-white rounded-md shadow-sm p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="">Selecciona una opción</option>
-              {/* These values should be IDs from the Race table */}
-              <option value="1">Perro (Mock ID 1)</option>
-              <option value="2">Gato (Mock ID 2)</option>
-            </select>
-          </div>
-
-          {/* Campo: Género */}
-          <div>
-            <label htmlFor="gender" className="block text-sm font-medium text-gray-700">Género</label>
-            <select
-              id="gender"
-              name="gender"
-              value={petData.gender}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full border border-gray-300 bg-white rounded-md shadow-sm p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="">Selecciona</option>
-              <option value="Macho">Macho</option>
-              <option value="Hembra">Hembra</option>
-            </select>
-          </div>
-
-          {/* Campo: Color */}
-          <div>
-            <label htmlFor="color" className="block text-sm font-medium text-gray-700">Color</label>
-            <input
-              type="text"
-              name="color"
-              id="color"
-              value={petData.color}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-          </div>
-
-          {/* Campo: Número de Microchip (Opcional) */}
-          <div>
-            <label htmlFor="microchip" className="block text-sm font-medium text-gray-700">Número de Microchip (Opcional)</label>
-            <input
-              type="text"
-              name="microchip"
-              id="microchip"
-              value={petData.microchip}
-              onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Ej: 900xxxxxxxxxxxxxx"
-            />
-          </div>
-
-          {/* Campo: Peso (Opcional) */}
-          <div>
-            <label htmlFor="weight" className="block text-sm font-medium text-gray-700">Peso (Opcional en kg)</label>
-            <input
-              type="number"
-              name="weight"
-              id="weight"
-              value={petData.weight}
-              onChange={handleChange}
-              step="0.1"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Ej: 5.5"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="birthdate" className="block text-sm font-medium text-gray-700">Fecha de Nacimiento</label>
-            <input
-              type="date"
-              name="birthdate"
-              id="birthdate"
-              value={petData.birthdate}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-primary focus:border-primary sm:text-sm"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700">Imagen de la Mascota (Opcional)</label>
-            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-              <div className="space-y-1 text-center">
-                <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <div className="flex text-sm text-gray-600">
-                  <label
-                    htmlFor="file-upload"
-                    className="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary-hover focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary"
-                  >
-                    <span>Sube un archivo</span>
-                    <input
-                      id="file-upload"
-                      name="imagenMascota"
-                      type="file"
-                      className="sr-only"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
-                  </label>
-                  <p className="pl-1">o arrastra y suelta</p>
-                </div>
-                <p className="text-xs text-gray-500">
-                  PNG, JPG, GIF hasta 10MB
-                </p>
-                {imageFile && (
-                  <p className="text-sm text-gray-700 mt-2">
-                    Archivo seleccionado: {imageFile.name}
-                  </p>
-                )}
-              </div>
+        {/* Image Upload */}
+        <div className="flex justify-center mb-8">
+          <div className="relative group cursor-pointer">
+            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-primary/20 shadow-inner bg-gray-50 flex items-center justify-center">
+              {imagePreview ? (
+                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+              ) : (
+                <FaPaw className="text-4xl text-gray-300" />
+              )}
             </div>
+            <label htmlFor="image-upload" className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg cursor-pointer hover:bg-primary-hover transition-colors">
+              <FaPlus size={14} />
+              <input
+                id="image-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </label>
           </div>
         </div>
 
-        {/* Botón de Enviar */}
-        <div className="pt-6 mt-6 border-t border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Basic Info */}
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">Nombre</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+              placeholder="Nombre de tu mascota"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">Fecha de Nacimiento</label>
+            <input
+              type="date"
+              name="birthdate"
+              value={formData.birthdate}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+            />
+          </div>
+
+          {/* Species & Race */}
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">Especie</label>
+            <select
+              name="specieId"
+              value={formData.specieId}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-white"
+            >
+              <option value="">Selecciona una especie</option>
+              {species.map(specie => (
+                <option key={specie.id} value={specie.id}>{specie.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">Raza</label>
+            <select
+              name="idRace"
+              value={formData.idRace}
+              onChange={handleChange}
+              required
+              disabled={!formData.specieId}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-white disabled:bg-gray-100 disabled:text-gray-400"
+            >
+              <option value="">{formData.specieId ? 'Selecciona una raza' : 'Primero selecciona especie'}</option>
+              {filteredRaces.map(race => (
+                <option key={race.id} value={race.id}>{race.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Details */}
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">Género</label>
+            <div className="flex gap-4 mt-1">
+              <label className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${formData.gender === 'Macho' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-gray-200 hover:bg-gray-50'}`}>
+                <input
+                  type="radio"
+                  name="gender"
+                  value="Macho"
+                  checked={formData.gender === 'Macho'}
+                  onChange={handleChange}
+                  className="hidden"
+                />
+                <FaMars /> Macho
+              </label>
+              <label className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${formData.gender === 'Hembra' ? 'bg-pink-50 border-pink-500 text-pink-700' : 'border-gray-200 hover:bg-gray-50'}`}>
+                <input
+                  type="radio"
+                  name="gender"
+                  value="Hembra"
+                  checked={formData.gender === 'Hembra'}
+                  onChange={handleChange}
+                  className="hidden"
+                />
+                <FaVenus /> Hembra
+              </label>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">Color</label>
+            <input
+              type="text"
+              name="color"
+              value={formData.color}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+              placeholder="Ej: Negro, Manchas..."
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">Peso (kg) <span className="text-gray-400 text-xs">(Opcional)</span></label>
+            <input
+              type="number"
+              step="0.1"
+              name="weight"
+              value={formData.weight}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+              placeholder="0.0"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700">Microchip <span className="text-gray-400 text-xs">(Opcional)</span></label>
+            <input
+              type="text"
+              name="microchip"
+              value={formData.microchip}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+              placeholder="Código del chip"
+            />
+          </div>
+        </div>
+
+        <div className="pt-6">
           <button
             type="submit"
-            disabled={loading || !isAuthenticated}
-            className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
-              ${loading || !isAuthenticated ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-primary-hover'} 
-              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary`}
+            disabled={submitting}
+            className={`w-full py-3 px-6 rounded-lg text-white font-semibold shadow-lg transition-all transform hover:-translate-y-0.5 ${submitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-primary-hover'
+              }`}
           >
-            {loading ? 'Guardando...' : 'Guardar Mascota'}
+            {submitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Guardando...
+              </span>
+            ) : (
+              'Guardar Mascota'
+            )}
           </button>
         </div>
       </form>
     </div>
   );
 };
+
 export default FormPets;

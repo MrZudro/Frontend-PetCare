@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
             setUser(userData);
             setIsAuthenticated(true);
 
-            return { success: true };
+            return { success: true, role };
         } catch (error) {
             console.error('Login failed:', error);
             return {
