@@ -25,30 +25,35 @@ export default function VeterinaryLw() {
     const singleVetData = isSingleView ? veterinaries[0] : null;
 
     return (
-        <div className="w-full">
+        <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-sans">
             
             {/* 1. Banner */}
-            <Banner title="Veterinarias" />
-            
+            <header className="mb-10 pt-4">
+                <h1 className="text-4xl font-extrabold text-gray-900 text-center">
+                    Veterinarias🏥⚕️
+                </h1>
+                <p className="text-center text-gray-500 mt-2 text-lg">
+                    Cuidamos la salud y felicidad de tu perro o gato con productos de calidad y confianza.
+                </p>
+            </header>
+
             {/* 2. Contenedor Principal: Lógica Condicional */}
             {isSingleView ? (
                 // CASO 1: Solo una veterinaria (Vista Detallada Completa)
                 <VeterinaryDetailView vet={singleVetData} />
             ) : (
                 // CASO 2: Múltiples veterinarias (Cuadrícula de Tarjetas)
-                <div 
-                    className="mt-8 mx-4 grid grid-cols-2 gap-y-4 gap-x-3 justify-items-center sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4"
-                >
-                    
-                    {veterinaries.map((vet) => (
-                        <Card 
-                            key={vet.id} 
-                            name={vet.name}
-                            imageUrl={vet.image} 
-                            onClick={() => handleCardClick(vet)}
-                        />
-                    ))}
-
+                <div className="mt-8 2xl:mx-[10vw]">
+                    <div className="grid grid-cols-1 justify-items-center sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-6">
+                        {veterinaries.map((vet) => (
+                            <Card 
+                                key={vet.id} 
+                                name={vet.name}
+                                imageUrl={vet.image} 
+                                onClick={() => handleCardClick(vet)}
+                            />
+                        ))}
+                    </div>
                 </div>
             )}
 
@@ -59,7 +64,6 @@ export default function VeterinaryLw() {
                     onClose={handleCloseModal}
                 />
             )}
-
         </div>
     )
 }

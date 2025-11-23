@@ -28,7 +28,6 @@ const Card = ({ name = "Nombre\nVeterinaria", imageUrl, address, onClick }) => {
       onClick={onClick}
     >
       
-      {/* 2. Área del Círculo (Imagen): Tamaño Aumentado */}
       <div 
         // Aumentamos el tamaño del círculo para todos los breakpoints
         className="h-24 w-24 rounded-full mb-4 flex items-center justify-center overflow-hidden sm:h-28 sm:w-28 md:h-40 md:w-40 md:mb-6"

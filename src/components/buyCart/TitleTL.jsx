@@ -1,9 +1,9 @@
 import React from 'react';
 
-export default function TitleTL() {
+export default function TitleTL({ text }) {
     return (
-        <div className="text-center mb-8 pt-6">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white">Carrito de Compras</h1>
-        </div>
+        <h1 className="text-3xl md:text-4xl font-bold text-texto text-center mb-8">
+            {text}
+        </h1>
     );
 }

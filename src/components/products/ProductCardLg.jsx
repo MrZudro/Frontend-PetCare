@@ -1,6 +1,8 @@
 import React from 'react';
 import { FaRegHeart, FaHeart } from 'react-icons/fa'; 
 import { FiShoppingCart } from 'react-icons/fi';
+// 1. IMPORTAMOS LA LÓGICA
+import { addToCart } from '../buyCart/CartUtils'; 
 
 const combineClasses = (...classes) => classes.filter(Boolean).join(' ');
 
@@ -18,16 +20,26 @@ const ProductCardLg = ({ product, onQuickView, onToggleWishlist, isWishlisted })
         }
     };
 
+    // 2. FUNCIÓN INTERMEDIA PARA MANEJAR EL CLICK Y DAR FEEDBACK
+    const handleAddToCart = (e) => {
+        e.stopPropagation(); // Evita abrir el QuickView
+        
+        addToCart(product.id); // Llamamos a nuestra utilidad
+        
+        // Aquí puedes poner una alerta o un Toast bonito
+        alert(`¡${product.name} agregado al carrito!`); 
+    };
+
     return (
         <div 
             className="bg-white shadow-lg rounded-xl overflow-hidden cursor-pointer transition duration-300 ease-in-out border border-gray-200 group 
-                       w-full max-w-xs mx-auto hover:shadow-2xl"
+                        w-full max-w-xs mx-auto hover:shadow-2xl"
             onClick={handleCardClick}
         >
             <div className="relative">
                 <img 
                     src={product.imageUrl} 
-                    alt={product.imageAlt} 
+                    alt={product.name} // Corregido: usualmente es product.name si no tienes imageAlt
                     className="w-full h-60 object-cover bg-gray-200 transition-opacity duration-300 group-hover:opacity-90" 
                     onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/400x300/6b7280/ffffff?text=No+Image'; }}
                 />
@@ -60,7 +72,7 @@ const ProductCardLg = ({ product, onQuickView, onToggleWishlist, isWishlisted })
                         
                         {/* Carrito */}
                         <button 
-                            onClick={(e) => { e.stopPropagation(); console.log("Añadir al Carrito:", product.id); }}
+                            onClick={handleAddToCart} // 3. USAMOS EL NUEVO MANEJADOR
                             className="p-2 rounded-full text-gray-400 hover:text-green-500 transition-colors duration-200 active:scale-95 flex items-center justify-center"
                             aria-label="Añadir al carrito"
                         >

@@ -1,96 +1,187 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
+// Componentes
 import TitleTL from "../components/buyCart/TitleTL";
 import ProductListTL from "../components/buyCart/ProductListTL";
 import SummaryTL from "../components/buyCart/SummaryTL";
 import EmptyCartButtonTL from "../components/buyCart/EmptyCartButtonTL";
 import ShippingOptionTL from "../components/buyCart/ShippingOptionTL";
 import NewAddressTL from "../components/buyCart/NewAddressTL";
-import ShippingDateTL from "../components/buyCart/ShippingOptionTL";
 import PaymentMethodTL from "../components/buyCart/PaymentMethodTL";
 import OrderReadyTL from "../components/buyCart/OrderReadyTL";
+
+// Datos Mock
+import PRODUCTS_DATA from '../components/Data/products.json';
 
 const STEPS = {
     CART: 'cart',
     DELIVERY: 'delivery',
     ADDRESS: 'address',
-    DATE: 'date',
     PAYMENT: 'payment',
     CONFIRMATION: 'confirmation',
 };
 
 export default function BuyCartTL() {
+    const [step, setStep] = useState(STEPS.CART);
+    const [products, setProducts] = useState([]);
 
-    const [step, setStep] = useState(STEPS.CART); 
-    const [products, setProducts] = useState([ 
-        { id: 1, name: "Nombre Producto", weight: "Peso producto", price: 20000, quantity: 1 }, 
-        { id: 2, name: "Nombre Producto", weight: "Peso producto", price: 15000, quantity: 1 },
-        { id: 3, name: "Nombre Producto", weight: "Peso producto", price: 41000, quantity: 1 },
-    ]);
-    const [address, setAddress] = useState(''); 
-    
-    // Funciones de Modificación en inglés
-    const increaseQuantity = (id) => { 
-        setProducts(products.map(p => 
-            p.id === id ? { ...p, quantity: p.quantity + 1 } : p
-        ));
-    };
-    const decreaseQuantity = (id) => { 
-        setProducts(products.map(p => 
-            p.id === id && p.quantity > 1 ? { ...p, quantity: p.quantity - 1 } : p
-        ));
-    };
-    const emptyCart = () => { setProducts([]); };
-    const subtotal = products.reduce((acc, p) => acc + p.price * p.quantity, 0); 
+    // --- ESTADO PARA DATOS DEL USUARIO (PERSISTENCIA) ---
+    const [checkoutData, setCheckoutData] = useState({
+        deliveryOption: 'standar',
+        address: {
+            addressLine: '',
+            department: 'Bogotá D.C.',
+            city: 'Engativá',
+            neighborhood: '',
+            apartment: '',
+            notes: '',
+            placeType: 'Residencial'
+        },
+        paymentMethod: ''
+    });
 
-    // Funciones de Transición en inglés
-    const goToDelivery = () => { setStep(STEPS.DELIVERY); };
-    const goToAddress = () => { setStep(STEPS.ADDRESS); };
-    const goToDate = () => { setStep(STEPS.DATE); };
-    const goToPayment = () => { setStep(STEPS.PAYMENT); };
-    const goToConfirmation = () => { setStep(STEPS.CONFIRMATION); };
-    
-    let CurrentView;
-    const baseLayoutClasses = "flex flex-col min-h-screen bg-[#0b4f6c] text-gray-800";
-    const bodyContentClasses = "flex-grow px-8 pb-8 pt-24 max-w-7xl mx-auto w-full"; 
-    
-    if (step === STEPS.CART) {
-        CurrentView = (
-            <>
-                <TitleTL />
-                <div className="flex flex-col md:flex-row gap-5">
-                    <ProductListTL products={products} increaseQuantity={increaseQuantity} decreaseQuantity={decreaseQuantity}/>
-                    <SummaryTL products={products} subtotal={subtotal} goToNextStep={goToDelivery} isDeliveryView={false}/>
-                </div>
-                {products.length > 0 && <EmptyCartButtonTL emptyCart={emptyCart} />} 
-            </>
-        );
-    } else if (step === STEPS.DELIVERY) {
-        CurrentView = (
-            <ShippingOptionTL products={products} subtotal={subtotal} goToNextStep={goToAddress}/>
-        );
-    } else if (step === STEPS.ADDRESS) {
-        CurrentView = (
-            <NewAddressTL products={products} subtotal={subtotal} setAddress={setAddress} goToNextStep={goToDate}/>
-        );
-    } else if (step === STEPS.DATE){
-        CurrentView = (
-            <ShippingDateTL products={products} subtotal={subtotal} selectedAddress={address} goToNextStep={goToPayment}/>
-        )
-    } else if (step === STEPS.PAYMENT){
-        CurrentView = (
-            <PaymentMethodTL products={products} subtotal={subtotal} goToNextStep={goToConfirmation}/>
-        )
-    } else if (step === STEPS.CONFIRMATION){
-        CurrentView = (
-            <OrderReadyTL products={products} subtotal={subtotal}/>
-        )
+    // --- CARGA INICIAL ---
+    useEffect(() => {
+        const storedCart = JSON.parse(localStorage.getItem('cartProducts')) || [];
+        const hydratedProducts = storedCart.map(cartItem => {
+            const fullProduct = PRODUCTS_DATA.find(p => p.id === cartItem.id);
+            if (fullProduct) return { ...fullProduct, quantity: cartItem.quantity };
+            return null;
+        }).filter(Boolean);
+        setProducts(hydratedProducts);
+    }, []);
+
+    // --- FUNCIONES DE CARRITO ---
+    const updateLocalStorage = (updated) => {
+        localStorage.setItem('cartProducts', JSON.stringify(updated.map(p => ({ id: p.id, quantity: p.quantity }))));
+    };
+
+    const handleQuantityChange = (id, change) => {
+        const updated = products.map(p => {
+            if (p.id === id) return { ...p, quantity: Math.max(1, p.quantity + change) };
+            return p;
+        });
+        setProducts(updated);
+        updateLocalStorage(updated);
+    };
+
+    const removeProduct = (id) => {
+        const updated = products.filter(p => p.id !== id);
+        setProducts(updated);
+        updateLocalStorage(updated);
+    };
+
+    const emptyCart = () => {
+        setProducts([]);
+        localStorage.removeItem('cartProducts');
+    };
+
+    // --- ACTUALIZAR DATOS ---
+    const handleDataChange = (section, field, value) => {
+        setCheckoutData(prev => ({
+            ...prev,
+            [section]: section === 'address' ? { ...prev.address, [field]: value } : value
+        }));
+    };
+
+    // --- NAVEGACIÓN ---
+    const nextStep = () => {
+        if (step === STEPS.CART) setStep(STEPS.DELIVERY);
+        else if (step === STEPS.DELIVERY) setStep(STEPS.ADDRESS); // Saltamos Fecha
+        else if (step === STEPS.ADDRESS) setStep(STEPS.PAYMENT);
+        else if (step === STEPS.PAYMENT) setStep(STEPS.CONFIRMATION);
+    };
+
+    const cancelProcess = () => {
+        setStep(STEPS.CART);
+    };
+
+    const subtotal = products.reduce((acc, p) => acc + p.price * p.quantity, 0);
+
+    // --- REGLAS DE VISIBILIDAD ---
+    // Ocultar Summary en ADDRESS y CONFIRMATION
+    const showSummary = step !== STEPS.ADDRESS && step !== STEPS.CONFIRMATION;
+    // Mostrar cancelar en todas MENOS CONFIRMATION y CART (opcional en cart)
+    const showCancelButton = step !== STEPS.CONFIRMATION && step !== STEPS.CART;
+
+    let content;
+    switch (step) {
+        case STEPS.CART:
+            content = (
+                <>
+                    <ProductListTL 
+                        products={products} 
+                        increaseQuantity={(id) => handleQuantityChange(id, 1)} 
+                        decreaseQuantity={(id) => handleQuantityChange(id, -1)} 
+                        handleRemoveProduct={removeProduct}
+                    />
+                    {products.length > 0 && <EmptyCartButtonTL emptyCart={emptyCart} />}
+                </>
+            );
+            break;
+        case STEPS.DELIVERY:
+            content = (
+                <ShippingOptionTL 
+                    selectedOption={checkoutData.deliveryOption}
+                    onSelect={(val) => handleDataChange('root', 'deliveryOption', val)}
+                    onContinue={nextStep}
+                />
+            );
+            break;
+        case STEPS.ADDRESS:
+            content = (
+                <NewAddressTL 
+                    data={checkoutData.address} 
+                    onChange={handleDataChange} 
+                    onContinue={nextStep}
+                />
+            );
+            break;
+        case STEPS.PAYMENT:
+            content = <PaymentMethodTL onContinue={nextStep} />;
+            break;
+        case STEPS.CONFIRMATION:
+            content = <OrderReadyTL products={products} subtotal={subtotal} />;
+            break;
+        default:
+            content = null;
     }
-    
+
     return (
-        <div className={baseLayoutClasses}> 
-            <main className={bodyContentClasses}> 
-                {CurrentView} 
+        <div className="flex flex-col min-h-screen bg-[var(--color-fondo)] text-[var(--color-texto)] font-[family-name:var(--font-poppins)]">
+            <main className="flex-grow px-4 py-8 max-w-7xl mx-auto w-full">
+                <TitleTL step={step} />
+                
+                <div className={`flex flex-col ${showSummary ? 'lg:flex-row' : ''} gap-8`}>
+                    
+                    {/* CONTENIDO PRINCIPAL */}
+                    <div className={`flex-1 ${!showSummary ? 'max-w-3xl mx-auto w-full' : ''}`}>
+                        {content}
+
+                        {/* Botón Cancelar Global */}
+                        {showCancelButton && (
+                            <div className="mt-6 text-left">
+                                <button 
+                                    onClick={cancelProcess}
+                                    className="text-[var(--color-alerta)] hover:text-red-700 underline text-sm font-medium transition-colors"
+                                >
+                                    Cancelar y volver
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* RESUMEN LATERAL */}
+                    {showSummary && (
+                        <div className="lg:w-1/3 xl:w-1/4 h-fit sticky top-4">
+                            <SummaryTL 
+                                products={products} 
+                                subtotal={subtotal} 
+                                onContinue={step === STEPS.CART ? nextStep : null}
+                            />
+                        </div>
+                    )}
+                </div>
             </main>
         </div>
     );

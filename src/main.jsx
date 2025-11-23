@@ -13,6 +13,7 @@ import VeterinaryLw from './pages/VeterinaryLw';
 import ProductsLg from './pages/ProductsLg';
 import ServicesLg from './pages/ServicesLg';
 import FormPets from './components/formPets/FormPets';
+import PetDetailLw from './pages/PetDetailLw';
 import BuyCartTL from './pages/BuyCartTL';
 
 // Auth Pages
@@ -156,6 +157,22 @@ const rutas = createBrowserRouter([
         element: <AppointmentManagement />,
       },
     ],
+  },
+  {
+    path: '/pethistory',
+    element: (
+      <Layout>
+        <PetDetailLw />
+      </Layout>
+    ),
+  },
+    {
+    path: '/car',
+    element: (
+      <Layout>
+        <BuyCartTL/>
+      </Layout>
+    ),
   },
 ]);
 

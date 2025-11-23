@@ -1,34 +1,23 @@
-import React, { useState, useMemo, useCallback } from 'react'; // 💡 Importado useCallback
-// Rutas de importación ajustadas asumiendo una estructura relativa
+import React, { useState, useMemo, useCallback } from 'react'; 
 import ProductCard from '../components/products/ProductCardLg';
 import QuickViewModal from '../components/products/QuickViewModalLg';
 import FilterSidebarLg from '../components/common/FilterSidebarLg';
-// import Pagination from '../common/PaginacionLg'; 
 import initialProducts from '../components/Data/products.json'; 
 import categoriesMap from '../components/Data/categories.json'; 
 
-
-// --- [ LÓGICA DE ORDENAMIENTO y FILTRADO - (Sin Cambios) ] ---
+// --- [ LÓGICA DE ORDENAMIENTO y FILTRADO (Sin cambios) ] ---
 const sortProducts = (products, sortKey) => {
-    // ... (Tu lógica de sort) ...
-    if (!sortKey || sortKey === 'default') {
-        return products;
-    }
+    if (!sortKey || sortKey === 'default') return products;
     const sorted = [...products];
     switch (sortKey) {
-        case 'price-asc':
-            return sorted.sort((a, b) => a.price - b.price);
-        case 'price-desc':
-            return sorted.sort((a, b) => b.price - a.price);
-        case 'rating-desc':
-            return sorted.sort((a, b) => b.name.localeCompare(a.name)); // CORREGIDO: Ordena por nombre descendente (Z-A)
-        default:
-            return products;
+        case 'price-asc': return sorted.sort((a, b) => a.price - b.price);
+        case 'price-desc': return sorted.sort((a, b) => b.price - a.price);
+        case 'rating-desc': return sorted.sort((a, b) => b.name.localeCompare(a.name));
+        default: return products;
     }
 };
 
 const filterProducts = (products, filterState) => {
-    // ... (Tu lógica de filter) ...
     const activeCategories = filterState.filters.category || [];
     const activeSubcategories = filterState.filters.subcategories || [];
     const activeBrands = filterState.filters.brand || [];
@@ -64,94 +53,122 @@ const filterProducts = (products, filterState) => {
     });
 };
 
-
-// 💡 Función auxiliar para cargar la lista de deseos desde LocalStorage
+// --- [ LÓGICA LOCALSTORAGE: WISHLIST (Sin cambios) ] ---
 const loadWishlistFromLocalStorage = () => {
     try {
         const storedWishlist = localStorage.getItem('wishlistIds');
-        // Devuelve el array de IDs parseado o un array vacío si no existe
         return storedWishlist ? JSON.parse(storedWishlist) : [];
     } catch (error) {
-        console.error("Error al cargar la lista de deseos del LocalStorage", error);
+        console.error("Error wishlist LS", error);
         return [];
     }
 };
 
-// 💡 Función auxiliar para guardar la lista de deseos en LocalStorage
 const saveWishlistToLocalStorage = (wishlistArray) => {
     try {
         localStorage.setItem('wishlistIds', JSON.stringify(wishlistArray));
     } catch (error) {
-        console.error("Error al guardar la lista de deseos en el LocalStorage", error);
+        console.error("Error saving wishlist LS", error);
+    }
+};
+
+// 🆕 --- [ LÓGICA LOCALSTORAGE: CARRITO DE COMPRAS ] --- 🆕
+
+// Cargar Carrito
+const loadCartFromLocalStorage = () => {
+    try {
+        const storedCart = localStorage.getItem('cartProducts');
+        // Estructura esperada: [{id: 1, quantity: 1}, {id: 5, quantity: 2}]
+        return storedCart ? JSON.parse(storedCart) : [];
+    } catch (error) {
+        console.error("Error loading Cart LS", error);
+        return [];
+    }
+};
+
+// Guardar Carrito
+const saveCartToLocalStorage = (cartArray) => {
+    try {
+        localStorage.setItem('cartProducts', JSON.stringify(cartArray));
+    } catch (error) {
+        console.error("Error saving Cart LS", error);
     }
 };
 
 
 const ProductsLg = () => {
-    // 🌟 INICIALIZAR el estado de la lista de deseos desde LocalStorage 🌟
     const [wishlist, setWishlist] = useState(loadWishlistFromLocalStorage);
-    
-    // Estados de datos
     const [products] = useState(initialProducts);
     const [quickViewProduct, setQuickViewProduct] = useState(null);
-    
-    // Estados de filtrado y ordenamiento
     const [sortKey, setSortKey] = useState('default');
     const [filterState, setFilterState] = useState({ filters: {}, searchTerm: '', mode: 'products' });
 
+    // --- Handlers ---
 
-    // Handlers (sin cambios)
     const handleQuickView = (product) => {
         setQuickViewProduct(product);
     };
 
-    // 🎯 MODIFICACIÓN: Actualiza el LocalStorage después de cambiar el estado 
+    // Wishlist Handler
     const handleToggleWishlist = (productId) => {
         setWishlist(prevWishlist => {
             let newWishlist;
-            
             if (prevWishlist.includes(productId)) {
-                // Quitar ID
                 newWishlist = prevWishlist.filter(id => id !== productId);
             } else {
-                // Añadir ID
                 newWishlist = [...prevWishlist, productId];
             }
-            
-            // 🚨 Guardar la nueva lista en el LocalStorage inmediatamente después
             saveWishlistToLocalStorage(newWishlist);
-            
             return newWishlist;
         });
     };
+
+    // 🆕 Carrito Handler: Añadir producto
+    const handleAddToCart = useCallback((productId) => {
+        // 1. Leer el carrito actual del almacenamiento
+        const currentCart = loadCartFromLocalStorage();
+        
+        // 2. Verificar si el producto ya existe
+        const existingProductIndex = currentCart.findIndex(item => item.id === productId);
+
+        if (existingProductIndex > -1) {
+            // Si existe, aumentamos la cantidad
+            currentCart[existingProductIndex].quantity += 1;
+            console.log(`Cantidad actualizada para producto ID: ${productId}`);
+        } else {
+            // Si no existe, lo agregamos con cantidad 1
+            currentCart.push({ id: productId, quantity: 1 });
+            console.log(`Producto nuevo agregado al carrito ID: ${productId}`);
+        }
+
+        // 3. Guardar en LocalStorage
+        saveCartToLocalStorage(currentCart);
+        
+        // Opcional: Aquí podrías disparar una alerta o un Toast
+        // alert("Producto añadido al carrito"); 
+    }, []);
 
     const handleRemoveProduct = (id) => {
         console.log(`Demo: Intentando remover producto con ID ${id}.`);
     };
 
-    // 🛑 CORRECCIÓN CRÍTICA (Línea ~134): Uso de useCallback y comparación profunda
     const handleFilterChange = useCallback((newState) => {
-        
-        // Comparamos el objeto de filtros entrantes con el estado actual
         if (JSON.stringify(newState.filters) === JSON.stringify(filterState.filters)) {
-            return; // Rompe el bucle si no hay cambio de valor.
+            return; 
         }
-
         setFilterState(newState); 
-    }, [filterState]); // Depende de filterState para la comparación
+    }, [filterState]); 
 
     const handleSortChange = (newSortKey) => {
         setSortKey(newSortKey);
     };
 
-    // Lógica principal: filtra y luego ordena (Uso de useMemo)
     const filteredAndSortedProducts = useMemo(() => {
         const filtered = filterProducts(products, filterState);
         return sortProducts(filtered, sortKey);
     }, [products, filterState, sortKey]);
 
     
-    // LÓGICA DE LAYOUT
     const showFilterSidebar = products.length > 1; 
     const gridLayout = showFilterSidebar ? 'grid-cols-1 lg:grid-cols-4' : 'grid-cols-1';
     const contentSpan = showFilterSidebar ? 'lg:col-span-3' : 'lg:col-span-4';
@@ -172,11 +189,11 @@ const ProductsLg = () => {
             <main className="max-w-screen-2xl mx-auto">
                 <div className={`grid ${gridLayout} gap-6`}>
 
-                    {/* 1. BARRA DE FILTROS */}
+                    {/* BARRA DE FILTROS */}
                     {showFilterSidebar && (
                         <div className="lg:col-span-1">
                             <FilterSidebarLg
-                                onFilterChange={handleFilterChange} // Ahora es estable con useCallback
+                                onFilterChange={handleFilterChange}
                                 onSortChange={handleSortChange}
                                 totalResults={filteredAndSortedProducts.length}
                                 mode="products"
@@ -184,7 +201,7 @@ const ProductsLg = () => {
                         </div>
                     )}
 
-                    {/* 2. CONTENIDO PRINCIPAL (Cuadrícula) */}
+                    {/* CONTENIDO PRINCIPAL */}
                     <div className={`${contentSpan}`}>
                         {filteredAndSortedProducts.length === 0 ? (
                             <div className="text-center p-12 bg-white rounded-xl shadow-lg mt-10 border border-gray-200">
@@ -193,7 +210,6 @@ const ProductsLg = () => {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
-                                {/* Mapea los productos */}
                                 {filteredAndSortedProducts.map(product => (
                                     <ProductCard
                                         key={product.id}
@@ -201,8 +217,9 @@ const ProductsLg = () => {
                                         onQuickView={handleQuickView}
                                         onRemove={handleRemoveProduct}
                                         onToggleWishlist={handleToggleWishlist}
-                                        // La prop isWishlisted usa el estado cargado/actualizado
-                                        isWishlisted={wishlist.includes(product.id)} 
+                                        isWishlisted={wishlist.includes(product.id)}
+                                        // 🆕 Pasamos la función al componente hijo
+                                        onAddToCart={handleAddToCart} 
                                     />
                                 ))}
                             </div>
@@ -212,7 +229,6 @@ const ProductsLg = () => {
 
             </main>
 
-            {/* Renderiza el modal de vista rápida */}
             {quickViewProduct && (
                 <QuickViewModal
                     product={quickViewProduct}

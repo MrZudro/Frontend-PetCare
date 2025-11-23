@@ -1,0 +1,30 @@
+[
+  {
+    "id": 101,
+    "id_pet": 7,
+    "condition_name": "Diabetes Mellitus",
+    "description": "Requiere insulina dos veces al día.",
+    "icon": "🩸" 
+  },
+  {
+    "id": 102,
+    "id_pet": 7,
+    "condition_name": "Cardiopatía (ICC)",
+    "description": "Necesita control con diuréticos y dieta baja en sodio.",
+    "icon": "🫀" 
+  },
+  {
+    "id": 103,
+    "id_pet": 2,
+    "condition_name": "Hipotiroidismo",
+    "description": "Terapia de reemplazo hormonal de por vida.",
+    "icon": "💊" 
+  },
+  {
+    "id": 104,
+    "id_pet": 9,
+    "condition_name": "Obesidad Mórbida",
+    "description": "Dieta controlada y ejercicio estricto.",
+    "icon": "⚖️" 
+  }
+]

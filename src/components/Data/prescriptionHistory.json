@@ -1,0 +1,35 @@
+[
+  {
+    "id": 501,
+    "id_pet": 7,
+    "id_employee": 1,
+    "id_consultation": 201, 
+    "issue_date": "2024-10-25",
+    "medication_name": "Antiparasitario NexGard Spectra",
+    "dosage": "1 tableta mensual",
+    "valid_until": "2024-12-25",
+    "instructions": "Administrar con comida."
+  },
+  {
+    "id": 502,
+    "id_pet": 7,
+    "id_employee": 3,
+    "id_consultation": 202,
+    "issue_date": "2025-10-30",
+    "medication_name": "Meloxicam 2mg",
+    "dosage": "1/2 tableta cada 24h",
+    "valid_until": "2025-11-03",
+    "instructions": "Solo durante 5 días para la cojera."
+  },
+  {
+    "id": 503,
+    "id_pet": 2, 
+    "id_employee": 2,
+    "id_consultation": 204,
+    "issue_date": "2024-10-30",
+    "medication_name": "Antibiótico Amoxicilina",
+    "dosage": "1ml cada 12h",
+    "valid_until": "2024-11-06",
+    "instructions": "Completar todo el ciclo."
+  }
+]
