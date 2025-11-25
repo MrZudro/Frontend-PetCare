@@ -1,24 +1,22 @@
 import React from 'react';
 import { FaCheckCircle } from 'react-icons/fa';
-// 1. Importar librerías de PDF
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+// 1. CAMBIO IMPORTANTE: Importar autoTable por defecto
+import autoTable from 'jspdf-autotable'; 
 
-export default function OrderReadyTL({ products, subtotal }) {
+export default function OrderReadyTL({ products = [], subtotal = 0 }) { // Añadimos valores por defecto
     
-    // Datos simulados de la orden
     const orderNumber = "FKGZ9876TY";
     const date = "10 - Junio - 2025";
     const iva = subtotal * 0.19;
     const total = subtotal + iva;
 
-    // 2. Función para generar el PDF
     const generatePDF = () => {
         const doc = new jsPDF();
 
         // -- Encabezado --
         doc.setFontSize(20);
-        doc.setTextColor(15, 194, 192); // Color Primary (#0FC2C0)
+        doc.setTextColor(15, 194, 192); 
         doc.text("PetCare - Factura de Venta", 105, 20, null, null, "center");
         
         doc.setFontSize(10);
@@ -34,7 +32,7 @@ export default function OrderReadyTL({ products, subtotal }) {
         products.forEach(product => {
             const productData = [
                 product.name,
-                product.subcategories,
+                product.subcategories || 'General',
                 product.quantity,
                 `$${product.price.toLocaleString('es-CO')}`,
                 `$${(product.price * product.quantity).toLocaleString('es-CO')}`
@@ -42,17 +40,19 @@ export default function OrderReadyTL({ products, subtotal }) {
             tableRows.push(productData);
         });
 
-        doc.autoTable({
+        // 2. CAMBIO IMPORTANTE: Usar la función importada pasando 'doc' como primer argumento
+        autoTable(doc, {
             head: [tableColumn],
             body: tableRows,
             startY: 50,
             theme: 'grid',
-            headStyles: { fillColor: [15, 194, 192] }, // Color cabecera tabla
+            headStyles: { fillColor: [15, 194, 192] },
         });
 
         // -- Totales --
-        // Obtener la posición final de la tabla
-        const finalY = doc.lastAutoTable.finalY + 10;
+        // Usamos (doc as any) o accedemos a lastAutoTable desde el objeto global si da problemas, 
+        // pero con autoTable importado, suele devolver la posición final en doc.lastAutoTable
+        const finalY = (doc).lastAutoTable.finalY + 10;
 
         doc.text(`Subtotal: $${subtotal.toLocaleString('es-CO')}`, 140, finalY);
         doc.text(`IVA (19%): $${iva.toLocaleString('es-CO')}`, 140, finalY + 5);
@@ -67,7 +67,6 @@ export default function OrderReadyTL({ products, subtotal }) {
         doc.setTextColor(100);
         doc.text("¡Gracias por confiar en PetCare!", 105, finalY + 30, null, null, "center");
 
-        // Descargar el archivo
         doc.save(`Factura_PetCare_${orderNumber}.pdf`);
     };
 
@@ -94,7 +93,6 @@ export default function OrderReadyTL({ products, subtotal }) {
                     <p className="font-bold">{date}</p>
                 </div>
                 
-                {/* 3. Botón Conectado a la función */}
                 <button 
                     onClick={generatePDF}
                     className="bg-white text-[#161728] font-bold py-2 px-4 rounded text-sm hover:bg-gray-200 transition duration-200 shadow-md"
@@ -105,9 +103,9 @@ export default function OrderReadyTL({ products, subtotal }) {
 
             <h2 className="text-left text-xl font-bold text-[#161728] border-b pb-2 mb-4">Detalles del Pedido</h2>
 
-            {/* ... (Resto del código de lista de productos y totales - Sin cambios importantes, solo visual) ... */}
             <div className="space-y-4 mb-8">
-                {products.map((p) => (
+                {/* Verificación de seguridad por si products viene vacío */}
+                {products.length > 0 ? products.map((p) => (
                     <div key={p.id} className="flex justify-between items-center border-b border-gray-100 pb-4 last:border-0">
                         <div className="flex items-center gap-4 text-left">
                             <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden">
@@ -121,11 +119,11 @@ export default function OrderReadyTL({ products, subtotal }) {
                         </div>
                         <span className="font-bold text-[#161728]">${(p.price * p.quantity).toLocaleString('es-CO')}</span>
                     </div>
-                ))}
+                )) : <p>No hay productos.</p>}
             </div>
 
-            {/* Botón para volver (Opcional) */}
-            <div className="mt-8">
+            {/* ... Botón volver ... */}
+             <div className="mt-8">
                  <button 
                     className="bg-[#F2055C] text-white font-bold py-3 px-8 rounded-full hover:bg-[#BF0436] transition"
                     onClick={() => window.location.href = '/products'} 
