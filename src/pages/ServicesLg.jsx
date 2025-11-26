@@ -1,4 +1,8 @@
-import React, { useState, useMemo, useCallback } from 'react'; // 💡 IMPORTADO useCallback
+import React, { useState, useMemo, useCallback } from 'react'; 
+// 💡 IMPORTADO useCallback
+// 🔑 CLAVE: Importar useLocation para leer el estado de navegación
+import { useLocation } from 'react-router-dom'; 
+
 // Importamos los datos JSON
 import servicesData from '../components/Data/services.json';
 import clinicsData from '../components/Data/VeterinaryData.json';
@@ -33,6 +37,12 @@ const filterServices = (services, filterState) => {
 
 
 const ServicesLg = () => {
+    
+    // 🔑 PASO 1: Leemos el estado de navegación
+    const location = useLocation();
+    // Determinamos si se debe abrir el gestor de inmediato (si el estado de navegación lo indica)
+    const initialIsManagerOpen = location.state?.openManager || false; 
+
     // 💡 Estado del hook para controlar la visibilidad del botón de gestión
     const appointments = useAppointmentStore(state => state.appointments);
 
@@ -42,8 +52,8 @@ const ServicesLg = () => {
     const [quickViewService, setQuickViewService] = useState(null);
     const [wishlist, setWishlist] = useState([]);
     
-    // Estado para el gestor de citas
-    const [isManagerOpen, setIsManagerOpen] = useState(false);
+    // 🔑 PASO 2: Inicializamos el estado del gestor con el valor de la navegación
+    const [isManagerOpen, setIsManagerOpen] = useState(initialIsManagerOpen);
 
     // Estado del filtro (ajustamos el inicial para reflejar clinics)
     const [filterState, setFilterState] = useState({ 
@@ -92,6 +102,11 @@ const ServicesLg = () => {
     // 🌟 LÓGICA CLAVE: Control de visibilidad del botón de Solicitudes
     const hasAppointments = appointments.length > 0;
 
+    // 🚀 FUNCIÓN: Cierra el modal y abre la vista de gestión de citas (USADA AQUÍ PARA EL MODAL INTERNO)
+    const handleBookingSuccess = useCallback(() => {
+        setQuickViewService(null); // Cierra el modal
+        setIsManagerOpen(true);    // Muestra la vista de gestión de citas (AppointmentManagerLg)
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-sans">
@@ -176,6 +191,8 @@ const ServicesLg = () => {
                 <ServiceQuickViewModal
                     service={quickViewService}
                     onClose={() => setQuickViewService(null)}
+                    // 🚀 Pasamos la función de éxito de reserva para manejar citas desde aquí
+                    onAppointmentBooked={handleBookingSuccess} 
                 />
             )}
         </div>

@@ -1,4 +1,7 @@
 import React, { useState, useMemo, useCallback } from 'react'; 
+// 🔑 CLAVE: Importar useNavigate para la redirección
+import { useNavigate } from 'react-router-dom'; 
+
 import ProductCard from '../components/products/ProductCardLg';
 import QuickViewModal from '../components/products/QuickViewModalLg';
 import FilterSidebarLg from '../components/common/FilterSidebarLg';
@@ -72,13 +75,11 @@ const saveWishlistToLocalStorage = (wishlistArray) => {
     }
 };
 
-// 🆕 --- [ LÓGICA LOCALSTORAGE: CARRITO DE COMPRAS ] --- 🆕
-
-// Cargar Carrito
+// --- [ LÓGICA LOCALSTORAGE: CARRITO DE COMPRAS (Sin cambios) ] --- 
 const loadCartFromLocalStorage = () => {
     try {
         const storedCart = localStorage.getItem('cartProducts');
-        // Estructura esperada: [{id: 1, quantity: 1}, {id: 5, quantity: 2}]
+        // Estructura esperada: [{id: 1, quantity: 1, size: 'M', color: 'red', cartItemId: '1-M-red'}]
         return storedCart ? JSON.parse(storedCart) : [];
     } catch (error) {
         console.error("Error loading Cart LS", error);
@@ -86,7 +87,6 @@ const loadCartFromLocalStorage = () => {
     }
 };
 
-// Guardar Carrito
 const saveCartToLocalStorage = (cartArray) => {
     try {
         localStorage.setItem('cartProducts', JSON.stringify(cartArray));
@@ -97,6 +97,9 @@ const saveCartToLocalStorage = (cartArray) => {
 
 
 const ProductsLg = () => {
+    // 🔑 CLAVE: Inicializar el hook de navegación
+    const navigate = useNavigate();
+    
     const [wishlist, setWishlist] = useState(loadWishlistFromLocalStorage);
     const [products] = useState(initialProducts);
     const [quickViewProduct, setQuickViewProduct] = useState(null);
@@ -109,8 +112,8 @@ const ProductsLg = () => {
         setQuickViewProduct(product);
     };
 
-    // Wishlist Handler
-    const handleToggleWishlist = (productId) => {
+    // Wishlist Handler (Sin cambios)
+    const handleToggleWishlist = (productId) => { /* ... */
         setWishlist(prevWishlist => {
             let newWishlist;
             if (prevWishlist.includes(productId)) {
@@ -123,36 +126,49 @@ const ProductsLg = () => {
         });
     };
 
-    // 🆕 Carrito Handler: Añadir producto
-    const handleAddToCart = useCallback((productId) => {
+    // 🔑 CLAVE: Handler de redirección
+    const handleRedirectToCart = useCallback(() => {
+        // Redirige a la página del carrito
+        navigate('/car'); 
+    }, [navigate]);
+
+
+    // 🆕 Carrito Handler: Añadir producto (Actualizado para aceptar variantes)
+    const handleAddToCart = useCallback((productId, selectedSize, selectedColor) => {
         // 1. Leer el carrito actual del almacenamiento
         const currentCart = loadCartFromLocalStorage();
         
-        // 2. Verificar si el producto ya existe
-        const existingProductIndex = currentCart.findIndex(item => item.id === productId);
+        // Crea un identificador único basado en el producto, talla y color.
+        const cartItemId = `${productId}-${selectedSize || 'n/a'}-${selectedColor || 'n/a'}`;
+        
+        // 2. Verificar si ya existe exactamente el mismo producto/variante en el carrito
+        const existingProductIndex = currentCart.findIndex(item => item.cartItemId === cartItemId);
 
         if (existingProductIndex > -1) {
-            // Si existe, aumentamos la cantidad
+            // Si existe, incrementa la cantidad
             currentCart[existingProductIndex].quantity += 1;
-            console.log(`Cantidad actualizada para producto ID: ${productId}`);
+            console.log(`Cantidad actualizada para producto ID: ${productId} (${cartItemId})`);
         } else {
-            // Si no existe, lo agregamos con cantidad 1
-            currentCart.push({ id: productId, quantity: 1 });
-            console.log(`Producto nuevo agregado al carrito ID: ${productId}`);
+            // Si no existe, añade el nuevo ítem con sus variantes
+            currentCart.push({ 
+                id: productId, 
+                cartItemId: cartItemId, // ID único para la variante
+                quantity: 1, 
+                size: selectedSize, 
+                color: selectedColor 
+            });
+            console.log(`Producto nuevo agregado al carrito ID: ${productId} (${cartItemId})`);
         }
 
         // 3. Guardar en LocalStorage
         saveCartToLocalStorage(currentCart);
-        
-        // Opcional: Aquí podrías disparar una alerta o un Toast
-        // alert("Producto añadido al carrito"); 
     }, []);
 
     const handleRemoveProduct = (id) => {
         console.log(`Demo: Intentando remover producto con ID ${id}.`);
     };
 
-    const handleFilterChange = useCallback((newState) => {
+    const handleFilterChange = useCallback((newState) => { /* ... */
         if (JSON.stringify(newState.filters) === JSON.stringify(filterState.filters)) {
             return; 
         }
@@ -218,8 +234,8 @@ const ProductsLg = () => {
                                         onRemove={handleRemoveProduct}
                                         onToggleWishlist={handleToggleWishlist}
                                         isWishlisted={wishlist.includes(product.id)}
-                                        // 🆕 Pasamos la función al componente hijo
-                                        onAddToCart={handleAddToCart} 
+                                        // 🔑 CLAVE: Llamada a onAddToCart desde la tarjeta, pasando null para variantes
+                                        onAddToCart={() => handleAddToCart(product.id, null, null)} 
                                     />
                                 ))}
                             </div>
@@ -229,10 +245,14 @@ const ProductsLg = () => {
 
             </main>
 
+            {/* MODAL DE VISTA RÁPIDA */}
             {quickViewProduct && (
                 <QuickViewModal
                     product={quickViewProduct}
                     onClose={() => setQuickViewProduct(null)}
+                    // 🔑 CLAVE: Pasamos las funciones actualizadas al modal
+                    onAddToCart={handleAddToCart}
+                    onRedirectToCart={handleRedirectToCart}
                 />
             )}
         </div>
