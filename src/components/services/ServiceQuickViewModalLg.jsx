@@ -1,11 +1,17 @@
+// =================================================================
+// src/components/services/ServiceQuickViewModalLg.jsx
+// Modal de Vista Rápida y Agendamiento de Citas para Servicios.
+// =================================================================
+
 import React, { useState, useMemo } from 'react';
 import { FaTimes, FaCalendarAlt, FaUserMd } from 'react-icons/fa';
-import { useAppointmentStore } from '../services/useAppointmentStore';
+import { useAppointmentStore } from '../services/useAppointmentStore'; // 🚨 RUTA AJUSTADA
 import { FaArrowLeft } from "react-icons/fa";
 
 
 // 🚀 IMPORTACIÓN CLAVE: Datos de disponibilidad con estructura de Clínica/Servicio
-import mockAvailabilityData from '../Data/availability.json';
+// 🚨 NOTA: Asegúrate de que esta ruta sea correcta:
+import mockAvailabilityData from '../Data/availability.json'; 
 
 // --- FUNCIONES DE UTILIDAD (Fuera del componente) ---
 
@@ -18,6 +24,8 @@ const combineClasses = (...classes) => classes.filter(Boolean).join(' ');
  */
 const useFilteredAvailabilityMap = (clinicName, serviceName) => {
     return useMemo(() => {
+        if (!mockAvailabilityData) return {};
+        
         // 1. Encontrar la clínica
         const clinicEntry = mockAvailabilityData.find(c => c.clinicName === clinicName);
         if (!clinicEntry) return {};
@@ -28,15 +36,19 @@ const useFilteredAvailabilityMap = (clinicName, serviceName) => {
 
         // 3. Crear el mapa de disponibilidad (Date -> [Slots])
         return serviceEntry.availability.reduce((acc, entry) => {
-            acc[entry.date] = entry.slots;
+            // Aseguramos que la fecha sea una clave válida
+            if (entry.date) {
+                acc[entry.date] = entry.slots;
+            }
             return acc;
         }, {});
-    }, [clinicName, serviceName]); // Se recalcula si la clínica o el servicio cambian
+    }, [clinicName, serviceName]); 
 };
 
 // --- COMPONENTE PRINCIPAL ---
 
-const ServiceQuickViewModalLg = ({ service, onClose }) => {
+// 💡 CAMBIO CLAVE: Agregamos onAppointmentBooked a las props
+const ServiceQuickViewModalLg = ({ service, onClose, onAppointmentBooked }) => {
     if (!service) return null;
 
     const addAppointment = useAppointmentStore(state => state.addAppointment);
@@ -45,7 +57,8 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
     const availabilityMap = useFilteredAvailabilityMap(service.clinicName, service.name);
     
     // 🌟 ESTADOS PARA AGENDAMIENTO 🌟
-    const [selectedClinic, setSelectedClinic] = useState(service.clinicName);
+    // NOTA: Asumo que el objeto 'service' ya trae 'clinicName'
+    const [selectedClinic, setSelectedClinic] = useState(service.clinicName || 'Clínica Principal'); 
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [step, setStep] = useState(1); // 1: Info, 2: Disponibilidad, 3: Confirmación
@@ -57,6 +70,7 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
     const availableSlots = selectedDate ? availabilityMap[selectedDate] || [] : [];
     
     // Simulación de clínicas disponibles (basado en el nombre único del servicio)
+    // Se mantiene la estructura para posible expansión futura, aunque aquí solo usemos el nombre del servicio.
     const availableClinics = useMemo(() => {
         return [service.clinicName]; 
     }, [service]);
@@ -65,8 +79,6 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
     // ----------------------------------------------------
     // MANEJADORES DE PASOS DEL FLUJO
     // ----------------------------------------------------
-
-    // ... (handleCheckAvailability, handleSelectSlot, handleConfirmBooking se mantienen igual)
 
     const handleCheckAvailability = () => {
         setStep(2); // Avanza al paso 2: Selección de fecha y hora
@@ -95,8 +107,16 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
         addAppointment(newAppointment); 
 
         console.log("Cita Confirmada y Almacenada:", newAppointment);
-        alert(`Cita agendada para ${service.name} en ${selectedClinic} el ${selectedDate} a las ${selectedSlot.time}.`);
-        onClose();
+        
+        // 🚀 CAMBIO APLICADO: Llama a onAppointmentBooked para manejar la navegación.
+        // Se asume que esta función en el padre cerrará el modal y navegará a AppointmentManagerLg.
+        if (onAppointmentBooked) {
+            onAppointmentBooked();
+        } else {
+            // Fallback si no se pasa la prop de navegación
+            alert(`Cita agendada para ${service.name} en ${selectedClinic} el ${selectedDate} a las ${selectedSlot.time}.`);
+            onClose();
+        }
     };
 
 
@@ -123,11 +143,15 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
                             <button
                                 type="button"
                                 onClick={handleCheckAvailability}
+                                // 🚨 CLASES DE COLOR PERSONALIZADAS: 
+                                // Asegúrate de definir 'acento-primario' y 'acento-secundario' en tu tailwind.config.js
                                 className="mt-20 flex w-full items-center justify-center rounded-lg border border-transparent bg-acento-primario px-8 py-3 text-base font-bold text-white shadow-md hover:bg-acento-secundario transition-colors focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:outline-hidden active:scale-[0.99]"
                             >
                                 <FaCalendarAlt className="mr-3 size-5" />
                                 <span>Agendar Cita</span>
                             </button>
+
+
                         </section>
                     </>
                 );
@@ -137,7 +161,7 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
                     <div className="pt-4">
                         <h3 className="text-xl font-bold text-gray-900 mb-4">
                             Elegir Fecha y Hora para {selectedClinic}
-                         </h3>
+                        </h3>
                         
                         {/* Selector de Fecha (Ahora usa availableDates filtradas) */}
                         <div className="mt-10">
@@ -169,12 +193,13 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
                                     Horarios y Doctores Disponibles en {selectedClinic}:
                                 </p>
                                 {availableSlots.length > 0 ? (
-                                    <div className="flex flex-wrap gap-3">
+                                    <div className="flex flex-wrap gap-3 max-h-48 overflow-y-auto pr-2 border-t pt-3">
                                         {availableSlots.map(slot => (
                                             <button
                                                 key={slot.time + slot.professional}
                                                 type="button"
                                                 onClick={() => handleSelectSlot(selectedDate, slot)}
+                                                // 🚨 CLASES DE COLOR PERSONALIZADAS: 
                                                 className="px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-150 bg-white text-acento-primario border-acento-primario hover:bg-indigo-50 hover:shadow-md flex items-center"
                                             >
                                                 <FaUserMd className="mr-2 size-4 text-gray-500" />
@@ -191,7 +216,8 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
                         <button
                         type="button"
                         onClick={() => setStep(1)}
-                        className="mt-28 flex items-center gap-2 text-sm text-acento-terciario hover:text-sombra-sutil font-bold transition-colors"
+                        // 🚨 CLASES DE COLOR PERSONALIZADAS: 
+                        className="mt-8 flex items-center gap-2 text-sm text-acento-terciario hover:text-sombra-sutil font-bold transition-colors"
                         >
                         <FaArrowLeft className="text-lg" />
                         Volver a Detalles
@@ -201,7 +227,7 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
 
             case 3: // Confirmación
                 return (
-                    <form onSubmit={handleConfirmBooking} className="p-4 bg-gray-50 rounded-lg">
+                    <form onSubmit={handleConfirmBooking} className="pt-4 p-4 bg-gray-50 rounded-lg">
                         <h3 className="text-xl font-bold text-acento-secundario mb-4">
                             Confirmación de Cita
                         </h3>
@@ -209,7 +235,7 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
                         <p className="text-gray-700 mb-2 font-semibold">Clínica: {selectedClinic}</p>
                         <p className="text-gray-700 mb-4 flex items-center">
                             <FaCalendarAlt className="mr-2 text-gray-500" />
-                            <span className='font-bold'>Fecha y Hora: {selectedDate} a las {selectedSlot.time}</span>  
+                            <span className='font-bold'>Fecha y Hora: {selectedDate} a las {selectedSlot.time}</span> 
                         </p>
                         <p className="text-gray-700 mb-6 flex items-center">
                             <FaUserMd className="mr-2 text-gray-500" />
@@ -226,6 +252,7 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
                             </button>
                             <button
                                 type="submit"
+                                // 🚨 CLASES DE COLOR PERSONALIZADAS: Usa 'acento-cuaternario' y su hover específico
                                 className="w-1/2 py-3 rounded-lg border border-transparent bg-acento-cuaternario text-base font-bold text-white shadow-md hover:bg-[#d33d56] transition-colors"
                             >
                                 ¡Confirmar Agendamiento!
@@ -241,7 +268,6 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
 
 
     return (
-        // ... (JSX del modal se mantiene igual)
         <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="fixed inset-0 bg-gray-900/75 transition-opacity" aria-hidden="true" onClick={onClose} />
             <div className="flex min-h-full items-center justify-center p-4 text-center md:items-center md:px-2 lg:px-4">
@@ -268,7 +294,8 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
                                 {service.clinicName || "Clínica Veterinaria"}
                             </span>
                             <h2 className="text-3xl font-bold text-gray-900 sm:pr-12">{service.name}</h2>
-
+                            
+                            {/* CLAVE: Renderiza el contenido según el paso */}
                             {renderStepContent()}
 
                         </div>
