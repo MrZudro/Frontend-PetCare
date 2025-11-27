@@ -15,6 +15,8 @@ import ServicesLg from './pages/ServicesLg';
 import FormPets from './components/formPets/FormPets';
 import PetDetailLw from './pages/PetDetailLw';
 import BuyCartTL from './pages/BuyCartTL';
+import UserProfileViewLg from './pages/UserProfileViewLg';
+
 
 // Auth Pages
 import Login from './pages/Auth/Login';
@@ -91,6 +93,13 @@ const rutas = createBrowserRouter([
     element: (
       <Layout>
         <BuyCartTL />
+      </Layout>
+    ),
+  },{
+    path: '/profile',
+    element: (
+      <Layout>
+        <UserProfileViewLg />
       </Layout>
     ),
   },
