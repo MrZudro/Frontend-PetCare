@@ -1,69 +1,133 @@
-import React, { useState, useMemo, useCallback } from 'react'; 
-// 💡 IMPORTADO useCallback
-// 🔑 CLAVE: Importar useLocation para leer el estado de navegación
-import { useLocation } from 'react-router-dom'; 
+import React, { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
-// Importamos los datos JSON
-import servicesData from '../components/Data/services.json';
-import clinicsData from '../components/Data/VeterinaryData.json';
+// Importamos Axios
+import api from '../services/axiosConfig';
+
 // Importamos el hook para obtener el estado global de citas
 import { useAppointmentStore } from '../components/services/useAppointmentStore';
 
 // IMPORTAMOS LOS COMPONENTES ADAPTADORES
 import ServiceCard from '../components/services/ServiceCardLg';
 import ServiceQuickViewModal from '../components/services/ServiceQuickViewModalLg';
-// 💡 IMPORTACIÓN DEL NUEVO COMPONENTE DE GESTIÓN
-import AppointmentManagerLg from '../components/services/AppointmentManagerLg'; 
-// IMPORTACIÓN DE OTROS COMPONENTES
-import FilterSidebarLg from '../components/common/FilterSidebarLg';
-import { FaCalendarAlt } from 'react-icons/fa'; 
-
-
-// FUNCIÓN DE FILTRADO REAL DE SERVICIOS (USANDO clinicsData para los nombres)
-const filterServices = (services, filterState) => {
-    let result = services;
-
-    // Obtener filtros activos
-    const activeClinics = filterState.filters.clinic || [];
-    const activeClinicName = activeClinics.length > 0 ? activeClinics[0] : null;
-
-    // 2. Filtrar por Clínica
-    if (activeClinicName) {
-        result = result.filter(service => service.clinicName === activeClinicName);
-    }
-
-    return result;
-};
-
+import AppointmentManagerLg from '../components/services/AppointmentManagerLg';
+import SimpleFilterSidebar from '../components/common/SimpleFilterSidebar';
+import { FaCalendarAlt } from 'react-icons/fa';
 
 const ServicesLg = () => {
-    
-    // 🔑 PASO 1: Leemos el estado de navegación
+    // 🔑 Leemos el estado de navegación
     const location = useLocation();
-    // Determinamos si se debe abrir el gestor de inmediato (si el estado de navegación lo indica)
-    const initialIsManagerOpen = location.state?.openManager || false; 
+    const initialIsManagerOpen = location.state?.openManager || false;
+    const preSelectedClinic = location.state?.clinicName || null;
 
     // 💡 Estado del hook para controlar la visibilidad del botón de gestión
     const appointments = useAppointmentStore(state => state.appointments);
 
-    const [services] = useState(servicesData);
-    const [clinics] = useState(clinicsData); // Usamos clinicsData para el sidebar
-    
+    // Estados para datos del API
+    const [services, setServices] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
     const [quickViewService, setQuickViewService] = useState(null);
     const [wishlist, setWishlist] = useState([]);
-    
-    // 🔑 PASO 2: Inicializamos el estado del gestor con el valor de la navegación
     const [isManagerOpen, setIsManagerOpen] = useState(initialIsManagerOpen);
 
-    // Estado del filtro (ajustamos el inicial para reflejar clinics)
-    const [filterState, setFilterState] = useState({ 
-        filters: {
-            clinic: [] // Usaremos los nombres de las clínicas para el filtro
-        }, 
-        searchTerm: '', 
-        mode: 'services' 
+    // Estado de filtros simplificado con pre-filtro de clínica
+    const [activeFilters, setActiveFilters] = useState({
+        clinic: preSelectedClinic
     });
 
+    // 🚀 FETCH DE SERVICIOS DESDE EL API
+    useEffect(() => {
+        const fetchServices = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+
+                const response = await api.get('/services');
+
+                // Transformar los datos del backend al formato que espera el frontend
+                const transformedServices = response.data.map(service => ({
+                    id: service.id,
+                    name: service.name,
+                    description: service.description,
+                    imageUrl: service.imageUrl || service.picture || 'https://placehold.co/600x400/A0B9E2/000000?text=Servicio',
+                    status: service.status,
+                    // Crear array de nombres de clínicas para el filtrado
+                    clinicNames: service.clinics?.map(clinic => clinic.name) || [],
+                    // Guardar también las clínicas completas por si se necesitan
+                    clinics: service.clinics || []
+                }));
+
+                setServices(transformedServices);
+            } catch (err) {
+                console.error('Error fetching services:', err);
+                setError('Error al cargar los servicios. Por favor, intente nuevamente.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchServices();
+    }, []);
+
+    // --- LÓGICA DE FILTRADO OPTIMIZADA ---
+    const filteredServices = useMemo(() => {
+        return services.filter(service => {
+            // Filtro de clínica
+            if (activeFilters.clinic) {
+                return service.clinicNames?.includes(activeFilters.clinic);
+            }
+            return true;
+        });
+    }, [services, activeFilters]);
+
+    // --- PREPARAR OPCIONES DE FILTROS ---
+    const filterOptions = useMemo(() => {
+        const clinicCounts = {};
+
+        services.forEach(service => {
+            service.clinicNames?.forEach(clinicName => {
+                clinicCounts[clinicName] = (clinicCounts[clinicName] || 0) + 1;
+            });
+        });
+
+        return {
+            clinic: {
+                label: 'Filtrar por Veterinaria',
+                type: 'radio',
+                options: Object.entries(clinicCounts)
+                    .sort(([a], [b]) => a.localeCompare(b))
+                    .map(([name, count]) => ({
+                        value: name,
+                        label: name,
+                        count
+                    }))
+            }
+        };
+    }, [services]);
+
+    // --- HANDLERS ---
+    const handleFilterChange = (filterKey, value) => {
+        setActiveFilters(prev => {
+            const newFilters = { ...prev };
+
+            // Si hace clic en el mismo filtro, lo deselecciona
+            if (newFilters[filterKey] === value) {
+                newFilters[filterKey] = null;
+            } else {
+                newFilters[filterKey] = value;
+            }
+
+            return newFilters;
+        });
+    };
+
+    const handleClearFilters = () => {
+        setActiveFilters({
+            clinic: null
+        });
+    };
 
     const handleQuickView = (service) => {
         setQuickViewService(service);
@@ -71,46 +135,58 @@ const ServicesLg = () => {
 
     const handleToggleWishlist = (serviceId) => {
         console.log(`Wishlist toggled for service: ${serviceId}`);
-        setWishlist(prev => prev.includes(serviceId) ? prev.filter(id => id !== serviceId) : [...prev, serviceId]);
+        setWishlist(prev =>
+            prev.includes(serviceId)
+                ? prev.filter(id => id !== serviceId)
+                : [...prev, serviceId]
+        );
     };
 
-    // ✅ CORRECCIÓN: Se usa useCallback para estabilizar la función y evitar re-renders en el hijo.
-    const handleFilterChange = useCallback((newState) => {
-        
-        // Comparamos solo la parte relevante (los filtros activos) para romper el ciclo.
-        // Si el JSON.stringify de los filtros entrantes es igual al actual, evitamos setState.
-        if (JSON.stringify(newState.filters) === JSON.stringify(filterState.filters)) {
-            return; // Rompe el bucle si no hay cambio de valor.
-        }
-    
-        setFilterState(newState); 
-
-    }, [filterState]); // Depende de filterState para la comparación
-
-    // LÓGICA CLAVE: Recalcula los servicios filtrados
-    const filteredServices = useMemo(() => {
-        return filterServices(services, filterState);
-    }, [services, filterState]);
-
-    // LÓGICA DE VISIBILIDAD DEL FILTRO
-    const showFilterSidebar = true; // Mantener visible para la demo
-    
-    // Determina la estructura de la cuadrícula
-    const gridLayout = showFilterSidebar ? 'grid-cols-1 lg:grid-cols-4' : 'grid-cols-1';
-    const contentSpan = showFilterSidebar ? 'lg:col-span-3' : 'lg:col-span-4';
+    // 🚀 FUNCIÓN: Cierra el modal y abre la vista de gestión de citas
+    const handleBookingSuccess = () => {
+        setQuickViewService(null);
+        setIsManagerOpen(true);
+    };
 
     // 🌟 LÓGICA CLAVE: Control de visibilidad del botón de Solicitudes
     const hasAppointments = appointments.length > 0;
 
-    // 🚀 FUNCIÓN: Cierra el modal y abre la vista de gestión de citas (USADA AQUÍ PARA EL MODAL INTERNO)
-    const handleBookingSuccess = useCallback(() => {
-        setQuickViewService(null); // Cierra el modal
-        setIsManagerOpen(true);    // Muestra la vista de gestión de citas (AppointmentManagerLg)
-    }, []);
+    // Renderizado condicional basado en el estado de carga
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full size-16 border-t-4 border-b-4 border-primary mb-4"></div>
+                    <p className="text-gray-600 text-lg">Cargando servicios...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
+                    <div className="text-red-500 mb-4">
+                        <svg className="size-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
+                    <p className="text-gray-600 mb-6">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="bg-primary hover:bg-primary-hover text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                    >
+                        Reintentar
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-sans">
-
             <header className="mb-10 pt-4 max-w-screen-2xl mx-auto">
                 <h1 className="text-4xl font-extrabold text-gray-900 text-center">
                     {isManagerOpen ? 'Gestión de Citas' : 'Nuestros Servicios'} 🏥
@@ -137,30 +213,25 @@ const ServicesLg = () => {
             </header>
 
             <main className="max-w-screen-2xl mx-auto">
-                
                 {isManagerOpen ? (
                     /* 1. VISTA DE GESTIÓN DE CITAS */
                     <AppointmentManagerLg />
                 ) : (
                     /* 2. VISTA DE LISTA DE SERVICIOS */
-                    <div className={`grid ${gridLayout} gap-6`}>
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        {/* Sidebar de Filtros */}
+                        <div className="lg:col-span-1">
+                            <SimpleFilterSidebar
+                                filters={filterOptions}
+                                activeFilters={activeFilters}
+                                onFilterChange={handleFilterChange}
+                                onClearFilters={handleClearFilters}
+                                totalResults={filteredServices.length}
+                            />
+                        </div>
 
-                        {/* 1. BARRA DE FILTROS */}
-                        {showFilterSidebar && (
-                            <div className="lg:col-span-1">
-                                <FilterSidebarLg
-                                    onFilterChange={handleFilterChange}
-                                    totalResults={filteredServices.length}
-                                    mode="services"
-                                    // 💡 Pasamos las opciones de clínicas dinámicamente
-                                    clinicOptions={clinics.map(c => ({ id: c.id, name: c.name }))} 
-                                />
-                            </div>
-                        )}
-
-                        {/* 2. LISTA DE SERVICIOS FILTRADOS */}
-                        <div className={`${contentSpan} grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6`}>
-
+                        {/* Lista de Servicios */}
+                        <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                             {filteredServices.map(service => (
                                 <ServiceCard
                                     key={service.id}
@@ -172,13 +243,31 @@ const ServicesLg = () => {
                             ))}
 
                             {/* Manejo de Cero Resultados */}
-                            {filteredServices.length === 0 && (
+                            {filteredServices.length === 0 && services.length > 0 && (
                                 <div className="sm:col-span-2 lg:col-span-3 p-10 text-center bg-white rounded-xl shadow-md">
                                     <p className="text-xl font-semibold text-gray-700">
                                         No se encontraron servicios que coincidan con los filtros aplicados. 😔
                                     </p>
                                     <p className="text-gray-500 mt-2">
-                                        Intenta ajustar tu selección de clínica.
+                                        Intenta ajustar tu selección de clínica o{' '}
+                                        <button
+                                            onClick={handleClearFilters}
+                                            className="text-primary hover:underline font-medium"
+                                        >
+                                            limpia el filtro
+                                        </button>
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Caso especial: No hay servicios en total */}
+                            {services.length === 0 && !loading && (
+                                <div className="sm:col-span-2 lg:col-span-3 p-10 text-center bg-white rounded-xl shadow-md">
+                                    <p className="text-xl font-semibold text-gray-700">
+                                        No hay servicios disponibles en este momento. 😔
+                                    </p>
+                                    <p className="text-gray-500 mt-2">
+                                        Por favor, contacte al administrador.
                                     </p>
                                 </div>
                             )}
@@ -187,12 +276,12 @@ const ServicesLg = () => {
                 )}
             </main>
 
+            {/* Modal de Vista Rápida */}
             {quickViewService && (
                 <ServiceQuickViewModal
                     service={quickViewService}
                     onClose={() => setQuickViewService(null)}
-                    // 🚀 Pasamos la función de éxito de reserva para manejar citas desde aquí
-                    onAppointmentBooked={handleBookingSuccess} 
+                    onAppointmentBooked={handleBookingSuccess}
                 />
             )}
         </div>

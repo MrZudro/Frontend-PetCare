@@ -1,62 +1,13 @@
-import React, { useState, useMemo, useCallback } from 'react'; 
-// 🔑 CLAVE: Importar useNavigate para la redirección
-import { useNavigate } from 'react-router-dom'; 
+import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import ProductCard from '../components/products/ProductCardLg';
 import QuickViewModal from '../components/products/QuickViewModalLg';
-import FilterSidebarLg from '../components/common/FilterSidebarLg';
-import initialProducts from '../components/Data/products.json'; 
-import categoriesMap from '../components/Data/categories.json'; 
+import SimpleFilterSidebar from '../components/common/SimpleFilterSidebar';
+import initialProducts from '../components/Data/products.json';
+import categoriesMap from '../components/Data/categories.json';
 
-// --- [ LÓGICA DE ORDENAMIENTO y FILTRADO (Sin cambios) ] ---
-const sortProducts = (products, sortKey) => {
-    if (!sortKey || sortKey === 'default') return products;
-    const sorted = [...products];
-    switch (sortKey) {
-        case 'price-asc': return sorted.sort((a, b) => a.price - b.price);
-        case 'price-desc': return sorted.sort((a, b) => b.price - a.price);
-        case 'rating-desc': return sorted.sort((a, b) => b.name.localeCompare(a.name));
-        default: return products;
-    }
-};
-
-const filterProducts = (products, filterState) => {
-    const activeCategories = filterState.filters.category || [];
-    const activeSubcategories = filterState.filters.subcategories || [];
-    const activeBrands = filterState.filters.brand || [];
-    const searchTerm = filterState.searchTerm?.toLowerCase() || '';
-
-    if (activeCategories.length === 0 && activeSubcategories.length === 0 && activeBrands.length === 0 && !searchTerm) {
-        return products;
-    }
-
-    return products.filter(product => {
-        let passesCategory = true;
-        let passesSubcategory = true;
-        let passesBrand = true;
-        let passesSearch = true; 
-        const productSubcategory = product.subcategories; 
-
-        if (activeCategories.length > 0) {
-            const activeCategoryName = activeCategories[0];
-            const productCategory = categoriesMap.find(c => c.subcategories.includes(productSubcategory))?.categoryName;
-            passesCategory = (productCategory === activeCategoryName);
-        }
-        if (activeSubcategories.length > 0) {
-            passesSubcategory = activeSubcategories.includes(productSubcategory);
-        }
-        if (activeBrands.length > 0) {
-            passesBrand = activeBrands.includes(product.brand);
-        }
-        if (searchTerm) {
-            passesSearch = product.name.toLowerCase().includes(searchTerm) ||
-                (product.description && product.description.toLowerCase().includes(searchTerm));
-        }
-        return passesCategory && passesSubcategory && passesBrand && passesSearch;
-    });
-};
-
-// --- [ LÓGICA LOCALSTORAGE: WISHLIST (Sin cambios) ] ---
+// --- [ LOCAL STORAGE: WISHLIST ] ---
 const loadWishlistFromLocalStorage = () => {
     try {
         const storedWishlist = localStorage.getItem('wishlistIds');
@@ -75,11 +26,10 @@ const saveWishlistToLocalStorage = (wishlistArray) => {
     }
 };
 
-// --- [ LÓGICA LOCALSTORAGE: CARRITO DE COMPRAS (Sin cambios) ] --- 
+// --- [ LOCAL STORAGE: CART ] ---
 const loadCartFromLocalStorage = () => {
     try {
         const storedCart = localStorage.getItem('cartProducts');
-        // Estructura esperada: [{id: 1, quantity: 1, size: 'M', color: 'red', cartItemId: '1-M-red'}]
         return storedCart ? JSON.parse(storedCart) : [];
     } catch (error) {
         console.error("Error loading Cart LS", error);
@@ -95,25 +45,168 @@ const saveCartToLocalStorage = (cartArray) => {
     }
 };
 
-
 const ProductsLg = () => {
-    // 🔑 CLAVE: Inicializar el hook de navegación
     const navigate = useNavigate();
-    
+
     const [wishlist, setWishlist] = useState(loadWishlistFromLocalStorage);
     const [products] = useState(initialProducts);
     const [quickViewProduct, setQuickViewProduct] = useState(null);
-    const [sortKey, setSortKey] = useState('default');
-    const [filterState, setFilterState] = useState({ filters: {}, searchTerm: '', mode: 'products' });
 
-    // --- Handlers ---
+    // Estados de filtros simplificados
+    const [activeFilters, setActiveFilters] = useState({
+        category: null,
+        subcategory: null,
+        brand: null
+    });
+    const [sortBy, setSortBy] = useState('default');
+
+    // --- LÓGICA DE FILTRADO OPTIMIZADA ---
+    const filteredAndSortedProducts = useMemo(() => {
+        // Paso 1: Filtrar
+        let filtered = products.filter(product => {
+            // Filtro de categoría
+            if (activeFilters.category) {
+                const categoryData = categoriesMap.find(c => c.categoryName === activeFilters.category);
+                if (!categoryData?.subcategories.includes(product.subcategories)) {
+                    return false;
+                }
+            }
+
+            // Filtro de subcategoría
+            if (activeFilters.subcategory && product.subcategories !== activeFilters.subcategory) {
+                return false;
+            }
+
+            // Filtro de marca
+            if (activeFilters.brand && product.brand !== activeFilters.brand) {
+                return false;
+            }
+
+            return true;
+        });
+
+        // Paso 2: Ordenar
+        switch (sortBy) {
+            case 'price-asc':
+                return filtered.sort((a, b) => a.price - b.price);
+            case 'price-desc':
+                return filtered.sort((a, b) => b.price - a.price);
+            case 'name-asc':
+                return filtered.sort((a, b) => a.name.localeCompare(b.name));
+            case 'name-desc':
+                return filtered.sort((a, b) => b.name.localeCompare(a.name));
+            default:
+                return filtered;
+        }
+    }, [products, activeFilters, sortBy]);
+
+    // --- PREPARAR OPCIONES DE FILTROS ---
+    const filterOptions = useMemo(() => {
+        const options = {};
+
+        // Opción de Categorías
+        const categoryCounts = {};
+        products.forEach(product => {
+            const categoryData = categoriesMap.find(c => c.subcategories.includes(product.subcategories));
+            if (categoryData) {
+                categoryCounts[categoryData.categoryName] = (categoryCounts[categoryData.categoryName] || 0) + 1;
+            }
+        });
+
+        options.category = {
+            label: 'Categoría',
+            type: 'radio',
+            options: Object.entries(categoryCounts).map(([name, count]) => ({
+                value: name,
+                label: name,
+                count
+            }))
+        };
+
+        // Opción de Subcategorías (solo si hay categoría seleccionada)
+        if (activeFilters.category) {
+            const categoryData = categoriesMap.find(c => c.categoryName === activeFilters.category);
+            if (categoryData) {
+                const subcategoryCounts = {};
+                products.forEach(product => {
+                    if (categoryData.subcategories.includes(product.subcategories)) {
+                        subcategoryCounts[product.subcategories] = (subcategoryCounts[product.subcategories] || 0) + 1;
+                    }
+                });
+
+                options.subcategory = {
+                    label: 'Subcategoría',
+                    type: 'radio',
+                    options: Object.entries(subcategoryCounts).map(([name, count]) => ({
+                        value: name,
+                        label: name,
+                        count
+                    }))
+                };
+            }
+        }
+
+        // Opción de Marcas
+        const brandCounts = {};
+        products.forEach(product => {
+            if (product.brand) {
+                brandCounts[product.brand] = (brandCounts[product.brand] || 0) + 1;
+            }
+        });
+
+        options.brand = {
+            label: 'Marca',
+            type: 'radio',
+            options: Object.entries(brandCounts).map(([name, count]) => ({
+                value: name,
+                label: name,
+                count
+            }))
+        };
+
+        return options;
+    }, [products, activeFilters.category]);
+
+    // --- HANDLERS ---
+    const handleFilterChange = (filterKey, value) => {
+        setActiveFilters(prev => {
+            const newFilters = { ...prev };
+
+            // Si hace clic en el mismo filtro, lo deselecciona
+            if (newFilters[filterKey] === value) {
+                newFilters[filterKey] = null;
+
+                // Si deselecciona categoría, también limpia subcategoría
+                if (filterKey === 'category') {
+                    newFilters.subcategory = null;
+                }
+            } else {
+                newFilters[filterKey] = value;
+
+                // Si cambia categoría, limpia subcategoría
+                if (filterKey === 'category') {
+                    newFilters.subcategory = null;
+                }
+            }
+
+            return newFilters;
+        });
+    };
+
+    const handleClearFilters = () => {
+        setActiveFilters({
+            category: null,
+            subcategory: null,
+            brand: null
+        });
+        setSortBy('default');
+    };
 
     const handleQuickView = (product) => {
         setQuickViewProduct(product);
     };
 
-    // Wishlist Handler (Sin cambios)
-    const handleToggleWishlist = (productId) => { /* ... */
+    const handleToggleWishlist = (productId) => {
         setWishlist(prevWishlist => {
             let newWishlist;
             if (prevWishlist.includes(productId)) {
@@ -126,137 +219,113 @@ const ProductsLg = () => {
         });
     };
 
-    // 🔑 CLAVE: Handler de redirección
-    const handleRedirectToCart = useCallback(() => {
-        // Redirige a la página del carrito
-        navigate('/car'); 
-    }, [navigate]);
-
-
-    // 🆕 Carrito Handler: Añadir producto (Actualizado para aceptar variantes)
-    const handleAddToCart = useCallback((productId, selectedSize, selectedColor) => {
-        // 1. Leer el carrito actual del almacenamiento
+    const handleAddToCart = (product, selectedVariant) => {
         const currentCart = loadCartFromLocalStorage();
-        
-        // Crea un identificador único basado en el producto, talla y color.
-        const cartItemId = `${productId}-${selectedSize || 'n/a'}-${selectedColor || 'n/a'}`;
-        
-        // 2. Verificar si ya existe exactamente el mismo producto/variante en el carrito
-        const existingProductIndex = currentCart.findIndex(item => item.cartItemId === cartItemId);
+        const cartItemId = `${product.id}-${selectedVariant.size || 'default'}-${selectedVariant.color || 'default'}`;
 
-        if (existingProductIndex > -1) {
-            // Si existe, incrementa la cantidad
-            currentCart[existingProductIndex].quantity += 1;
-            console.log(`Cantidad actualizada para producto ID: ${productId} (${cartItemId})`);
+        const existingItemIndex = currentCart.findIndex(item => item.cartItemId === cartItemId);
+
+        let updatedCart;
+        if (existingItemIndex !== -1) {
+            updatedCart = [...currentCart];
+            updatedCart[existingItemIndex] = {
+                ...updatedCart[existingItemIndex],
+                quantity: updatedCart[existingItemIndex].quantity + (selectedVariant.quantity || 1)
+            };
         } else {
-            // Si no existe, añade el nuevo ítem con sus variantes
-            currentCart.push({ 
-                id: productId, 
-                cartItemId: cartItemId, // ID único para la variante
-                quantity: 1, 
-                size: selectedSize, 
-                color: selectedColor 
-            });
-            console.log(`Producto nuevo agregado al carrito ID: ${productId} (${cartItemId})`);
+            const newItem = {
+                id: product.id,
+                cartItemId: cartItemId,
+                quantity: selectedVariant.quantity || 1,
+                size: selectedVariant.size || null,
+                color: selectedVariant.color || null
+            };
+            updatedCart = [...currentCart, newItem];
         }
 
-        // 3. Guardar en LocalStorage
-        saveCartToLocalStorage(currentCart);
-    }, []);
-
-    const handleRemoveProduct = (id) => {
-        console.log(`Demo: Intentando remover producto con ID ${id}.`);
+        saveCartToLocalStorage(updatedCart);
     };
 
-    const handleFilterChange = useCallback((newState) => { /* ... */
-        if (JSON.stringify(newState.filters) === JSON.stringify(filterState.filters)) {
-            return; 
-        }
-        setFilterState(newState); 
-    }, [filterState]); 
-
-    const handleSortChange = (newSortKey) => {
-        setSortKey(newSortKey);
-    };
-
-    const filteredAndSortedProducts = useMemo(() => {
-        const filtered = filterProducts(products, filterState);
-        return sortProducts(filtered, sortKey);
-    }, [products, filterState, sortKey]);
-
-    
-    const showFilterSidebar = products.length > 1; 
-    const gridLayout = showFilterSidebar ? 'grid-cols-1 lg:grid-cols-4' : 'grid-cols-1';
-    const contentSpan = showFilterSidebar ? 'lg:col-span-3' : 'lg:col-span-4';
-
+    // Opciones de ordenamiento
+    const sortOptions = [
+        { value: 'default', label: 'Ordenar por...' },
+        { value: 'price-asc', label: 'Precio: Menor a Mayor' },
+        { value: 'price-desc', label: 'Precio: Mayor a Menor' },
+        { value: 'name-asc', label: 'Nombre: A-Z' },
+        { value: 'name-desc', label: 'Nombre: Z-A' }
+    ];
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-sans">
-
-            <header className="mb-10 pt-4">
+            <header className="mb-10 pt-4 max-w-screen-2xl mx-auto">
                 <h1 className="text-4xl font-extrabold text-gray-900 text-center">
-                    Productos🐾
+                    Productos para tu Mascota 🐾
                 </h1>
                 <p className="text-center text-gray-500 mt-2 text-lg">
-                    Todo lo que tu perro y gato necesitan para una vida feliz y sana.
+                    Encuentra todo lo que necesita tu mejor amigo
                 </p>
             </header>
 
             <main className="max-w-screen-2xl mx-auto">
-                <div className={`grid ${gridLayout} gap-6`}>
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    {/* Sidebar de Filtros */}
+                    <div className="lg:col-span-1">
+                        <SimpleFilterSidebar
+                            filters={filterOptions}
+                            activeFilters={activeFilters}
+                            onFilterChange={handleFilterChange}
+                            onClearFilters={handleClearFilters}
+                            totalResults={filteredAndSortedProducts.length}
+                            sortOptions={sortOptions}
+                            onSortChange={setSortBy}
+                        />
+                    </div>
 
-                    {/* BARRA DE FILTROS */}
-                    {showFilterSidebar && (
-                        <div className="lg:col-span-1">
-                            <FilterSidebarLg
-                                onFilterChange={handleFilterChange}
-                                onSortChange={handleSortChange}
-                                totalResults={filteredAndSortedProducts.length}
-                                mode="products"
+                    {/* Lista de Productos */}
+                    <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {filteredAndSortedProducts.map(product => (
+                            <ProductCard
+                                key={product.id}
+                                product={product}
+                                onQuickView={handleQuickView}
+                                onToggleWishlist={handleToggleWishlist}
+                                isWishlisted={wishlist.includes(product.id)}
                             />
-                        </div>
-                    )}
+                        ))}
 
-                    {/* CONTENIDO PRINCIPAL */}
-                    <div className={`${contentSpan}`}>
-                        {filteredAndSortedProducts.length === 0 ? (
-                            <div className="text-center p-12 bg-white rounded-xl shadow-lg mt-10 border border-gray-200">
-                                <p className="text-xl text-gray-700 font-bold">No se encontraron productos que coincidan con los filtros aplicados. 🔎</p>
-                                <p className="text-gray-500 mt-2">Intenta limpiar los filtros o ajusta tu búsqueda.</p>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
-                                {filteredAndSortedProducts.map(product => (
-                                    <ProductCard
-                                        key={product.id}
-                                        product={product}
-                                        onQuickView={handleQuickView}
-                                        onRemove={handleRemoveProduct}
-                                        onToggleWishlist={handleToggleWishlist}
-                                        isWishlisted={wishlist.includes(product.id)}
-                                        // 🔑 CLAVE: Llamada a onAddToCart desde la tarjeta, pasando null para variantes
-                                        onAddToCart={() => handleAddToCart(product.id, null, null)} 
-                                    />
-                                ))}
+                        {/* Manejo de Cero Resultados */}
+                        {filteredAndSortedProducts.length === 0 && (
+                            <div className="sm:col-span-2 lg:col-span-3 p-10 text-center bg-white rounded-xl shadow-md">
+                                <p className="text-xl font-semibold text-gray-700">
+                                    No se encontraron productos que coincidan con los filtros aplicados. 😔
+                                </p>
+                                <p className="text-gray-500 mt-2">
+                                    Intenta ajustar tus filtros o{' '}
+                                    <button
+                                        onClick={handleClearFilters}
+                                        className="text-primary hover:underline font-medium"
+                                    >
+                                        limpia todos los filtros
+                                    </button>
+                                </p>
                             </div>
                         )}
                     </div>
                 </div>
-
             </main>
 
-            {/* MODAL DE VISTA RÁPIDA */}
+            {/* Modal de Vista Rápida */}
             {quickViewProduct && (
                 <QuickViewModal
                     product={quickViewProduct}
                     onClose={() => setQuickViewProduct(null)}
-                    // 🔑 CLAVE: Pasamos las funciones actualizadas al modal
                     onAddToCart={handleAddToCart}
-                    onRedirectToCart={handleRedirectToCart}
+                    onToggleWishlist={handleToggleWishlist}
+                    isWishlisted={wishlist.includes(quickViewProduct.id)}
                 />
             )}
         </div>
     );
-}
+};
 
 export default ProductsLg;

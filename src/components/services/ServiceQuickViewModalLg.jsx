@@ -1,304 +1,333 @@
-// =================================================================
-// src/components/services/ServiceQuickViewModalLg.jsx
-// Modal de Vista Rápida y Agendamiento de Citas para Servicios.
-// =================================================================
+import React, { useState, useEffect, useMemo } from 'react';
+import { FaTimes, FaCalendarAlt, FaUserMd, FaArrowLeft, FaClinicMedical } from 'react-icons/fa';
+import api from '../../services/axiosConfig';
+import { useAuth } from '../../context/AuthContext';
+import { toast } from 'react-toastify';
 
-import React, { useState, useMemo } from 'react';
-import { FaTimes, FaCalendarAlt, FaUserMd } from 'react-icons/fa';
-import { useAppointmentStore } from '../services/useAppointmentStore'; // 🚨 RUTA AJUSTADA
-import { FaArrowLeft } from "react-icons/fa";
-
-
-// 🚀 IMPORTACIÓN CLAVE: Datos de disponibilidad con estructura de Clínica/Servicio
-// 🚨 NOTA: Asegúrate de que esta ruta sea correcta:
-import mockAvailabilityData from '../Data/availability.json'; 
-
-// --- FUNCIONES DE UTILIDAD (Fuera del componente) ---
-
-// Función auxiliar para combinar clases de Tailwind (Mantenemos por si se usa en otras partes)
-const combineClasses = (...classes) => classes.filter(Boolean).join(' ');
-
-/**
- * Hook para obtener y transformar la disponibilidad de un servicio y clínica específicos.
- * Se filtra en base a la estructura Clinic -> Service -> Availability.
- */
-const useFilteredAvailabilityMap = (clinicName, serviceName) => {
-    return useMemo(() => {
-        if (!mockAvailabilityData) return {};
-        
-        // 1. Encontrar la clínica
-        const clinicEntry = mockAvailabilityData.find(c => c.clinicName === clinicName);
-        if (!clinicEntry) return {};
-
-        // 2. Encontrar el servicio dentro de la clínica
-        const serviceEntry = clinicEntry.services.find(s => s.serviceName === serviceName);
-        if (!serviceEntry) return {};
-
-        // 3. Crear el mapa de disponibilidad (Date -> [Slots])
-        return serviceEntry.availability.reduce((acc, entry) => {
-            // Aseguramos que la fecha sea una clave válida
-            if (entry.date) {
-                acc[entry.date] = entry.slots;
-            }
-            return acc;
-        }, {});
-    }, [clinicName, serviceName]); 
-};
-
-// --- COMPONENTE PRINCIPAL ---
-
-// 💡 CAMBIO CLAVE: Agregamos onAppointmentBooked a las props
 const ServiceQuickViewModalLg = ({ service, onClose, onAppointmentBooked }) => {
-    if (!service) return null;
+    const { user } = useAuth();
 
-    const addAppointment = useAppointmentStore(state => state.addAppointment);
+    // Steps: 1=Info, 2=Clinic, 3=Employee, 4=Date/Slot, 5=Confirm
+    const [step, setStep] = useState(1);
 
-    // 💡 Obtener el mapa de disponibilidad filtrado por Clínica y Servicio
-    const availabilityMap = useFilteredAvailabilityMap(service.clinicName, service.name);
-    
-    // 🌟 ESTADOS PARA AGENDAMIENTO 🌟
-    // NOTA: Asumo que el objeto 'service' ya trae 'clinicName'
-    const [selectedClinic, setSelectedClinic] = useState(service.clinicName || 'Clínica Principal'); 
+    // Selection State
+    const [selectedClinic, setSelectedClinic] = useState(null);
+    const [employees, setEmployees] = useState([]);
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [selectedDate, setSelectedDate] = useState('');
+    const [availableSlots, setAvailableSlots] = useState([]);
     const [selectedSlot, setSelectedSlot] = useState(null);
-    const [step, setStep] = useState(1); // 1: Info, 2: Disponibilidad, 3: Confirmación
+    const [loadingSlots, setLoadingSlots] = useState(false);
+    const [bookingLoading, setBookingLoading] = useState(false);
 
-    // Obtiene las fechas disponibles (las claves del mapa)
-    const availableDates = Object.keys(availabilityMap);
+    // Reset state when step changes backwards
+    useEffect(() => {
+        if (step < 3) setSelectedEmployee(null);
+        if (step < 4) {
+            setSelectedDate('');
+            setAvailableSlots([]);
+            setSelectedSlot(null);
+        }
+    }, [step]);
 
-    // Obtiene los slots disponibles para la fecha seleccionada
-    const availableSlots = selectedDate ? availabilityMap[selectedDate] || [] : [];
-    
-    // Simulación de clínicas disponibles (basado en el nombre único del servicio)
-    // Se mantiene la estructura para posible expansión futura, aunque aquí solo usemos el nombre del servicio.
-    const availableClinics = useMemo(() => {
-        return [service.clinicName]; 
-    }, [service]);
+    // Fetch Employees when Clinic is selected
+    useEffect(() => {
+        if (selectedClinic) {
+            const fetchEmployees = async () => {
+                try {
+                    const response = await api.get(`/employees/clinic/${selectedClinic.id}`);
+                    setEmployees(response.data);
+                    // If only one employee, auto-select? Maybe better to let user choose.
+                } catch (error) {
+                    console.error("Error fetching employees", error);
+                    toast.error("Error al cargar veterinarios");
+                }
+            };
+            fetchEmployees();
+        }
+    }, [selectedClinic]);
 
+    // Generate Slots when Date and Employee are selected
+    useEffect(() => {
+        if (selectedDate && selectedEmployee) {
+            fetchSlots();
+        }
+    }, [selectedDate, selectedEmployee]);
 
-    // ----------------------------------------------------
-    // MANEJADORES DE PASOS DEL FLUJO
-    // ----------------------------------------------------
+    const fetchSlots = async () => {
+        setLoadingSlots(true);
+        setAvailableSlots([]);
+        try {
+            const dateObj = new Date(selectedDate);
+            // Get day name in English for API (MONDAY, TUESDAY...)
+            const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+            const dayName = days[dateObj.getUTCDay()]; // Use UTC to avoid timezone shifts
 
-    const handleCheckAvailability = () => {
-        setStep(2); // Avanza al paso 2: Selección de fecha y hora
+            // 1. Get Schedule
+            const scheduleRes = await api.get(`/schedules/employee/${selectedEmployee.id}/day/${dayName}`);
+            const schedules = scheduleRes.data;
+
+            if (schedules.length === 0) {
+                setAvailableSlots([]);
+                setLoadingSlots(false);
+                return;
+            }
+
+            // 2. Get Existing Appointments
+            const appointmentsRes = await api.get(`/appointments/employee/${selectedEmployee.id}`);
+            const existingAppointments = appointmentsRes.data.filter(app => app.appointmentDateTime.startsWith(selectedDate));
+
+            // 3. Generate Slots
+            const slots = [];
+            schedules.forEach(sch => {
+                let current = new Date(`${selectedDate}T${sch.startTime}`);
+                const end = new Date(`${selectedDate}T${sch.endTime}`);
+
+                while (current < end) {
+                    const timeString = current.toTimeString().substring(0, 5);
+
+                    // Check collision
+                    const isTaken = existingAppointments.some(app => {
+                        const appTime = app.appointmentDateTime.split('T')[1].substring(0, 5);
+                        return appTime === timeString && app.status !== 'CANCELLED';
+                    });
+
+                    if (!isTaken) {
+                        slots.push(timeString);
+                    }
+
+                    // Increment 30 mins
+                    current.setMinutes(current.getMinutes() + 30);
+                }
+            });
+
+            setAvailableSlots(slots.sort());
+
+        } catch (error) {
+            console.error("Error calculating slots", error);
+            toast.error("Error al calcular horarios");
+        } finally {
+            setLoadingSlots(false);
+        }
     };
 
-    const handleSelectSlot = (date, slot) => {
-        setSelectedDate(date);
-        setSelectedSlot(slot);
-        setStep(3); // Avanza al paso 3: Confirmación
-    };
-
-    const handleConfirmBooking = (e) => {
+    const handleConfirmBooking = async (e) => {
         e.preventDefault();
-        
-        const newAppointment = {
-            id: Date.now(), 
-            serviceId: service.id,
-            serviceName: service.name,
-            clinicName: selectedClinic,
-            date: selectedDate,
-            time: selectedSlot.time,
-            professional: selectedSlot.professional,
-            status: 'Pending',
-        };
+        if (!user) {
+            toast.warning("Debes iniciar sesión para agendar.");
+            return;
+        }
 
-        addAppointment(newAppointment); 
+        setBookingLoading(true);
+        try {
+            const payload = {
+                customerId: user.id, // Assuming user object has id
+                veterinaryClinicId: selectedClinic.id,
+                employeeId: selectedEmployee.id,
+                appointmentDateTime: `${selectedDate}T${selectedSlot}:00`,
+                reason: `Cita para ${service.name}`
+            };
 
-        console.log("Cita Confirmada y Almacenada:", newAppointment);
-        
-        // 🚀 CAMBIO APLICADO: Llama a onAppointmentBooked para manejar la navegación.
-        // Se asume que esta función en el padre cerrará el modal y navegará a AppointmentManagerLg.
-        if (onAppointmentBooked) {
-            onAppointmentBooked();
-        } else {
-            // Fallback si no se pasa la prop de navegación
-            alert(`Cita agendada para ${service.name} en ${selectedClinic} el ${selectedDate} a las ${selectedSlot.time}.`);
+            await api.post('/appointments', payload);
+            toast.success("¡Cita agendada con éxito!");
+            if (onAppointmentBooked) onAppointmentBooked();
             onClose();
+        } catch (error) {
+            console.error("Error booking", error);
+            toast.error("Error al agendar la cita. Intenta nuevamente.");
+        } finally {
+            setBookingLoading(false);
         }
     };
 
+    // --- RENDER HELPERS ---
 
-    // ----------------------------------------------------
-    // LÓGICA DE RENDERIZADO CONDICIONAL POR PASO
-    // ----------------------------------------------------
-    const renderStepContent = () => {
-        switch (step) {
-            case 1: 
-                return (
-                    <>
-                        <section aria-labelledby="description-heading" className="mt-15">
-                            <h3 id="description-heading" className="text-lg font-medium text-gray-900">
-                                Descripción
-                            </h3>
-                            <div className="mt-2 space-y-3 text-sm text-gray-600">
-                                <p>{service.description}</p>
-                            </div>
-                        </section>
+    const renderStep1_Info = () => (
+        <>
+            <p className="text-gray-600 mb-6">{service.description}</p>
+            <button
+                onClick={() => {
+                    if (service.clinics && service.clinics.length === 1) {
+                        setSelectedClinic(service.clinics[0]);
+                        setStep(3); // Skip clinic selection if only one
+                    } else {
+                        setStep(2);
+                    }
+                }}
+                className="w-full bg-pink-500 text-white py-3 rounded-lg font-bold hover:bg-pink-600 transition shadow-md flex items-center justify-center gap-2"
+            >
+                <FaCalendarAlt /> Agendar Cita
+            </button>
+        </>
+    );
 
-                        <section aria-labelledby="options-heading" className="mt-6">
-                            <h3 id="options-heading" className="sr-only">Opciones del servicio</h3>
+    const renderStep2_Clinic = () => (
+        <div>
+            <h3 className="text-lg font-bold mb-4">Selecciona una Clínica</h3>
+            <div className="space-y-3">
+                {service.clinics && service.clinics.map(clinic => (
+                    <button
+                        key={clinic.id}
+                        onClick={() => {
+                            setSelectedClinic(clinic);
+                            setStep(3);
+                        }}
+                        className="w-full p-4 border rounded-lg hover:bg-pink-50 hover:border-pink-500 transition flex items-center gap-3 text-left"
+                    >
+                        <FaClinicMedical className="text-pink-500" />
+                        <span className="font-medium">{clinic.name}</span>
+                    </button>
+                ))}
+            </div>
+            <button onClick={() => setStep(1)} className="mt-4 text-gray-500 hover:text-gray-700 flex items-center gap-2">
+                <FaArrowLeft /> Volver
+            </button>
+        </div>
+    );
 
-                            <button
-                                type="button"
-                                onClick={handleCheckAvailability}
-                                // 🚨 CLASES DE COLOR PERSONALIZADAS: 
-                                // Asegúrate de definir 'acento-primario' y 'acento-secundario' en tu tailwind.config.js
-                                className="mt-20 flex w-full items-center justify-center rounded-lg border border-transparent bg-acento-primario px-8 py-3 text-base font-bold text-white shadow-md hover:bg-acento-secundario transition-colors focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:outline-hidden active:scale-[0.99]"
-                            >
-                                <FaCalendarAlt className="mr-3 size-5" />
-                                <span>Agendar Cita</span>
-                            </button>
-
-
-                        </section>
-                    </>
-                );
-
-            case 2: // Selección de Fecha y Hora
-                return (
-                    <div className="pt-4">
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">
-                            Elegir Fecha y Hora para {selectedClinic}
-                        </h3>
-                        
-                        {/* Selector de Fecha (Ahora usa availableDates filtradas) */}
-                        <div className="mt-10">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Seleccionar Fecha Disponible
-                            </label>
-                            <select
-                                value={selectedDate}
-                                onChange={(e) => {
-                                    setSelectedDate(e.target.value);
-                                    setSelectedSlot(null); // Reset slot al cambiar fecha
-                                }}
-                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            >
-                                <option value="">Elige un día</option>
-                                {/* Mapeamos las fechas disponibles filtradas */}
-                                {availableDates.map(date => (
-                                    <option key={date} value={date}>
-                                        {new Date(date).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Listado de Horarios Disponibles (Slots) */}
-                        {selectedDate && (
-                            <div className="mt-4">
-                                <p className="text-sm font-medium text-gray-900 mb-2">
-                                    Horarios y Doctores Disponibles en {selectedClinic}:
-                                </p>
-                                {availableSlots.length > 0 ? (
-                                    <div className="flex flex-wrap gap-3 max-h-48 overflow-y-auto pr-2 border-t pt-3">
-                                        {availableSlots.map(slot => (
-                                            <button
-                                                key={slot.time + slot.professional}
-                                                type="button"
-                                                onClick={() => handleSelectSlot(selectedDate, slot)}
-                                                // 🚨 CLASES DE COLOR PERSONALIZADAS: 
-                                                className="px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-150 bg-white text-acento-primario border-acento-primario hover:bg-indigo-50 hover:shadow-md flex items-center"
-                                            >
-                                                <FaUserMd className="mr-2 size-4 text-gray-500" />
-                                                {slot.time} - {slot.professional.split(' ')[1]}
-                                            </button>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-gray-500 text-sm">No hay horarios disponibles para esta fecha.</p>
-                                )}
-                            </div>
-                        )}
-
+    const renderStep3_Employee = () => (
+        <div>
+            <h3 className="text-lg font-bold mb-4">Selecciona un Profesional</h3>
+            {employees.length === 0 ? (
+                <p className="text-gray-500">Cargando veterinarios...</p>
+            ) : (
+                <div className="grid grid-cols-1 gap-3">
+                    {employees.map(emp => (
                         <button
-                        type="button"
-                        onClick={() => setStep(1)}
-                        // 🚨 CLASES DE COLOR PERSONALIZADAS: 
-                        className="mt-8 flex items-center gap-2 text-sm text-acento-terciario hover:text-sombra-sutil font-bold transition-colors"
+                            key={emp.id}
+                            onClick={() => {
+                                setSelectedEmployee(emp);
+                                setStep(4);
+                            }}
+                            className="p-3 border rounded-lg hover:bg-blue-50 hover:border-blue-500 transition flex items-center gap-3"
                         >
-                        <FaArrowLeft className="text-lg" />
-                        Volver a Detalles
+                            <div className="bg-blue-100 p-2 rounded-full">
+                                <FaUserMd className="text-blue-600" />
+                            </div>
+                            <div className="text-left">
+                                <p className="font-bold text-gray-800">{emp.names} {emp.lastNames}</p>
+                                <p className="text-xs text-gray-500">{emp.cargo}</p>
+                            </div>
                         </button>
-                    </div>
-                );
+                    ))}
+                </div>
+            )}
+            <button onClick={() => setStep(service.clinics.length > 1 ? 2 : 1)} className="mt-4 text-gray-500 hover:text-gray-700 flex items-center gap-2">
+                <FaArrowLeft /> Volver
+            </button>
+        </div>
+    );
 
-            case 3: // Confirmación
-                return (
-                    <form onSubmit={handleConfirmBooking} className="pt-4 p-4 bg-gray-50 rounded-lg">
-                        <h3 className="text-xl font-bold text-acento-secundario mb-4">
-                            Confirmación de Cita
-                        </h3>
-                        <p className="text-gray-700 mb-2 font-semibold">Servicio: {service.name}</p>
-                        <p className="text-gray-700 mb-2 font-semibold">Clínica: {selectedClinic}</p>
-                        <p className="text-gray-700 mb-4 flex items-center">
-                            <FaCalendarAlt className="mr-2 text-gray-500" />
-                            <span className='font-bold'>Fecha y Hora: {selectedDate} a las {selectedSlot.time}</span> 
-                        </p>
-                        <p className="text-gray-700 mb-6 flex items-center">
-                            <FaUserMd className="mr-2 text-gray-500" />
-                            <span className='font-bold'>Profesional: {selectedSlot.professional}</span>
-                        </p>
+    const renderStep4_DateSlot = () => (
+        <div>
+            <h3 className="text-lg font-bold mb-4">Fecha y Hora</h3>
 
-                        <div className="flex justify-between gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setStep(2)}
-                                className="w-1/2 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                                Modificar
-                            </button>
-                            <button
-                                type="submit"
-                                // 🚨 CLASES DE COLOR PERSONALIZADAS: Usa 'acento-cuaternario' y su hover específico
-                                className="w-1/2 py-3 rounded-lg border border-transparent bg-acento-cuaternario text-base font-bold text-white shadow-md hover:bg-[#d33d56] transition-colors"
-                            >
-                                ¡Confirmar Agendamiento!
-                            </button>
+            <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                <input
+                    type="date"
+                    min={new Date().toISOString().split('T')[0]}
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="w-full border-gray-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500"
+                />
+            </div>
+
+            {selectedDate && (
+                <div>
+                    <p className="text-sm font-medium text-gray-700 mb-2">Horarios Disponibles:</p>
+                    {loadingSlots ? (
+                        <div className="flex justify-center py-4"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-pink-500"></div></div>
+                    ) : availableSlots.length > 0 ? (
+                        <div className="grid grid-cols-3 gap-2 max-h-40 overflow-y-auto">
+                            {availableSlots.map(slot => (
+                                <button
+                                    key={slot}
+                                    onClick={() => {
+                                        setSelectedSlot(slot);
+                                        setStep(5);
+                                    }}
+                                    className="px-2 py-1 text-sm border rounded hover:bg-pink-500 hover:text-white transition"
+                                >
+                                    {slot}
+                                </button>
+                            ))}
                         </div>
-                    </form>
-                );
+                    ) : (
+                        <p className="text-sm text-red-500">No hay horarios disponibles para este día.</p>
+                    )}
+                </div>
+            )}
 
-            default:
-                return null;
-        }
-    };
+            <button onClick={() => setStep(3)} className="mt-4 text-gray-500 hover:text-gray-700 flex items-center gap-2">
+                <FaArrowLeft /> Volver
+            </button>
+        </div>
+    );
 
+    const renderStep5_Confirm = () => (
+        <div>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Confirmar Cita</h3>
+            <div className="bg-gray-50 p-4 rounded-lg space-y-2 mb-6 text-sm">
+                <p><span className="font-bold">Servicio:</span> {service.name}</p>
+                <p><span className="font-bold">Clínica:</span> {selectedClinic?.name}</p>
+                <p><span className="font-bold">Profesional:</span> {selectedEmployee?.names} {selectedEmployee?.lastNames}</p>
+                <p><span className="font-bold">Fecha:</span> {selectedDate}</p>
+                <p><span className="font-bold">Hora:</span> {selectedSlot}</p>
+            </div>
+
+            <div className="flex gap-3">
+                <button
+                    onClick={() => setStep(4)}
+                    className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                    Modificar
+                </button>
+                <button
+                    onClick={handleConfirmBooking}
+                    disabled={bookingLoading}
+                    className="flex-1 py-2 bg-pink-600 text-white rounded-lg font-bold hover:bg-pink-700 disabled:opacity-50"
+                >
+                    {bookingLoading ? 'Agendando...' : 'Confirmar'}
+                </button>
+            </div>
+        </div>
+    );
+
+    if (!service) return null;
 
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="fixed inset-0 bg-gray-900/75 transition-opacity" aria-hidden="true" onClick={onClose} />
-            <div className="flex min-h-full items-center justify-center p-4 text-center md:items-center md:px-2 lg:px-4">
-                <div className="relative flex w-full max-w-lg transform items-center overflow-hidden rounded-xl bg-white px-4 pt-14 pb-8 shadow-2xl transition-all sm:px-6 sm:pt-8 md:p-6 lg:max-w-4xl lg:p-8">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 sm:top-8 sm:right-6 md:top-6 md:right-6 lg:top-8 lg:right-8 z-10 p-2 rounded-full bg-white transition-colors shadow-md"
-                        aria-label="Cerrar vista rápida"
-                    >
-                        <FaTimes aria-hidden="true" className="size-6" />
-                    </button>
+            <div className="fixed inset-0 bg-black/50 transition-opacity" onClick={onClose} />
+            <div className="flex min-h-full items-center justify-center p-4">
+                <div className="relative w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden">
 
-                    <div className="grid w-full grid-cols-1 items-start lg:grid-cols-12 lg:gap-x-8">
-
+                    {/* Header Image */}
+                    <div className="h-32 bg-gray-200 relative">
                         <img
-                            alt={service.imageAlt || service.name}
-                            src={service.imageUrl}
-                            className="aspect-square w-full rounded-lg bg-gray-100 object-cover sm:col-span-4 lg:col-span-5 shadow-lg"
+                            src={service.imageUrl || "https://via.placeholder.com/400x200"}
+                            alt={service.name}
+                            className="w-full h-full object-cover"
                         />
+                        <button
+                            onClick={onClose}
+                            className="absolute top-2 right-2 bg-white/80 p-1 rounded-full hover:bg-white transition"
+                        >
+                            <FaTimes />
+                        </button>
+                    </div>
 
-                        <div className="mt-6 sm:mt-0 sm:col-span-8 lg:col-span-7">
-                            <span className="text-sm font-semibold text-blue-600 mb-1 block">
-                                {service.clinicName || "Clínica Veterinaria"}
-                            </span>
-                            <h2 className="text-3xl font-bold text-gray-900 sm:pr-12">{service.name}</h2>
-                            
-                            {/* CLAVE: Renderiza el contenido según el paso */}
-                            {renderStepContent()}
+                    <div className="p-6">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-1">{service.name}</h2>
+                        <p className="text-sm text-blue-600 font-medium mb-4">
+                            {selectedClinic ? selectedClinic.name : "Selecciona una clínica"}
+                        </p>
 
-                        </div>
+                        {step === 1 && renderStep1_Info()}
+                        {step === 2 && renderStep2_Clinic()}
+                        {step === 3 && renderStep3_Employee()}
+                        {step === 4 && renderStep4_DateSlot()}
+                        {step === 5 && renderStep5_Confirm()}
                     </div>
                 </div>
             </div>

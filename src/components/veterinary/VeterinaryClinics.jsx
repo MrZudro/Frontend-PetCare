@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/axiosConfig';
 import { FaStar, FaMapMarkerAlt, FaClock, FaPhone, FaEnvelope, FaStarHalfAlt } from 'react-icons/fa';
 
 const VeterinaryClinics = () => {
+    const navigate = useNavigate();
     const [clinics, setClinics] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -153,8 +155,11 @@ const VeterinaryClinics = () => {
                                 </div>
 
                                 {/* Botón de acción */}
-                                <button className="w-full mt-4 bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-md">
-                                    Agendar Cita
+                                <button
+                                    onClick={() => navigate('/services', { state: { clinicName: clinic.name } })}
+                                    className="w-full mt-4 bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-md"
+                                >
+                                    Ver Servicios
                                 </button>
                             </div>
                         </div>

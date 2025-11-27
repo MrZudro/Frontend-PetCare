@@ -22,11 +22,11 @@ export default function NavBarMq() {
                 {/* Logo + título */}
                 <div className='flex items-center cursor-pointer'>
                     <img src={logo} alt="logo de la marca" className='w-20 h-20' />
-                    <h1
+                    <Link to={'/'}><h1
                         className=' font-bold text-4xl hover:text-acento-primario 
                                     transition-colors duration-300 ease-in-initial'>
                         PetCare
-                    </h1>
+                    </h1></Link>
                 </div>
 
                 {/* Menú principal (visible en desktop) */}
