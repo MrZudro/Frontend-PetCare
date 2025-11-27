@@ -166,11 +166,11 @@ const rutas = createBrowserRouter([
       </Layout>
     ),
   },
-    {
+  {
     path: '/car',
     element: (
       <Layout>
-        <BuyCartTL/>
+        <BuyCartTL />
       </Layout>
     ),
   },
