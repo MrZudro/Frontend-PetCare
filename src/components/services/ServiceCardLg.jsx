@@ -1,22 +1,25 @@
 import React from 'react';
-import ProductCardLg from '../products/ProductCardLg'; 
-
+import ProductCardLg from '../products/ProductCardLg';
 
 const ServiceCardLg = ({ service, onQuickView, onToggleWishlist, isWishlisted }) => {
-    
+
     // Adaptamos el servicio al shape del producto.
+    // Si tiene clinicNames (array desde API), tomar el primero; si tiene clinicName (string), usarlo
+    const clinicDisplay = service.clinicNames?.length > 0
+        ? service.clinicNames[0]
+        : (service.clinicName || "Clínica Asociada");
+
     const adaptedService = {
-        // ... (Lógica de adaptación sin cambios)
         ...service,
-        subcategories: service.clinicName || "Clínica Asociada",
+        subcategories: clinicDisplay,
         category: "Servicio",
-        price: 0.00, 
+        price: 0.00,
     };
 
     return (
         // 🚨 CLAVE: Ajustamos la clase de envoltura para definir una altura más pequeña
-        <div className="service-card h-80"> 
-            
+        <div className="service-card h-80">
+
             <style>{`
                 /* Oculta el precio en la tarjeta */
                 .service-card .text-xl.font-bold { 
@@ -41,11 +44,11 @@ const ServiceCardLg = ({ service, onQuickView, onToggleWishlist, isWishlisted })
                 }
             `}</style>
 
-            <ProductCardLg 
-                product={adaptedService} 
+            <ProductCardLg
+                product={adaptedService}
                 onQuickView={onQuickView}
                 onToggleWishlist={onToggleWishlist}
-                onRemove={() => {}}
+                onRemove={() => { }}
                 isWishlisted={isWishlisted}
             />
         </div>

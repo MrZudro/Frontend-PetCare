@@ -73,11 +73,11 @@ const AppointmentManagement = () => {
                             <tr key={app.id} className="hover:bg-gray-50 transition-colors">
                                 <td className="p-4">
                                     <div className="font-bold text-gray-800">{app.date}</div>
-                                    <div className="text-sm text-gray-500 flex items-center gap-1"><FaClock className="text-xs" /> {app.time}</div>
+                                    <div className="text-sm text-gray-500 flex items-center gap-1"><FaClock className="size-3" /> {app.time}</div>
                                 </td>
                                 <td className="p-4">
-                                    <div className="font-medium text-gray-800 flex items-center gap-2"><FaUser className="text-xs text-gray-400" /> {app.client}</div>
-                                    <div className="text-sm text-gray-500 flex items-center gap-2"><FaPaw className="text-xs text-gray-400" /> {app.pet}</div>
+                                    <div className="font-medium text-gray-800 flex items-center gap-2"><FaUser className="size-3 text-gray-400" /> {app.client}</div>
+                                    <div className="text-sm text-gray-500 flex items-center gap-2"><FaPaw className="size-3 text-gray-400" /> {app.pet}</div>
                                 </td>
                                 <td className="p-4 text-gray-600">{app.type}</td>
                                 <td className="p-4">
@@ -95,17 +95,17 @@ const AppointmentManagement = () => {
                                         onClick={() => handleStatusChange(app.id, 'Confirmada')}
                                         title="Confirmar"
                                         className="text-green-500 hover:bg-green-50 p-2 rounded-lg transition-colors"
-                                    ><FaCheck /></button>
+                                    ><FaCheck className="size-4" /></button>
                                     <button
                                         onClick={() => handleReschedule(app.id)}
                                         title="Reprogramar"
                                         className="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition-colors"
-                                    ><FaEdit /></button>
+                                    ><FaEdit className="size-4" /></button>
                                     <button
                                         onClick={() => handleStatusChange(app.id, 'Cancelada')}
                                         title="Cancelar"
                                         className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                                    ><FaTimes /></button>
+                                    ><FaTimes className="size-4" /></button>
                                 </td>
                             </tr>
                         ))}
