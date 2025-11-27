@@ -4,8 +4,8 @@ import { useLocation } from 'react-router-dom';
 // Importamos Axios
 import api from '../services/axiosConfig';
 
-// Importamos el hook para obtener el estado global de citas
-import { useAppointmentStore } from '../components/services/useAppointmentStore';
+// Importamos el servicio de citas
+import { appointmentService } from '../services/appointmentService';
 
 // IMPORTAMOS LOS COMPONENTES ADAPTADORES
 import ServiceCard from '../components/services/ServiceCardLg';
@@ -20,8 +20,8 @@ const ServicesLg = () => {
     const initialIsManagerOpen = location.state?.openManager || false;
     const preSelectedClinic = location.state?.clinicName || null;
 
-    // 💡 Estado del hook para controlar la visibilidad del botón de gestión
-    const appointments = useAppointmentStore(state => state.appointments);
+    // 💡 Estado para el conteo de citas PENDING/CONFIRMED desde la API
+    const [pendingOrConfirmedCount, setPendingOrConfirmedCount] = useState(0);
 
     // Estados para datos del API
     const [services, setServices] = useState([]);
@@ -70,6 +70,35 @@ const ServicesLg = () => {
 
         fetchServices();
     }, []);
+
+    // 🚀 FETCH DEL CONTEO DE CITAS PENDING/CONFIRMED DESDE LA API
+    useEffect(() => {
+        const fetchPendingConfirmedCount = async () => {
+            try {
+                const user = JSON.parse(localStorage.getItem('user'));
+
+                if (!user || !user.id) {
+                    setPendingOrConfirmedCount(0);
+                    return;
+                }
+
+                const response = await appointmentService.getByCustomer(user.id);
+                const appointments = response.data;
+
+                // Filtrar solo PENDING o CONFIRMED
+                const pendingOrConfirmed = appointments.filter(
+                    app => app.status === 'PENDING' || app.status === 'CONFIRMED'
+                );
+
+                setPendingOrConfirmedCount(pendingOrConfirmed.length);
+            } catch (err) {
+                console.error('Error fetching appointments count:', err);
+                setPendingOrConfirmedCount(0);
+            }
+        };
+
+        fetchPendingConfirmedCount();
+    }, [isManagerOpen]); // Refrescar cuando se cierra/abre el manager
 
     // --- LÓGICA DE FILTRADO OPTIMIZADA ---
     const filteredServices = useMemo(() => {
@@ -149,7 +178,8 @@ const ServicesLg = () => {
     };
 
     // 🌟 LÓGICA CLAVE: Control de visibilidad del botón de Solicitudes
-    const hasAppointments = appointments.length > 0;
+    // El conteo ya viene desde la API filtrado por PENDING o CONFIRMED
+    const hasAppointments = pendingOrConfirmedCount > 0;
 
     // Renderizado condicional basado en el estado de carga
     if (loading) {
@@ -206,7 +236,7 @@ const ServicesLg = () => {
                             className="flex items-center px-6 py-2 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-pink-500 hover:bg-pink-600 transition-colors focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2"
                         >
                             <FaCalendarAlt className="mr-2" />
-                            {isManagerOpen ? '← Volver a Servicios' : `Ver Mis Solicitudes (${appointments.length})`}
+                            {isManagerOpen ? '← Volver a Servicios' : `Ver Mis Solicitudes (${pendingOrConfirmedCount})`}
                         </button>
                     </div>
                 )}
