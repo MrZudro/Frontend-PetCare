@@ -24,8 +24,15 @@ import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import ResetPassword from './pages/Auth/ResetPassword';
 
+// Páginas Admin
+import AdminLw from './pages/AdminLw';
+import ProductsPage from './components/admin/ProductsPage';
+import ServicesPage from './components/admin/ServicesPage';
+import ConfiguracionPage from './components/admin/ConfiguracionPage';
+
 // Componentes
 import Layout from './components/layout/Layout';
+import LayoutAdmin from './components/admin/LayoutAdmin'
 import AuthLayout from './layouts/AuthLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 
@@ -183,6 +190,16 @@ const rutas = createBrowserRouter([
       </Layout>
     ),
   },
+  {
+      path: '/admin',
+      element: <LayoutAdmin />,   // Layout envolvente
+      children: [
+        { path: '', element: <AdminLw /> },                // Dashboard principal
+        { path: 'productos', element: <ProductsPage /> },  // Productos
+        { path: 'servicios', element: <ServicesPage /> },  // Servicios
+        { path: 'configuracion', element: <ConfiguracionPage /> }, // Configuración
+      ],
+    },
 ]);
 
 // Renderizado de la aplicación
