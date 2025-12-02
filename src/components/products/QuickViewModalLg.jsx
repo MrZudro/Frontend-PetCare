@@ -1,3 +1,7 @@
+// =================================================================
+// src/components/products/QuickViewModalLg.jsx (MODIFICADO)
+// =================================================================
+
 import React, { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 
@@ -5,18 +9,41 @@ import { FaTimes } from 'react-icons/fa';
 const combineClasses = (...classes) => classes.filter(Boolean).join(' ');
 
 /**
- * Componente Modal de Vista Rápida (Sin Calificación)
+ * Componente Modal de Vista Rápida
+ * @param {object} product - El objeto producto
+ * @param {function} onClose - Función para cerrar el modal
+ * @param {function} onAddToCart - CLAVE: Función para agregar el producto al carrito (viene de LandingPageLg)
+ * @param {function} onRedirectToCart - CLAVE: Función para redirigir al usuario a la vista de carrito
  */
-const QuickViewModalLg = ({ product, onClose }) => {
+const QuickViewModalLg = ({ product, onClose, onAddToCart, onRedirectToCart }) => { // 🚨 AÑADIR NUEVAS PROPS
     if (!product) return null;
 
-    // Usar encadenamiento opcional (?? []) para evitar 'undefined'
+    // Aseguramos que 'colors' y 'sizes' existan
     const colors = product.colors ?? [];
     const sizes = product.sizes ?? [];
 
     // Estado local para selecciones del producto
     const [selectedColor, setSelectedColor] = useState(colors[0]?.id || null);
     const [selectedSize, setSelectedSize] = useState(sizes[0]?.name || null);
+
+    // Determinar si la talla seleccionada está agotada
+    const isSizeOutOfStock = sizes.some(s => s.name === selectedSize && s.inStock === false);
+
+    // 🔑 CLAVE: Handler de envío
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        
+        // 1. Añadir al carrito (usando el handler pasado por prop)
+        // Nota: Solo pasamos el ID del producto, ya que el handler de la LandingPage
+        // asume que las opciones ya están seleccionadas o maneja la cantidad.
+        onAddToCart(product.id, selectedSize, selectedColor); 
+
+        // 2. Cerrar el modal
+        onClose();
+
+        // 3. Redirigir al carrito
+        onRedirectToCart(); 
+    };
 
     return (
         // Diálogo / Backdrop (Fondo Oscuro)
@@ -43,35 +70,40 @@ const QuickViewModalLg = ({ product, onClose }) => {
 
                         {/* Imagen del Producto */}
                         <img
-                            alt={product.imageAlt}
+                            alt={product.imageAlt || product.name}
                             src={product.imageUrl}
                             className="aspect-square w-full rounded-lg bg-gray-100 object-cover sm:col-span-4 lg:col-span-5 shadow-lg"
                         />
 
                         {/* Detalles del Producto */}
                         <div className="sm:col-span-8 lg:col-span-7">
-                            {/* CATEGORÍA (Mantenida en su posición original) */}
-                            <span className="text-sm font-semibold text-indigo-600 mb-1 block">
-                                {product.subcategories || 'Sin Categoría'}
-                            </span>
+                            
+                            {/* CATEGORÍA y ID */}
+                            <div className="flex justify-between items-center text-sm font-semibold mb-1">
+                                <span className="text-indigo-600 block">
+                                    {product.subcategories || 'Sin Categoría'}
+                                </span>
+                                {/* CLAVE: Muestra el ID del producto */}
+                                <span className="text-gray-500">
+                                    ID: {product.id}
+                                </span>
+                            </div>
                             
                             {/* Nombre del Producto */}
                             <h2 className="text-3xl font-bold text-gray-900 sm:pr-12">{product.name}</h2>
                             
-                            {/* TIPO DE PRODUCTO y MARCA - ¡NUEVAS ADICIONES! */}
+                            {/* MARCA */}
                             <div className="mt-2 space-y-1 text-sm text-gray-600">
                                 <p>
                                     <span className="font-semibold text-gray-800">Marca: </span>
                                     {product.brand || 'No especificada'}
                                 </p>
                             </div>
-                            {/* FIN de NUEVAS ADICIONES */}
 
                             <section aria-labelledby="information-heading" className="mt-4 border-b pb-4">
                                 <h3 id="information-heading" className="sr-only">Información del Producto</h3>
                                 
                                 <p className="text-3xl font-extrabold text-indigo-600 mt-2">
-                                    {/* Formato de moneda de peso colombiano ($) de forma segura */}
                                     {`$${product.price?.toLocaleString('es-CO', { minimumFractionDigits: 0 }) ?? 'N/A'}`}
                                 </p>
                             </section>
@@ -90,7 +122,8 @@ const QuickViewModalLg = ({ product, onClose }) => {
                             <section aria-labelledby="options-heading" className="mt-6">
                                 <h3 id="options-heading" className="sr-only">Opciones del producto</h3>
 
-                                <form>
+                                {/* 🚨 CLAVE: Usamos el nuevo handler 'handleSubmit' en el form */}
+                                <form onSubmit={handleSubmit}>
                                     {/* Colores */}
                                     {colors.length > 0 && (
                                         <fieldset aria-label="Elige un color">
@@ -102,7 +135,7 @@ const QuickViewModalLg = ({ product, onClose }) => {
                                                         type="button"
                                                         onClick={() => setSelectedColor(color.id)}
                                                         className={combineClasses(
-                                                            color.classes,
+                                                            color.classes, 
                                                             'size-8 rounded-full outline outline-offset-1 outline-gray-400/20 shadow-md transition-all duration-150',
                                                             color.id === selectedColor ? 'ring-2 ring-offset-2 ring-indigo-600' : 'hover:ring-2 hover:ring-offset-2 hover:ring-gray-300'
                                                         )}
@@ -147,7 +180,7 @@ const QuickViewModalLg = ({ product, onClose }) => {
                                     <button
                                         type="submit"
                                         className="mt-6 flex w-full items-center justify-center rounded-lg border border-transparent bg-green-500 px-8 py-3 text-base font-bold text-white shadow-md hover:bg-green-600 transition-colors focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-hidden active:scale-[0.99]"
-                                        disabled={sizes.some(s => s.name === selectedSize && s.inStock === false)}
+                                        disabled={isSizeOutOfStock}
                                     >
                                         Añadir al Carrito
                                     </button>

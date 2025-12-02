@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 
 // Componentes
-import TitleTL from "../components/buyCart/TitleTL";
-import ProductListTL from "../components/buyCart/ProductListTL";
-import SummaryTL from "../components/buyCart/SummaryTL";
-import EmptyCartButtonTL from "../components/buyCart/EmptyCartButtonTL";
-import ShippingOptionTL from "../components/buyCart/ShippingOptionTL";
-import NewAddressTL from "../components/buyCart/NewAddressTL";
-import PaymentMethodTL from "../components/buyCart/PaymentMethodTL";
-import OrderReadyTL from "../components/buyCart/OrderReadyTL";
+import TitleTL from "../components/buyCart/TitleTL"; //titulo
+import SummaryTL from "../components/buyCart/SummaryTL"; //resumen
+import EmptyCartButtonTL from "../components/buyCart/EmptyCartButtonTL"; //boton vaciar carrito
+import ProductListTL from "../components/buyCart/ProductListTL"; //1er vista
+import ShippingOptionTL from "../components/buyCart/ShippingOptionTL"; //2da vista
+import NewAddressTL from "../components/buyCart/NewAddressTL"; //3ra vista
+import PaymentMethodTL from "../components/buyCart/PaymentMethodTL"; //4ta vista
+import OrderReadyTL from "../components/buyCart/OrderReadyTL"; //5ta vista
 
 // Datos Mock
 import PRODUCTS_DATA from '../components/Data/products.json';

@@ -1,237 +1,327 @@
-import React, { useState, useMemo } from 'react';
-import { FaTimes, FaCalendarAlt, FaUserMd } from 'react-icons/fa';
-import { useAppointmentStore } from '../services/useAppointmentStore';
-import { FaArrowLeft } from "react-icons/fa";
+import React, { useState, useEffect } from 'react';
+import { FaTimes, FaCalendarAlt, FaUserMd, FaArrowLeft, FaClinicMedical, FaCheck } from 'react-icons/fa';
+import { appointmentService, scheduleService, generateAvailableSlots } from '../../services/appointmentService';
 
+const ServiceQuickViewModalLg = ({ service, onClose, onAppointmentBooked }) => {
+    // Estados para el flujo multi-paso
+    const [step, setStep] = useState(1); // 1: Info, 2: Clinic, 3: Date, 4: Time, 5: Confirm, 6: Success
 
-// 🚀 IMPORTACIÓN CLAVE: Datos de disponibilidad con estructura de Clínica/Servicio
-import mockAvailabilityData from '../Data/availability.json';
-
-// --- FUNCIONES DE UTILIDAD (Fuera del componente) ---
-
-// Función auxiliar para combinar clases de Tailwind (Mantenemos por si se usa en otras partes)
-const combineClasses = (...classes) => classes.filter(Boolean).join(' ');
-
-/**
- * Hook para obtener y transformar la disponibilidad de un servicio y clínica específicos.
- * Se filtra en base a la estructura Clinic -> Service -> Availability.
- */
-const useFilteredAvailabilityMap = (clinicName, serviceName) => {
-    return useMemo(() => {
-        // 1. Encontrar la clínica
-        const clinicEntry = mockAvailabilityData.find(c => c.clinicName === clinicName);
-        if (!clinicEntry) return {};
-
-        // 2. Encontrar el servicio dentro de la clínica
-        const serviceEntry = clinicEntry.services.find(s => s.serviceName === serviceName);
-        if (!serviceEntry) return {};
-
-        // 3. Crear el mapa de disponibilidad (Date -> [Slots])
-        return serviceEntry.availability.reduce((acc, entry) => {
-            acc[entry.date] = entry.slots;
-            return acc;
-        }, {});
-    }, [clinicName, serviceName]); // Se recalcula si la clínica o el servicio cambian
-};
-
-// --- COMPONENTE PRINCIPAL ---
-
-const ServiceQuickViewModalLg = ({ service, onClose }) => {
-    if (!service) return null;
-
-    const addAppointment = useAppointmentStore(state => state.addAppointment);
-
-    // 💡 Obtener el mapa de disponibilidad filtrado por Clínica y Servicio
-    const availabilityMap = useFilteredAvailabilityMap(service.clinicName, service.name);
-    
-    // 🌟 ESTADOS PARA AGENDAMIENTO 🌟
-    const [selectedClinic, setSelectedClinic] = useState(service.clinicName);
+    // Estados de selección
+    const [selectedClinic, setSelectedClinic] = useState(null);
     const [selectedDate, setSelectedDate] = useState('');
+    const [availableSlots, setAvailableSlots] = useState([]);
     const [selectedSlot, setSelectedSlot] = useState(null);
-    const [step, setStep] = useState(1); // 1: Info, 2: Disponibilidad, 3: Confirmación
 
-    // Obtiene las fechas disponibles (las claves del mapa)
-    const availableDates = Object.keys(availabilityMap);
+    // Estados de carga y error
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    // Obtiene los slots disponibles para la fecha seleccionada
-    const availableSlots = selectedDate ? availabilityMap[selectedDate] || [] : [];
-    
-    // Simulación de clínicas disponibles (basado en el nombre único del servicio)
-    const availableClinics = useMemo(() => {
-        return [service.clinicName]; 
-    }, [service]);
+    // Auto-seleccionar clínica si solo hay una
+    useEffect(() => {
+        if (service?.clinics?.length === 1 && step === 1) {
+            setSelectedClinic(service.clinics[0]);
+        }
+    }, [service, step]);
 
+    // Generar slots disponibles cuando se selecciona fecha
+    useEffect(() => {
+        if (selectedDate && selectedClinic) {
+            fetchAvailableSlots();
+        } else {
+            setAvailableSlots([]);
+            setSelectedSlot(null);
+        }
+    }, [selectedDate, selectedClinic]);
 
-    // ----------------------------------------------------
-    // MANEJADORES DE PASOS DEL FLUJO
-    // ----------------------------------------------------
+    const fetchAvailableSlots = async () => {
+        setLoading(true);
+        setError(null);
 
-    // ... (handleCheckAvailability, handleSelectSlot, handleConfirmBooking se mantienen igual)
+        try {
+            // Obtener horarios de todos los veterinarios
+            const schedulesRes = await scheduleService.getAll();
+            const schedules = schedulesRes.data;
 
-    const handleCheckAvailability = () => {
-        setStep(2); // Avanza al paso 2: Selección de fecha y hora
+            // Obtener citas ya agendadas
+            const appointmentsRes = await appointmentService.getAll();
+            const appointments = appointmentsRes.data;
+
+            // Generar slots disponibles
+            const slots = generateAvailableSlots(
+                schedules,
+                appointments,
+                selectedDate,
+                30 // 30 minutos por slot
+            );
+
+            setAvailableSlots(slots);
+        } catch (err) {
+            console.error('Error al obtener horarios:', err);
+            setError('Error al cargar horarios disponibles');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleSelectSlot = (date, slot) => {
-        setSelectedDate(date);
-        setSelectedSlot(slot);
-        setStep(3); // Avanza al paso 3: Confirmación
+    const handleConfirmBooking = async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+
+            if (!user || !user.id) {
+                setError('Debes iniciar sesión para agendar una cita');
+                return;
+            }
+
+            const appointmentData = {
+                customerId: user.id,
+                veterinaryClinicId: selectedClinic.id,
+                serviceId: service.id,
+                appointmentDateTime: `${selectedDate}T${selectedSlot.time}:00`,
+                reason: `Solicitud de ${service.name}`
+            };
+
+            await appointmentService.create(appointmentData);
+            setStep(6); // Mostrar pantalla de éxito
+
+            // Notificar al padre después de 2 segundos
+            setTimeout(() => {
+                if (onAppointmentBooked) onAppointmentBooked();
+                onClose();
+            }, 2000);
+        } catch (err) {
+            console.error('Error al crear cita:', err);
+            setError(err.response?.data?.message || 'Error al agendar la cita. Por favor, intenta nuevamente.');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleConfirmBooking = (e) => {
-        e.preventDefault();
-        
-        const newAppointment = {
-            id: Date.now(), 
-            serviceId: service.id,
-            serviceName: service.name,
-            clinicName: selectedClinic,
-            date: selectedDate,
-            time: selectedSlot.time,
-            professional: selectedSlot.professional,
-            status: 'Pending',
-        };
-
-        addAppointment(newAppointment); 
-
-        console.log("Cita Confirmada y Almacenada:", newAppointment);
-        alert(`Cita agendada para ${service.name} en ${selectedClinic} el ${selectedDate} a las ${selectedSlot.time}.`);
-        onClose();
-    };
-
-
-    // ----------------------------------------------------
-    // LÓGICA DE RENDERIZADO CONDICIONAL POR PASO
-    // ----------------------------------------------------
-    const renderStepContent = () => {
+    // Renderizado condicional por paso
+    const renderContent = () => {
         switch (step) {
-            case 1: 
+            case 1:
                 return (
-                    <>
-                        <section aria-labelledby="description-heading" className="mt-15">
-                            <h3 id="description-heading" className="text-lg font-medium text-gray-900">
-                                Descripción
-                            </h3>
-                            <div className="mt-2 space-y-3 text-sm text-gray-600">
-                                <p>{service.description}</p>
-                            </div>
-                        </section>
+                    <div className="space-y-4">
+                        <p className="text-gray-600 leading-relaxed">{service.description}</p>
 
-                        <section aria-labelledby="options-heading" className="mt-6">
-                            <h3 id="options-heading" className="sr-only">Opciones del servicio</h3>
-
-                            <button
-                                type="button"
-                                onClick={handleCheckAvailability}
-                                className="mt-20 flex w-full items-center justify-center rounded-lg border border-transparent bg-acento-primario px-8 py-3 text-base font-bold text-white shadow-md hover:bg-acento-secundario transition-colors focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:outline-hidden active:scale-[0.99]"
-                            >
-                                <FaCalendarAlt className="mr-3 size-5" />
-                                <span>Agendar Cita</span>
-                            </button>
-                        </section>
-                    </>
-                );
-
-            case 2: // Selección de Fecha y Hora
-                return (
-                    <div className="pt-4">
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">
-                            Elegir Fecha y Hora para {selectedClinic}
-                         </h3>
-                        
-                        {/* Selector de Fecha (Ahora usa availableDates filtradas) */}
-                        <div className="mt-10">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Seleccionar Fecha Disponible
-                            </label>
-                            <select
-                                value={selectedDate}
-                                onChange={(e) => {
-                                    setSelectedDate(e.target.value);
-                                    setSelectedSlot(null); // Reset slot al cambiar fecha
-                                }}
-                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                            >
-                                <option value="">Elige un día</option>
-                                {/* Mapeamos las fechas disponibles filtradas */}
-                                {availableDates.map(date => (
-                                    <option key={date} value={date}>
-                                        {new Date(date).toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Listado de Horarios Disponibles (Slots) */}
-                        {selectedDate && (
-                            <div className="mt-4">
-                                <p className="text-sm font-medium text-gray-900 mb-2">
-                                    Horarios y Doctores Disponibles en {selectedClinic}:
-                                </p>
-                                {availableSlots.length > 0 ? (
-                                    <div className="flex flex-wrap gap-3">
-                                        {availableSlots.map(slot => (
-                                            <button
-                                                key={slot.time + slot.professional}
-                                                type="button"
-                                                onClick={() => handleSelectSlot(selectedDate, slot)}
-                                                className="px-4 py-2 text-sm font-medium rounded-lg border transition-colors duration-150 bg-white text-acento-primario border-acento-primario hover:bg-indigo-50 hover:shadow-md flex items-center"
-                                            >
-                                                <FaUserMd className="mr-2 size-4 text-gray-500" />
-                                                {slot.time} - {slot.professional.split(' ')[1]}
-                                            </button>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-gray-500 text-sm">No hay horarios disponibles para esta fecha.</p>
-                                )}
+                        {service.clinics && service.clinics.length > 0 && (
+                            <div className="bg-gray-50 p-3 rounded-lg">
+                                <p className="text-sm font-medium text-gray-700 mb-1">Disponible en:</p>
+                                <ul className="text-sm text-gray-600 space-y-1">
+                                    {service.clinics.map((clinic, idx) => (
+                                        <li key={idx} className="flex items-center">
+                                            <FaClinicMedical className="text-primary mr-2 size-3" />
+                                            {clinic.name}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         )}
 
                         <button
-                        type="button"
-                        onClick={() => setStep(1)}
-                        className="mt-28 flex items-center gap-2 text-sm text-acento-terciario hover:text-sombra-sutil font-bold transition-colors"
+                            onClick={() => {
+                                if (service.clinics?.length === 1) {
+                                    setSelectedClinic(service.clinics[0]);
+                                    setStep(3);
+                                } else {
+                                    setStep(2);
+                                }
+                            }}
+                            className="w-full py-3 px-4 bg-[#F2055C] hover:bg-[#BF0436] text-white font-bold rounded-lg transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
                         >
-                        <FaArrowLeft className="text-lg" />
-                        Volver a Detalles
+                            <FaCalendarAlt />
+                            Agendar Cita
                         </button>
                     </div>
                 );
 
-            case 3: // Confirmación
+            case 2:
                 return (
-                    <form onSubmit={handleConfirmBooking} className="p-4 bg-gray-50 rounded-lg">
-                        <h3 className="text-xl font-bold text-acento-secundario mb-4">
-                            Confirmación de Cita
-                        </h3>
-                        <p className="text-gray-700 mb-2 font-semibold">Servicio: {service.name}</p>
-                        <p className="text-gray-700 mb-2 font-semibold">Clínica: {selectedClinic}</p>
-                        <p className="text-gray-700 mb-4 flex items-center">
-                            <FaCalendarAlt className="mr-2 text-gray-500" />
-                            <span className='font-bold'>Fecha y Hora: {selectedDate} a las {selectedSlot.time}</span>  
-                        </p>
-                        <p className="text-gray-700 mb-6 flex items-center">
-                            <FaUserMd className="mr-2 text-gray-500" />
-                            <span className='font-bold'>Profesional: {selectedSlot.professional}</span>
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-bold text-gray-900">Selecciona una Clínica</h3>
+                        <div className="space-y-3">
+                            {service.clinics && service.clinics.map(clinic => (
+                                <button
+                                    key={clinic.id}
+                                    onClick={() => {
+                                        setSelectedClinic(clinic);
+                                        setStep(3);
+                                    }}
+                                    className="w-full p-4 border-2 border-gray-200 rounded-xl hover:border-[#0FC2C0] hover:bg-[#0FC2C0]/5 transition-all flex items-center gap-3 text-left group"
+                                >
+                                    <div className="bg-[#0FC2C0]/10 group-hover:bg-[#0FC2C0]/20 p-3 rounded-full transition-colors">
+                                        <FaClinicMedical className="text-[#0FC2C0] size-5" />
+                                    </div>
+                                    <span className="font-semibold text-gray-900">{clinic.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            onClick={() => setStep(1)}
+                            className="text-gray-500 hover:text-gray-700 flex items-center gap-2 text-sm"
+                        >
+                            <FaArrowLeft />
+                            Volver
+                        </button>
+                    </div>
+                );
+
+            case 3:
+                return (
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-bold text-gray-900">Selecciona Fecha</h3>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                ¿Cuándo deseas tu cita?
+                            </label>
+                            <input
+                                type="date"
+                                min={new Date().toISOString().split('T')[0]}
+                                value={selectedDate}
+                                onChange={(e) => setSelectedDate(e.target.value)}
+                                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#0FC2C0] focus:ring-2 focus:ring-[#0FC2C0]/20 transition-all outline-none"
+                            />
+                        </div>
+
+                        {selectedDate && (
+                            <button
+                                onClick={() => availableSlots.length > 0 && setStep(4)}
+                                disabled={loading || availableSlots.length === 0}
+                                className="w-full py-3 bg-[#0388A6] hover:bg-[#024059] text-white font-bold rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                            >
+                                {loading ? 'Cargando horarios...' :
+                                    availableSlots.length === 0 ? 'No hay horarios disponibles' :
+                                        'Continuar'}
+                            </button>
+                        )}
+
+                        <button
+                            onClick={() => setStep(service.clinics?.length > 1 ? 2 : 1)}
+                            className="text-gray-500 hover:text-gray-700 flex items-center gap-2 text-sm"
+                        >
+                            <FaArrowLeft />
+                            Volver
+                        </button>
+                    </div>
+                );
+
+            case 4:
+                return (
+                    <div className="space-y-4">
+                        <h3 className="text-lg font-bold text-gray-900">Selecciona Hora</h3>
+
+                        <p className="text-sm text-gray-600">
+                            Horarios disponibles para el {new Date(selectedDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                         </p>
 
-                        <div className="flex justify-between gap-3">
+                        {loading ? (
+                            <div className="flex justify-center py-8">
+                                <div className="animate-spin rounded-full size-12 border-4 border-[#0FC2C0] border-t-transparent"></div>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto p-2">
+                                {availableSlots.map(slot => (
+                                    <button
+                                        key={slot.time}
+                                        onClick={() => {
+                                            setSelectedSlot(slot);
+                                            setStep(5);
+                                        }}
+                                        className="px-3 py-2 text-sm font-medium border-2 border-[#0FC2C0] text-[#0FC2C0] rounded-lg hover:bg-[#0FC2C0] hover:text-white transition-all"
+                                    >
+                                        {slot.time}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        <button
+                            onClick={() => setStep(3)}
+                            className="text-gray-500 hover:text-gray-700 flex items-center gap-2 text-sm"
+                        >
+                            <FaArrowLeft />
+                            Volver
+                        </button>
+                    </div>
+                );
+
+            case 5:
+                return (
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">Confirmar Cita</h3>
+
+                        <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                            <div className="flex justify-between items-start">
+                                <span className="text-sm font-medium text-gray-600">Servicio</span>
+                                <span className="text-sm font-bold text-gray-900 text-right">{service.name}</span>
+                            </div>
+                            <div className="flex justify-between items-start">
+                                <span className="text-sm font-medium text-gray-600">Clínica</span>
+                                <span className="text-sm font-bold text-gray-900 text-right">{selectedClinic?.name}</span>
+                            </div>
+                            <div className="flex justify-between items-start">
+                                <span className="text-sm font-medium text-gray-600">Fecha</span>
+                                <span className="text-sm font-bold text-gray-900">
+                                    {new Date(selectedDate).toLocaleDateString('es-ES', {
+                                        weekday: 'long',
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric'
+                                    })}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-start">
+                                <span className="text-sm font-medium text-gray-600">Hora</span>
+                                <span className="text-sm font-bold text-gray-900">{selectedSlot?.time}</span>
+                            </div>
+                        </div>
+
+                        {error && (
+                            <div className="bg-red-50 border-l-4 border-[#BF0436] p-3 rounded">
+                                <p className="text-sm text-red-800">{error}</p>
+                            </div>
+                        )}
+
+                        <div className="flex gap-3">
                             <button
-                                type="button"
-                                onClick={() => setStep(2)}
-                                className="w-1/2 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                                onClick={() => setStep(4)}
+                                className="flex-1 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
                             >
                                 Modificar
                             </button>
                             <button
-                                type="submit"
-                                className="w-1/2 py-3 rounded-lg border border-transparent bg-acento-cuaternario text-base font-bold text-white shadow-md hover:bg-[#d33d56] transition-colors"
+                                onClick={handleConfirmBooking}
+                                disabled={loading}
+                                className="flex-1 py-3 bg-[#F2055C] hover:bg-[#BF0436] text-white font-bold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
                             >
-                                ¡Confirmar Agendamiento!
+                                {loading ? 'Agendando...' : 'Confirmar Cita'}
                             </button>
                         </div>
-                    </form>
+                    </div>
+                );
+
+            case 6:
+                return (
+                    <div className="text-center py-8 space-y-4">
+                        <div className="mx-auto size-20 bg-green-100 rounded-full flex items-center justify-center">
+                            <FaCheck className="text-green-600 size-10" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-900">¡Cita Agendada!</h3>
+                        <p className="text-gray-600">
+                            Tu cita ha sido programada exitosamente para el {' '}
+                            {new Date(selectedDate).toLocaleDateString('es-ES', {
+                                day: 'numeric',
+                                month: 'long'
+                            })} a las {selectedSlot?.time}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                            Recibirás una confirmación por correo electrónico
+                        </p>
+                    </div>
                 );
 
             default:
@@ -239,40 +329,66 @@ const ServiceQuickViewModalLg = ({ service, onClose }) => {
         }
     };
 
+    if (!service) return null;
 
     return (
-        // ... (JSX del modal se mantiene igual)
         <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="fixed inset-0 bg-gray-900/75 transition-opacity" aria-hidden="true" onClick={onClose} />
-            <div className="flex min-h-full items-center justify-center p-4 text-center md:items-center md:px-2 lg:px-4">
-                <div className="relative flex w-full max-w-lg transform items-center overflow-hidden rounded-xl bg-white px-4 pt-14 pb-8 shadow-2xl transition-all sm:px-6 sm:pt-8 md:p-6 lg:max-w-4xl lg:p-8">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="absolute top-4 right-4 text-gray-400 hover:text-gray-500 sm:top-8 sm:right-6 md:top-6 md:right-6 lg:top-8 lg:right-8 z-10 p-2 rounded-full bg-white transition-colors shadow-md"
-                        aria-label="Cerrar vista rápida"
-                    >
-                        <FaTimes aria-hidden="true" className="size-6" />
-                    </button>
+            {/* Overlay */}
+            <div
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+                onClick={step !== 6 ? onClose : undefined}
+            />
 
-                    <div className="grid w-full grid-cols-1 items-start lg:grid-cols-12 lg:gap-x-8">
-
+            {/* Modal */}
+            <div className="flex min-h-full items-center justify-center p-4">
+                <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all">
+                    {/* Header con imagen */}
+                    <div className="relative h-40">
                         <img
-                            alt={service.imageAlt || service.name}
-                            src={service.imageUrl}
-                            className="aspect-square w-full rounded-lg bg-gray-100 object-cover sm:col-span-4 lg:col-span-5 shadow-lg"
+                            src={service.imageUrl || 'https://placehold.co/600x400/0FC2C0/FFFFFF?text=Servicio'}
+                            alt={service.name}
+                            className="w-full h-full object-cover"
                         />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
 
-                        <div className="mt-6 sm:mt-0 sm:col-span-8 lg:col-span-7">
-                            <span className="text-sm font-semibold text-blue-600 mb-1 block">
-                                {service.clinicName || "Clínica Veterinaria"}
-                            </span>
-                            <h2 className="text-3xl font-bold text-gray-900 sm:pr-12">{service.name}</h2>
+                        {/* Botón cerrar */}
+                        {step !== 6 && (
+                            <button
+                                onClick={onClose}
+                                className="absolute top-3 right-3 bg-white/90 hover:bg-white p-2 rounded-full transition-colors shadow-lg"
+                            >
+                                <FaTimes className="text-gray-700" />
+                            </button>
+                        )}
 
-                            {renderStepContent()}
-
+                        {/* Título sobre la imagen */}
+                        <div className="absolute bottom-0 left-0 right-0 p-4">
+                            <h2 className="text-2xl font-bold text-white drop-shadow-lg">{service.name}</h2>
+                            {selectedClinic && step > 1 && (
+                                <p className="text-sm text-white/90 font-medium">{selectedClinic.name}</p>
+                            )}
                         </div>
                     </div>
+
+                    {/* Contenido */}
+                    <div className="p-6">
+                        {renderContent()}
+                    </div>
+
+                    {/* Progress indicator */}
+                    {step > 0 && step < 6 && (
+                        <div className="px-6 pb-4">
+                            <div className="flex gap-1">
+                                {[1, 2, 3, 4, 5].map(s => (
+                                    <div
+                                        key={s}
+                                        className={`h-1 flex-1 rounded-full transition-all ${s <= step ? 'bg-[#0FC2C0]' : 'bg-gray-200'
+                                            }`}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
