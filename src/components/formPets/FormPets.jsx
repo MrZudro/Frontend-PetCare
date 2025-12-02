@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { uploadImageToCloudinary } from '../../services/cloudinaryService';
 import api from '../../services/axiosConfig';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { FaPaw, FaPlus, FaArrowLeft, FaMars, FaVenus, FaWeight, FaBirthdayCake, FaPalette, FaMicrochip } from 'react-icons/fa';
 
 const FormPets = () => {
@@ -199,55 +199,57 @@ const FormPets = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {pets.map((pet) => (
-            <div key={pet.id} className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300 border border-gray-100">
-              <div className="h-48 overflow-hidden relative group">
-                {pet.imageUrl ? (
-                  <img src={pet.imageUrl} alt={pet.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                ) : (
-                  <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                    <FaPaw className="text-6xl text-gray-300" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                  <span className="text-white font-medium">{pet.raceName || 'Raza desconocida'}</span>
-                </div>
-              </div>
-
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-800">{pet.name}</h3>
-                    <p className="text-sm text-gray-500">{pet.specieName || 'Mascota'}</p>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${pet.gender === 'Macho' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800'}`}>
-                    {pet.gender}
-                  </span>
-                </div>
-
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <FaBirthdayCake className="text-primary" />
-                    <span>{calculateAge(pet.birthdate)} años ({pet.birthdate})</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <FaPalette className="text-primary" />
-                    <span>{pet.color}</span>
-                  </div>
-                  {pet.weight && (
-                    <div className="flex items-center gap-2">
-                      <FaWeight className="text-primary" />
-                      <span>{pet.weight} kg</span>
+            <Link key={pet.id} to={`/pethistory/${pet.id}`} className="block">
+              <div className="bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-shadow duration-300 border border-gray-100">
+                <div className="h-48 overflow-hidden relative group">
+                  {pet.imageUrl ? (
+                    <img src={pet.imageUrl} alt={pet.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  ) : (
+                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                      <FaPaw className="text-6xl text-gray-300" />
                     </div>
                   )}
-                  {pet.microchip && (
-                    <div className="flex items-center gap-2">
-                      <FaMicrochip className="text-primary" />
-                      <span>Chip: {pet.microchip}</span>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                    <span className="text-white font-medium">{pet.raceName || 'Raza desconocida'}</span>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-800">{pet.name}</h3>
+                      <p className="text-sm text-gray-500">{pet.specieName || 'Mascota'}</p>
                     </div>
-                  )}
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${pet.gender === 'Macho' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800'}`}>
+                      {pet.gender}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <FaBirthdayCake className="text-primary" />
+                      <span>{calculateAge(pet.birthdate)} años ({pet.birthdate})</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <FaPalette className="text-primary" />
+                      <span>{pet.color}</span>
+                    </div>
+                    {pet.weight && (
+                      <div className="flex items-center gap-2">
+                        <FaWeight className="text-primary" />
+                        <span>{pet.weight} kg</span>
+                      </div>
+                    )}
+                    {pet.microchip && (
+                      <div className="flex items-center gap-2">
+                        <FaMicrochip className="text-primary" />
+                        <span>Chip: {pet.microchip}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

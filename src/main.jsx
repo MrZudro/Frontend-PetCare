@@ -95,8 +95,8 @@ const rutas = createBrowserRouter([
         <BuyCartTL />
       </Layout>
     ),
-  },{
-    path: '/profile',
+  }, {
+    path: '/myperfil',
     element: (
       <Layout>
         <UserProfileViewLg />
@@ -168,7 +168,7 @@ const rutas = createBrowserRouter([
     ],
   },
   {
-    path: '/pethistory',
+    path: '/pethistory/:petId',
     element: (
       <Layout>
         <PetDetailLw />

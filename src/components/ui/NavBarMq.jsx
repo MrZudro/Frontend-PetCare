@@ -73,7 +73,7 @@ export default function NavBarMq() {
                                                                             transform hover:scale-120
                                                                             '/></Link>
 
-                            <Link to={'myperfil'}>
+                            <Link to={'/myperfil'}>
                                 <img src={user?.profilePhotoUrl || userPng} alt="Imagen de perfil" className='   
                                                             w-11 h-11 rounded-full object-cover
                                                             transition-all duration-300 ease-in-out
