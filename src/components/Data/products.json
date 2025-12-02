@@ -9,7 +9,11 @@
     "imageUrl": "https://placehold.co/400x300/a3e1ff/000000?text=Comida+Seca+Premium",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "activo",
+    "stock": 12,
+    "bajoStock": 5
+
   },
   {
     "id": 2,
@@ -21,7 +25,10 @@
     "imageUrl": "https://placehold.co/400x300/b8e8b8/000000?text=Juguete+Interactivo",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "activo",
+    "stock": 3,
+    "bajoStock": 5
   },
   {
     "id": 3,
@@ -33,7 +40,11 @@
     "imageUrl": "https://placehold.co/400x300/f7d3e2/000000?text=Champu+Hipoalergenico",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "inactivo",
+    "stock": 0,
+    "bajoStock": 5
+
   },
   {
     "id": 4,
@@ -45,7 +56,10 @@
     "imageUrl": "https://placehold.co/400x300/c7c7f7/000000?text=Cama+Ortopedica",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "activo",
+    "stock": 1,
+    "bajoStock": 5
   },
   {
     "id": 5,
@@ -57,7 +71,10 @@
     "imageUrl": "https://placehold.co/400x300/ffd8a6/000000?text=Snacks+Salmon",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "activo",
+    "stock": 10,
+    "bajoStock": 5
   },
   {
     "id": 6,
@@ -69,7 +86,10 @@
     "imageUrl": "https://placehold.co/400x300/e9ffcf/000000?text=Plato+Ceramica",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "activo",
+    "stock": 2,
+    "bajoStock": 5
   },
   {
     "id": 7,
@@ -81,7 +101,10 @@
     "imageUrl": "https://placehold.co/400x300/ffb3ba/000000?text=Rascador+Gatos",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "activo",
+    "stock": 1,
+    "bajoStock": 5
   },
   {
     "id": 8,
@@ -93,7 +116,10 @@
     "imageUrl": "https://placehold.co/400x300/a3e1ff/000000?text=Comida+Humeda+Pavo",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "activo",
+    "stock": 3,
+    "bajoStock": 5
   },
   {
     "id": 9,
@@ -105,7 +131,10 @@
     "imageUrl": "https://placehold.co/400x300/c0c0c0/000000?text=Arena+Sanitaria",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "activo",
+    "stock": 5,
+    "bajoStock": 5
   },
   {
     "id": 10,
@@ -117,7 +146,10 @@
     "imageUrl": "https://placehold.co/400x300/a0522d/ffffff?text=Collar+Cuero",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "activo",
+    "stock": 2,
+    "bajoStock": 5
   },
   {
     "id": 11,
@@ -129,7 +161,10 @@
     "imageUrl": "https://placehold.co/400x300/808080/ffffff?text=Transportadora",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "activo",
+    "stock": 4,
+    "bajoStock": 5
   },
   {
     "id": 12,
@@ -141,7 +176,10 @@
     "imageUrl": "https://placehold.co/400x300/ff6347/ffffff?text=Pelota+Resistente",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "activo",
+    "stock": 8,
+    "bajoStock": 5
   },
   {
     "id": 13,
@@ -153,7 +191,10 @@
     "imageUrl": "https://placehold.co/400x300/4682b4/ffffff?text=Comida+Senior",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "inactivo",
+    "stock": 6,
+    "bajoStock": 5
   },
   {
     "id": 14,
@@ -165,7 +206,10 @@
     "imageUrl": "https://placehold.co/400x300/a0a0a0/ffffff?text=Cepillo+Deslanador",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "inactivo",
+    "stock": 1,
+    "bajoStock": 5
   },
   {
     "id": 15,
@@ -177,7 +221,10 @@
     "imageUrl": "https://placehold.co/400x300/778899/ffffff?text=Manta+Termica",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "inactivo",
+    "stock": 3,
+    "bajoStock": 5
   },
   {
     "id": 16,
@@ -189,7 +236,10 @@
     "imageUrl": "https://placehold.co/400x300/00ced1/ffffff?text=Comida+Gato+Atun",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "activo",
+    "stock": 5,
+    "bajoStock": 5
   },
   {
     "id": 17,
@@ -201,7 +251,10 @@
     "imageUrl": "https://placehold.co/400x300/f0e68c/000000?text=Hueso+Nylon",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "activo",
+    "stock": 2,
+    "bajoStock": 5
   },
   {
     "id": 18,
@@ -213,6 +266,9 @@
     "imageUrl": "https://placehold.co/400x300/add8e6/000000?text=Bebedero+Automatico",
     "scopes": [],
     "apiResources": [],
-    "proxies": []
+    "proxies": [],
+    "estado": "inactivo",
+    "stock": 7,
+    "bajoStock": 5
   }
 ]
