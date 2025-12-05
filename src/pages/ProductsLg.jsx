@@ -1,11 +1,17 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react'; // Agregado useEffect para la llamada a la API
 import { useNavigate } from 'react-router-dom';
 
 import ProductCard from '../components/products/ProductCardLg';
 import QuickViewModal from '../components/products/QuickViewModalLg';
 import SimpleFilterSidebar from '../components/common/SimpleFilterSidebar';
-import initialProducts from '../components/Data/products.json';
-import categoriesMap from '../components/Data/categories.json';
+
+// 🛑 ELIMINAMOS: import initialProducts from '../components/Data/products.json';
+
+// ✅ MANTENEMOS: JSON de categorías para la lógica de filtros
+import categoriesMap from '../components/Data/categories.json'; 
+
+// ✅ AGREGAMOS: Importamos el servicio de productos para el fetch
+import { productsService } from '../services/productsService'; 
 
 // --- [ LOCAL STORAGE: WISHLIST ] ---
 const loadWishlistFromLocalStorage = () => {
@@ -49,8 +55,15 @@ const ProductsLg = () => {
     const navigate = useNavigate();
 
     const [wishlist, setWishlist] = useState(loadWishlistFromLocalStorage);
-    const [products] = useState(initialProducts);
+    
+    // ✅ CAMBIO: Inicializamos products como un array vacío, se llenará con el API
+    const [products, setProducts] = useState([]);
+    
     const [quickViewProduct, setQuickViewProduct] = useState(null);
+
+    // ✅ NUEVOS ESTADOS para manejo de la API
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     // Estados de filtros simplificados
     const [activeFilters, setActiveFilters] = useState({
@@ -60,6 +73,30 @@ const ProductsLg = () => {
     });
     const [sortBy, setSortBy] = useState('default');
 
+    // 🚀 FETCH DE PRODUCTOS DESDE EL API
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                
+                // ✅ CAMBIO CLAVE: Usamos el servicio productsService.getAll()
+                const response = await productsService.getAll();
+
+                // NOTA: Asumiendo que la respuesta es response.data = [product1, product2, ...]
+                setProducts(response.data); 
+            } catch (err) {
+                console.error('Error fetching products:', err);
+                // Si el error es 500 o similar, se mostrará el mensaje de error.
+                setError('Error al cargar los productos. Por favor, intente nuevamente.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, []); // Se ejecuta solo una vez al montar
+
     // --- LÓGICA DE FILTRADO OPTIMIZADA ---
     const filteredAndSortedProducts = useMemo(() => {
         // Paso 1: Filtrar
@@ -67,6 +104,8 @@ const ProductsLg = () => {
             // Filtro de categoría
             if (activeFilters.category) {
                 const categoryData = categoriesMap.find(c => c.categoryName === activeFilters.category);
+                
+                // Verifica si la subcategoría del producto está en la categoría activa.
                 if (!categoryData?.subcategories.includes(product.subcategories)) {
                     return false;
                 }
@@ -100,7 +139,7 @@ const ProductsLg = () => {
         }
     }, [products, activeFilters, sortBy]);
 
-    // --- PREPARAR OPCIONES DE FILTROS ---
+    // --- PREPARAR OPCIONES DE FILTROS (USA 'products' del estado) ---
     const filterOptions = useMemo(() => {
         const options = {};
 
@@ -122,6 +161,8 @@ const ProductsLg = () => {
                 count
             }))
         };
+
+        // ... (El resto de la lógica de filtros se mantiene igual)
 
         // Opción de Subcategorías (solo si hay categoría seleccionada)
         if (activeFilters.category) {
@@ -167,28 +208,22 @@ const ProductsLg = () => {
         return options;
     }, [products, activeFilters.category]);
 
-    // --- HANDLERS ---
+    // --- HANDLERS (se mantienen iguales) ---
     const handleFilterChange = (filterKey, value) => {
         setActiveFilters(prev => {
             const newFilters = { ...prev };
 
-            // Si hace clic en el mismo filtro, lo deselecciona
             if (newFilters[filterKey] === value) {
                 newFilters[filterKey] = null;
-
-                // Si deselecciona categoría, también limpia subcategoría
                 if (filterKey === 'category') {
                     newFilters.subcategory = null;
                 }
             } else {
                 newFilters[filterKey] = value;
-
-                // Si cambia categoría, limpia subcategoría
                 if (filterKey === 'category') {
                     newFilters.subcategory = null;
                 }
             }
-
             return newFilters;
         });
     };
@@ -222,7 +257,6 @@ const ProductsLg = () => {
     const handleAddToCart = (product, selectedVariant) => {
         const currentCart = loadCartFromLocalStorage();
         const cartItemId = `${product.id}-${selectedVariant.size || 'default'}-${selectedVariant.color || 'default'}`;
-
         const existingItemIndex = currentCart.findIndex(item => item.cartItemId === cartItemId);
 
         let updatedCart;
@@ -254,6 +288,40 @@ const ProductsLg = () => {
         { value: 'name-asc', label: 'Nombre: A-Z' },
         { value: 'name-desc', label: 'Nombre: Z-A' }
     ];
+
+    // --- RENDERIZADO CONDICIONAL POR ESTADO DE LA API ---
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="inline-block animate-spin rounded-full size-16 border-t-4 border-b-4 border-primary mb-4"></div>
+                    <p className="text-gray-600 text-lg">Cargando productos de la tienda...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full text-center">
+                    <div className="text-red-500 mb-4">
+                        <svg className="size-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
+                    <p className="text-gray-600 mb-6">{error}</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="bg-primary hover:bg-primary-hover text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+                    >
+                        Reintentar
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 sm:p-8 font-sans">
@@ -294,7 +362,7 @@ const ProductsLg = () => {
                         ))}
 
                         {/* Manejo de Cero Resultados */}
-                        {filteredAndSortedProducts.length === 0 && (
+                        {filteredAndSortedProducts.length === 0 && products.length > 0 && (
                             <div className="sm:col-span-2 lg:col-span-3 p-10 text-center bg-white rounded-xl shadow-md">
                                 <p className="text-xl font-semibold text-gray-700">
                                     No se encontraron productos que coincidan con los filtros aplicados. 😔
@@ -307,6 +375,18 @@ const ProductsLg = () => {
                                     >
                                         limpia todos los filtros
                                     </button>
+                                </p>
+                            </div>
+                        )}
+                        
+                        {/* Caso especial: Cero productos del API (pero sin error) */}
+                        {products.length === 0 && !loading && !error && (
+                            <div className="sm:col-span-2 lg:col-span-3 p-10 text-center bg-white rounded-xl shadow-md">
+                                <p className="text-xl font-semibold text-gray-700">
+                                    Parece que la tienda no tiene productos disponibles por ahora. 😔
+                                </p>
+                                <p className="text-gray-500 mt-2">
+                                    Vuelve más tarde o contacta a soporte.
                                 </p>
                             </div>
                         )}
