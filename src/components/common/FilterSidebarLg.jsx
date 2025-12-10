@@ -1,23 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FaChevronUp, FaChevronDown, FaCheck, FaTimes } from 'react-icons/fa';
 import { FiSliders } from 'react-icons/fi';
-
-import productData from '../Data/products.json';
-import serviceData from '../Data/services.json';
-import categoriesMap from '../Data/categories.json'; 
+import categoriesMap from '../Data/categories.json';
 
 // --- FUNCIONES DE UTILIDAD (Fuera del componente) ---
 
-const allProductSubcategories = [...new Set(productData.map(p => p.subcategories))];
-
 const processFilterData = (data, keyName, allowedValues = null) => {
-    // ... (sin cambios, es estable) ...
     if (!data || data.length === 0) return [];
 
     const counts = data.reduce((acc, item) => {
         const value = item[keyName];
-        if (value && (!allowedValues || allowedValues.includes(value))) {
-            acc[value] = (acc[value] || 0) + 1;
+        // Handle array values (like clinicNames in services)
+        if (Array.isArray(value)) {
+            value.forEach(v => {
+                if (v && (!allowedValues || allowedValues.includes(v))) {
+                    acc[v] = (acc[v] || 0) + 1;
+                }
+            });
+        } else {
+            if (value && (!allowedValues || allowedValues.includes(value))) {
+                acc[value] = (acc[value] || 0) + 1;
+            }
         }
         return acc;
     }, {});
@@ -29,13 +32,12 @@ const processFilterData = (data, keyName, allowedValues = null) => {
     }));
 };
 
-const getInitialCategories = () => {
-    // ... (sin cambios, es estable) ...
+const getInitialCategories = (data) => {
     const categoryCounts = {};
 
-    productData.forEach(product => {
-        const productSubcategory = product.subcategories; 
-        
+    data.forEach(product => {
+        const productSubcategory = product.subcategories;
+
         const categoryEntry = categoriesMap.find(c => c.subcategories.includes(productSubcategory));
 
         if (categoryEntry) {
@@ -52,22 +54,39 @@ const getInitialCategories = () => {
 };
 
 // 🚩 FUNCIÓN DE INICIALIZACIÓN DE ESTADO PARA USAR EN EL LAZY INITIALIZER
-const createInitialFilterState = (mode) => {
+const createInitialFilterState = (mode, data) => {
     if (mode === 'products') {
         return {
-            category: getInitialCategories(),
-            subcategories: [], 
-            brand: processFilterData(productData, 'brand'),
+            category: getInitialCategories(data),
+            subcategories: [],
+            brand: processFilterData(data, 'brand'),
         };
     } else {
+        // For services, clinicNames is now a list of objects {id, name} in the DTO, but let's see what frontend receives.
+        // If frontend receives DTO directly, it has 'clinics' array of objects.
+        // If it receives flattened data, we need to adapt.
+        // Assuming 'clinics' array of objects {id, name}.
+        // We need to extract names for filtering or use IDs.
+        // Let's assume we filter by Name for display.
+
+        // Helper to extract clinic names from service data
+        const clinicNames = data.flatMap(s => s.clinics ? s.clinics.map(c => c.name) : []);
+        // We can't use processFilterData directly if the structure is complex.
+        // Let's create a custom processor or map the data first.
+
+        // Mapping data to a simpler structure for processFilterData
+        const simplifiedData = data.map(s => ({
+            ...s,
+            clinicName: s.clinics ? s.clinics.map(c => c.name) : []
+        }));
+
         return {
-            clinic: processFilterData(serviceData, 'clinicName'),
+            clinic: processFilterData(simplifiedData, 'clinicName'),
         };
     }
 };
 
 const filterProducts = (data, activeFilters) => {
-    // ... (sin cambios, es estable) ...
     const { category, subcategories, brand } = activeFilters;
 
     if ((category?.length || 0) === 0 && (subcategories?.length || 0) === 0 && (brand?.length || 0) === 0) {
@@ -79,7 +98,7 @@ const filterProducts = (data, activeFilters) => {
         let passesSubcategory = true;
         let passesBrand = true;
 
-        const productSubcategory = product.subcategories; 
+        const productSubcategory = product.subcategories;
 
         if ((category?.length || 0) > 0) {
             const activeCategoryName = category[0];
@@ -108,42 +127,41 @@ const filterProducts = (data, activeFilters) => {
 
 // --- COMPONENTE PRINCIPAL ---
 
-const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode = 'products' }) => {
+const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode = 'products', data = [] }) => {
 
     const isProductMode = mode === 'products';
 
     // 1. 🚩 Inicialización Lazy del estado. Se ejecuta SOLO en el primer render.
-    const [filters, setFilters] = useState(() => createInitialFilterState(mode));
+    const [filters, setFilters] = useState(() => createInitialFilterState(mode, data));
     const [currentSort, setCurrentSort] = useState('default');
     const [isMobileModalOpen, setIsMobileModalOpen] = useState(false);
 
-    const initialDataForMode = useMemo(() => createInitialFilterState(mode), [mode]); // Versión memoizada del objeto inicial
-    
+    const initialDataForMode = useMemo(() => createInitialFilterState(mode, data), [mode, data]); // Versión memoizada del objeto inicial
+
     // Estado local para almacenar y mostrar los productos filtrados (para esta demo)
-    const [localFilteredProducts, setLocalFilteredProducts] = useState(isProductMode ? productData : serviceData);
+    const [localFilteredProducts, setLocalFilteredProducts] = useState(data);
 
     const [openSections, setOpenSections] = useState(() => {
         // Inicializa secciones abiertas con las keys del estado inicial (basado en el modo)
-        return Object.keys(createInitialFilterState(mode)).reduce((acc, key) => ({ ...acc, [key]: true }), {});
+        return Object.keys(createInitialFilterState(mode, data)).reduce((acc, key) => ({ ...acc, [key]: true }), {});
     });
 
-    // 2. 🌟 Reiniciar filtros SÓLO cuando el modo cambia 🌟
+    // 2. 🌟 Reiniciar filtros SÓLO cuando el modo cambia o la DATA cambia 🌟
     // Usamos el objeto memoizado 'initialDataForMode'
     useEffect(() => {
         // Si el estado actual es idéntico a la inicialización del nuevo modo, no hacemos nada.
         // Esto previene bucles si el padre re-renderiza con el mismo 'mode'.
         if (JSON.stringify(filters) === JSON.stringify(initialDataForMode)) {
-            return; 
+            return;
         }
 
         setFilters(initialDataForMode);
         setCurrentSort('default');
-        setLocalFilteredProducts(isProductMode ? productData : serviceData); 
+        setLocalFilteredProducts(data);
         setOpenSections(Object.keys(initialDataForMode).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
-    }, [mode, isProductMode, initialDataForMode]); // Dependencia estable: initialDataForMode
+    }, [mode, isProductMode, initialDataForMode, data]); // Dependencia estable: initialDataForMode
 
     // 3. 🌟 LÓGICA CLAVE: Recalcular Subcategorías ('subcategories') - Solo para Productos 🌟
-    // **NOTA:** Esta es la sección donde estaba el error más persistente (Líneas 177, 183, 196)
     useEffect(() => {
         if (!isProductMode) return;
 
@@ -154,9 +172,11 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
             const activeCategoryName = activeCategory.name;
             const allowedSubcategories = categoriesMap.find(c => c.categoryName === activeCategoryName)?.subcategories || [];
 
+            // Need all subcategories from current data
+            const allProductSubcategories = [...new Set(data.map(p => p.subcategories))];
             const subcategoriesInProducts = allProductSubcategories.filter(sub => allowedSubcategories.includes(sub));
 
-            newSubcategories = processFilterData(productData, 'subcategories', subcategoriesInProducts);
+            newSubcategories = processFilterData(data, 'subcategories', subcategoriesInProducts);
 
             newSubcategories = newSubcategories.map(f => {
                 const prevFilter = filters.subcategories?.find(pt => pt.name === f.name);
@@ -169,7 +189,7 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
             // Aseguramos que ambas variables sean arrays válidos para JSON.stringify
             const currentSubcategories = prevFilters.subcategories || [];
             const finalNewSubcategories = newSubcategories || [];
-            
+
             // Si el contenido del array 'subcategories' es idéntico, NO actualizamos el estado.
             if (JSON.stringify(finalNewSubcategories) === JSON.stringify(currentSubcategories)) {
                 return prevFilters; // Rompe el ciclo si no hay cambio de valor.
@@ -180,7 +200,7 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
             };
         });
 
-    }, [filters.category, isProductMode]);
+    }, [filters.category, isProductMode, data]);
 
     // 4. Estabilizar los filtros activos (Dependencia del useEffect de filtrado)
     const memoizedActiveFilters = useMemo(() => {
@@ -192,21 +212,24 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
 
 
     // 5. 🚀 LÓGICA DE FILTRADO REAL Y NOTIFICACIÓN
-    // **NOTA:** Esta es la sección donde estaba el error (Línea 266)
     useEffect(() => {
         const activeFilters = memoizedActiveFilters;
 
         let results = [];
         if (isProductMode) {
-            results = filterProducts(productData, activeFilters);
+            results = filterProducts(data, activeFilters);
         } else {
             // En modo servicio, el filtrado es trivial si solo es por clínica
-            results = serviceData; 
+            results = data;
             if ((activeFilters.clinic?.length || 0) > 0) {
-                results = results.filter(s => activeFilters.clinic.includes(s.clinicName));
+                // Filter services that have AT LEAST one of the selected clinics
+                results = results.filter(s => {
+                    const serviceClinicNames = s.clinics ? s.clinics.map(c => c.name) : [];
+                    return activeFilters.clinic.some(filterClinic => serviceClinicNames.includes(filterClinic));
+                });
             }
         }
-        
+
         // 🚩 Si setLocalFilteredProducts no cambia el valor, React optimizará y no re-renderizará.
         setLocalFilteredProducts(results);
 
@@ -220,8 +243,8 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
             });
         }
 
-    // Usar la dependencia memoizada
-    }, [memoizedActiveFilters, mode, onFilterChange, isProductMode]); // Se eliminó totalResults como dependencia
+        // Usar la dependencia memoizada
+    }, [memoizedActiveFilters, mode, onFilterChange, isProductMode, data]); // Se eliminó totalResults como dependencia
 
     // --- LÓGICA DE MANEJO DE ESTADO ---
     // ... (El resto del código de handlers, renderizado y UI no tiene cambios relevantes para el bucle) ...
@@ -247,8 +270,8 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
                 newFilters[sectionKey] = newFilters[sectionKey]?.map(f => {
                     const isActiveToggle = (f.name === filterName) ? !f.active : false;
 
-                    if (sectionKey === 'category' && f.name === filterName && (!f.active || !isActiveToggle)) { 
-                         newFilters.subcategories = newFilters.subcategories?.map(typeF => ({ ...typeF, active: false })) || [];
+                    if (sectionKey === 'category' && f.name === filterName && (!f.active || !isActiveToggle)) {
+                        newFilters.subcategories = newFilters.subcategories?.map(typeF => ({ ...typeF, active: false })) || [];
                     }
 
                     return { ...f, active: isActiveToggle };
@@ -300,10 +323,10 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
             const activeCategory = filters.category?.find(f => f.active);
             if (!activeCategory || filters[key].length === 0) return null;
         }
-        
+
         if (!filters[key] || filters[key].length === 0) {
-             if (key !== 'subcategories' && key !== 'category' && key !== 'brand' && key !== 'clinic') return null;
-             if (key !== 'subcategories' && filters[key].length === 0) return null;
+            if (key !== 'subcategories' && key !== 'category' && key !== 'brand' && key !== 'clinic') return null;
+            if (key !== 'subcategories' && filters[key].length === 0) return null;
         }
 
         const isRadioSection = key === 'category' || key === 'brand' || key === 'clinic';
@@ -350,7 +373,7 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
         return (
             <>
                 {renderFilterSection('Categoría', 'category')}
-                {renderFilterSection('Subcategoría', 'subcategories')} 
+                {renderFilterSection('Subcategoría', 'subcategories')}
                 {renderFilterSection('Marca', 'brand')}
             </>
         );
@@ -411,11 +434,11 @@ const FilterSidebarLg = ({ onFilterChange, onSortChange, totalResults = 0, mode 
                         ))}
                         <button
                             onClick={() => {
-                                setFilters(createInitialFilterState(mode));
+                                setFilters(createInitialFilterState(mode, data));
                                 setCurrentSort('default');
-                                setLocalFilteredProducts(isProductMode ? productData : serviceData);
-                                if(onSortChange && isProductMode) onSortChange('default');
-                                if(isMobileModalOpen) setIsMobileModalOpen(false);
+                                setLocalFilteredProducts(data);
+                                if (onSortChange && isProductMode) onSortChange('default');
+                                if (isMobileModalOpen) setIsMobileModalOpen(false);
                             }}
                             className="text-xs text-red-500 hover:text-red-700 ml-auto font-medium"
                         >

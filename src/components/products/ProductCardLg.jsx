@@ -13,6 +13,7 @@ const ProductCardLg = ({ product, onQuickView, onToggleWishlist, isWishlisted })
 
     const handleCardClick = (e) => {
         const target = e.target;
+        // Se mantiene la lógica de evitar el QuickView si se hace clic en botones interactivos
         const isInteractiveButton = target.closest('button[aria-label="Quitar de Wishlist"], button[aria-label="Añadir a Wishlist"], button[aria-label="Añadir al carrito"]');
 
         if (!isInteractiveButton) {
@@ -33,13 +34,15 @@ const ProductCardLg = ({ product, onQuickView, onToggleWishlist, isWishlisted })
     return (
         <div 
             className="bg-white shadow-lg rounded-xl overflow-hidden cursor-pointer transition duration-300 ease-in-out border border-gray-200 group 
-                        w-full max-w-xs mx-auto hover:shadow-2xl"
+                        w-full max-w-xs mx-auto hover:shadow-2xl 
+                        h-[390px] flex flex-col" // 👈 CLAVE 1: Altura fija y Flexbox
             onClick={handleCardClick}
         >
-            <div className="relative">
+            <div className="relative shrink-0"> {/* Evita que la imagen se comprima */}
                 <img 
                     src={product.imageUrl} 
-                    alt={product.name} // Corregido: usualmente es product.name si no tienes imageAlt
+                    alt={product.name}
+                    // La altura de la imagen se mantiene fija para mayor consistencia
                     className="w-full h-60 object-cover bg-gray-200 transition-opacity duration-300 group-hover:opacity-90" 
                     onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/400x300/6b7280/ffffff?text=No+Image'; }}
                 />
@@ -49,12 +52,19 @@ const ProductCardLg = ({ product, onQuickView, onToggleWishlist, isWishlisted })
                 </span>
             </div>
 
-            <div className="p-4 space-y-1">
-                <h3 className="text-lg font-semibold text-gray-900 leading-tight" title={product.name}>
-                    {product.name}
-                </h3>
+            {/* 👇 CLAVE 2: Flex-col y justify-between para empujar el footer hacia abajo */}
+            <div className="p-4 flex flex-col justify-between grow"> 
                 
-                <div className="flex justify-between items-center pt-2 border-t border-gray-100 mt-2">
+                {/* Contenedor del Título (ocupa el espacio restante) */}
+                <div className="space-y-1">
+                    <h3 className="text-lg font-semibold text-gray-900 leading-tight" title={product.name}>
+                        {product.name}
+                    </h3>
+                    {/* Opcional: Si necesitas la descripción en este espacio. */}
+                </div>
+                
+                {/* Contenedor de Precio e Iconos (siempre abajo) */}
+                <div className="flex justify-between items-center pt-3 border-t border-gray-100 mt-3">
                     <span className="text-xl font-bold text-indigo-600">
                         ${product.price.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
                     </span>
@@ -72,7 +82,7 @@ const ProductCardLg = ({ product, onQuickView, onToggleWishlist, isWishlisted })
                         
                         {/* Carrito */}
                         <button 
-                            onClick={handleAddToCart} // 3. USAMOS EL NUEVO MANEJADOR
+                            onClick={handleAddToCart}
                             className="p-2 rounded-full text-gray-400 hover:text-green-500 transition-colors duration-200 active:scale-95 flex items-center justify-center"
                             aria-label="Añadir al carrito"
                         >

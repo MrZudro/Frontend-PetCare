@@ -34,32 +34,5 @@
         "clinicName": "Clínica 24h Patitas",
         "estado": "inactivo"
 
-    },
-    {
-        "id": 5,
-        "name": "Hotel Canino Día y Noche",
-        "description": "Estadía completa con alimentación, paseos supervisados y áreas de juego seguras. Máximo confort y supervisión 24/7.",
-        "imageUrl": "https://placehold.co/600x400/A0B9E2/000000?text=Hotel+Canino",
-        "clinicName": "Clínica 24h Patitas",
-        "estado": "inactivo"
-
-    },
-    {
-        "id": 6,
-        "name": "Fisioterapia y Rehabilitación",
-        "description": "Sesiones especializadas para recuperar la movilidad tras una lesión o cirugía, utilizando hidroterapia y ejercicios asistidos.",
-        "imageUrl": "https://placehold.co/600x400/98DD98/000000?text=Fisioterapia",
-        "clinicName": "Vet Pet Amigos",
-        "estado": "activo"
-
-    },
-    {
-        "id": 7,
-        "name": "Adiestramiento Avanzado",
-        "description": "Enfoque en obediencia compleja, control remoto y solución de problemas de comportamiento (agresión, ansiedad por separación).",
-        "imageUrl": "https://placehold.co/600x400/FAD7A0/000000?text=Adiestramiento+Avanzado",
-        "clinicName": "Adiestramiento Pro",
-        "estado": "activo"
-
     }
 ]

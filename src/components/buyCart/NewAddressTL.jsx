@@ -38,9 +38,9 @@ export default function NewAddressTL({ data, onChange, onContinue }) {
                             value={data.department}
                             onChange={handleInputChange}
                             className="w-full border border-gray-300 rounded-lg p-3 bg-white focus:ring-2 focus:ring-[var(--color-acento-secundario)] outline-none"
+                            required
                         >
                             <option value="Bogotá D.C.">Bogotá D.C.</option>
-                            <option value="Antioquia">Antioquia</option>
                         </select>
                     </div>
                     <div>
@@ -50,6 +50,7 @@ export default function NewAddressTL({ data, onChange, onContinue }) {
                             value={data.city}
                             onChange={handleInputChange}
                             className="w-full border border-gray-300 rounded-lg p-3 bg-white focus:ring-2 focus:ring-[var(--color-acento-secundario)] outline-none"
+                            required
                         >
                             <option value="Engativá">Engativá</option>
                             <option value="Usaquén">Usaquén</option>
@@ -66,6 +67,7 @@ export default function NewAddressTL({ data, onChange, onContinue }) {
                         value={data.neighborhood}
                         onChange={handleInputChange}
                         className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[var(--color-acento-secundario)] outline-none"
+                        required
                     />
                 </div>
 
@@ -77,6 +79,7 @@ export default function NewAddressTL({ data, onChange, onContinue }) {
                         value={data.apartment}
                         onChange={handleInputChange}
                         className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[var(--color-acento-secundario)] outline-none"
+                        required
                     />
                 </div>
 
@@ -87,6 +90,7 @@ export default function NewAddressTL({ data, onChange, onContinue }) {
                         value={data.notes}
                         onChange={handleInputChange}
                         className="w-full border border-gray-300 rounded-lg p-3 h-24 resize-none focus:ring-2 focus:ring-[var(--color-acento-secundario)] outline-none"
+                        required
                     ></textarea>
                 </div>
 

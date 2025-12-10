@@ -1,17 +1,29 @@
 import logo from '../../assets/logo.png'
+import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { FiLogOut } from 'react-icons/fi';
+
 export default function FooterMq() {
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    };
+
     return (
 
-    <footer className="bg-fondo sombra-superior">
+        <footer className="bg-fondo sombra-superior">
             <div className="container px-6 py-8 mx-auto">
                 <div className="flex flex-col items-center text-center">
                     <a href="#">
-                            <div className='flex flex-row items-center'>
-                                <img src={logo} alt="logo de la marca" className='w-30 h-30'  />
-                                <h1 className=' text-5xl font-bold
+                        <div className='flex flex-row items-center'>
+                            <img src={logo} alt="logo de la marca" className='w-30 h-30' />
+                            <h1 className=' text-5xl font-bold
                                                 hover:text-acento-primario 
                                                 transition-colors duration-300 ease-in-initial'>PetCare</h1>
-                            </div>
+                        </div>
                     </a>
 
                     <p className="max-w-md mx-auto mt-1 mb-3  text-gray-500 ">Todo para tu mascota en un solo lugar. Encuentra productos, servicios y lleva la administración completa de su salud y bienestar. Simplifica la vida con tu mejor amigo.</p>
@@ -34,12 +46,24 @@ export default function FooterMq() {
                 <div className="flex flex-col items-center sm:flex-row sm:justify-between">
                     <p className="text-sm text-gray-500">© Copyright 2025. All Rights Reserved.</p>
 
-                    <div className="flex mt-3 -mx-2 sm:mt-0">
-                        <a href="#" className="mx-2 text-sm text-gray-500 transition-colors duration-300 hover:text-gray-500" aria-label="Reddit"> Teams </a>
+                    <div className="flex mt-3 -mx-2 sm:mt-0 items-center">
+                        <a href="#" className="mx-2 text-sm text-gray-500 transition-colors duration-300 hover:text-gray-500" aria-label="Reddit">Teams </a>
 
-                        <a href="#" className="mx-2 text-sm text-gray-500 transition-colors duration-300 hover:text-gray-500" aria-label="Reddit"> Privacy </a>
+                        <a href="#" className="mx-2 text-sm text-gray-500 transition-colors duration-300 hover:text-gray-500" aria-label="Reddit">Privacy </a>
 
-                        <a href="#" className="mx-2 text-sm text-gray-500 transition-colors duration-300 hover:text-gray-500" aria-label="Reddit"> Cookies </a>
+                        <a href="#" className="mx-2 text-sm text-gray-500 transition-colors duration-300 hover:text-gray-500" aria-label="Reddit">Cookies </a>
+
+                        {user && (
+                            <button
+                                onClick={handleLogout}
+                                className="mx-2 flex items-center text-sm text-red-500 hover:text-red-700 transition-colors duration-300"
+                                aria-label="Cerrar sesión"
+                                title="Cerrar sesión"
+                            >
+                                <FiLogOut className="w-5 h-5 mr-1" />
+                                <span className="hidden sm:inline">Salir</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
