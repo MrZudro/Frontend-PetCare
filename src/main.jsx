@@ -137,9 +137,9 @@ const rutas = createBrowserRouter([
     path: '/register',
     element: <Register />,
   },
-  // Dashboard Routes
+  // Dashboard Employee Routes
   {
-    path: '/dashboard',
+    path: '/employee',
     element: <DashboardLayout />,
     children: [
       {
@@ -195,6 +195,7 @@ const rutas = createBrowserRouter([
     ),
   },
   {
+    // Dashboard Admin Routes
     path: '/admin',
     element: <LayoutAdmin />,
     children: [

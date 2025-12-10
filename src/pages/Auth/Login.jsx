@@ -21,7 +21,9 @@ const Login = () => {
 
         if (result.success) {
             if (result.role === 'EMPLOYEE') {
-                navigate('/dashboard');
+                navigate('/employee');
+            } else if (result.role === 'ADMIN') {
+                navigate('/admin');
             } else {
                 navigate('/');
             }
