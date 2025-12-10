@@ -1,20 +1,22 @@
-import Sidebar from "./Sidebar"
+import Sidebar from "./SideBar";
 import Header from "./Header";
 import { Outlet } from "react-router-dom";
 
 export default function LayoutAdmin() {
   return (
-    <div className="flex min-h-screen bg-color-fondo text-color-texto font-poppins">
-    <aside className="w-50 fixed top-0 left-0 bottom-0 z-20 min-h-screen bg-color-acento-terciario text-color-texto-secundario ">
+    <div className="flex h-screen bg-[var(--color-fondo)] dark:bg-[var(--color-background)] text-[var(--color-texto)] dark:text-[var(--color-text-primary)] font-poppins overflow-hidden">
+      {/* Sidebar fijo */}
+      <aside className="w-64 h-screen bg-[var(--color-acento-terciario)] text-[var(--color-texto-secundario)] flex-shrink-0">
         <Sidebar />
-    </aside>
-    
-    <div className="ml-50 flex flex-col w-full min-h-screen">
+      </aside>
+
+      {/* Contenido con scroll independiente */}
+      <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="px-6 flex-1 overflow-y-auto">
-        <Outlet />
+        <main className="flex-1 overflow-y-auto p-6 space-y-6">
+          <Outlet />
         </main>
-    </div>
+      </div>
     </div>
   );
 }

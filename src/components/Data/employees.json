@@ -1,6 +1,82 @@
 [
-  { "id": 1, "name": "Dr. Andrés Pérez", "title": "Veterinario Jefe" },
-  { "id": 2, "name": "Dra. Sofía Gómez", "title": "Asistente Médico" },
-  { "id": 3, "name": "Dr. Javier Castro", "title": "Veterinario Emergencias" },
-  { "id": 5, "name": "Dra. Laura Díaz", "title": "Cirujano" }
+  {
+    "id": 1,
+    "name": "Carlos Pérez",
+    "cedula": "123456789",
+    "role": "Veterinario",
+    "estado": "activo",
+    "horario": "Lunes a Viernes 9:00 - 17:00"
+  },
+  {
+    "id": 2,
+    "name": "María Gómez",
+    "cedula": "987654321",
+    "role": "Administrador",
+    "estado": "activo",
+    "horario": "Lunes a Viernes 8:00 - 16:00"
+  },
+  {
+    "id": 3,
+    "name": "Andrés López",
+    "cedula": "112233445",
+    "role": "Asistente",
+    "estado": "inactivo",
+    "horario": "Martes a Sábado 10:00 - 18:00"
+  },
+  {
+    "id": 4,
+    "name": "Laura Martínez",
+    "cedula": "556677889",
+    "role": "Veterinario",
+    "estado": "activo",
+    "horario": "Lunes a Viernes 7:00 - 15:00"
+  },
+  {
+    "id": 5,
+    "name": "Jorge Ramírez",
+    "cedula": "998877665",
+    "role": "Administrador",
+    "estado": "activo",
+    "horario": "Lunes a Viernes 9:00 - 17:00"
+  },
+  {
+    "id": 6,
+    "name": "Paula Torres",
+    "cedula": "334455667",
+    "role": "Asistente",
+    "estado": "activo",
+    "horario": "Miércoles a Domingo 11:00 - 19:00"
+  },
+  {
+    "id": 7,
+    "name": "Felipe Castro",
+    "cedula": "223344556",
+    "role": "Veterinario",
+    "estado": "inactivo",
+    "horario": "Lunes a Viernes 8:00 - 16:00"
+  },
+  {
+    "id": 8,
+    "name": "Camila Rojas",
+    "cedula": "445566778",
+    "role": "Asistente",
+    "estado": "activo",
+    "horario": "Martes a Sábado 9:00 - 17:00"
+  },
+  {
+    "id": 9,
+    "name": "Santiago Herrera",
+    "cedula": "667788990",
+    "role": "Administrador",
+    "estado": "activo",
+    "horario": "Lunes a Viernes 7:30 - 15:30"
+  },
+  {
+    "id": 10,
+    "name": "Valentina Díaz",
+    "cedula": "778899001",
+    "role": "Veterinario",
+    "estado": "activo",
+    "horario": "Lunes a Viernes 10:00 - 18:00"
+  }
 ]
