@@ -1,0 +1,8 @@
+[
+  { "id": 1, "tipo": "web", "monto": 25000, "mes": "Enero" },
+  { "id": 2, "tipo": "presencial", "monto": 40000, "mes": "Enero" },
+  { "id": 3, "tipo": "web", "monto": 18000, "mes": "Febrero" },
+  { "id": 4, "tipo": "presencial", "monto": 32000, "mes": "Febrero" },
+  { "id": 5, "tipo": "web", "monto": 22000, "mes": "Marzo" },
+  { "id": 6, "tipo": "presencial", "monto": 35000, "mes": "Marzo" }
+]

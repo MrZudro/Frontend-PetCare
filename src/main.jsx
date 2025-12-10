@@ -19,7 +19,11 @@ import BuyCartTL from './pages/BuyCartTL';
 import AdminLw from './pages/AdminLw';
 import ProductsPage from './components/admin/ProductsPage';
 import ServicesPage from './components/admin/ServicesPage';
-import ConfiguracionPage from './components/admin/ConfiguracionPage';
+import ConfigurationPage from './components/admin/ConfigurationPage';
+import EmployeesPage from './components/admin/EmployeesPage';
+import VaccinesPage from './components/admin/VaccinesPage';
+import ReportesPage from './components/admin/ReportsPage';
+import ProfilePage from './components/admin/ProfilePage';
 
 // Componentes
 import Layout from './components/layout/Layout';
@@ -92,15 +96,20 @@ const rutas = createBrowserRouter([
     ),
   },
   {
-      path: '/admin',
-      element: <LayoutAdmin />,   // Layout envolvente
-      children: [
-        { path: '', element: <AdminLw /> },                // Dashboard principal
-        { path: 'productos', element: <ProductsPage /> },  // Productos
-        { path: 'servicios', element: <ServicesPage /> },  // Servicios
-        { path: 'configuracion', element: <ConfiguracionPage /> }, // Configuración
-      ],
-    },
+    path: '/admin',
+    element: <LayoutAdmin />,
+    children: [
+      { index: true, element: <AdminLw /> },              // Dashboard principal
+      { path: 'productos', element: <ProductsPage /> },   // Productos
+      { path: 'servicios', element: <ServicesPage /> },   // Servicios
+      { path: 'configuracion', element: <ConfigurationPage /> }, // Configuración
+      { path: 'empleados', element: <EmployeesPage /> },  // Empleados
+      { path: 'vacunas', element: <VaccinesPage /> },  // Inventario de vacunas
+      { path: 'reportes', element: <ReportesPage /> },  // Reportes
+      { path: 'perfil', element: <ProfilePage /> },  // Perfil
+    ],
+  },
+
 ]);
 
 // Renderizado de la aplicación
