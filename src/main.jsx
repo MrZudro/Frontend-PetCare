@@ -39,6 +39,7 @@ import Layout from './components/layout/Layout';
 import LayoutAdmin from './components/admin/LayoutAdmin'
 import AuthLayout from './layouts/AuthLayout';
 import DashboardLayout from './layouts/DashboardLayout';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Dashboard Pages/Components
 import DashboardPage from './pages/dashboard/DashboardPage';
@@ -58,15 +59,17 @@ const rutas = createBrowserRouter([
       <Layout>
         <HomeMq />
       </Layout>
-    ),
+    ), // ruta disponible para no identificados y CUSTOMER
   },
   {
     path: '/wishlist',
     element: (
-      <Layout>
-        <WishlistMq />
-      </Layout>
-    ),
+      <ProtectedRoute allowedRoles={['CUSTOMER']}>
+        <Layout>
+          <WishlistMq />
+        </Layout>
+      </ProtectedRoute>
+    ), // ruta disponible para CUSTOMER
   },
   {
     path: '/veterinary',
@@ -74,7 +77,7 @@ const rutas = createBrowserRouter([
       <Layout>
         <VeterinaryLw />
       </Layout>
-    ),
+    ), // ruta disponible para NO IDENTIFICADOS Y CUSTOMER
   },
   {
     path: '/products',
@@ -82,7 +85,7 @@ const rutas = createBrowserRouter([
       <Layout>
         <ProductsLg />
       </Layout>
-    ),
+    ), // ruta disponible para NO IDENTIFICADOS Y CUSTOMER
   },
   {
     path: '/services',
@@ -90,31 +93,37 @@ const rutas = createBrowserRouter([
       <Layout>
         <ServicesLg />
       </Layout>
-    ),
+    ), // ruta disponible para NO IDENTIFICADOS Y CUSTOMER
   },
   {
     path: '/pets',
     element: (
-      <Layout>
-        <FormPets />
-      </Layout>
-    ),
+      <ProtectedRoute allowedRoles={['CUSTOMER']}>
+        <Layout>
+          <FormPets />
+        </Layout>
+      </ProtectedRoute>
+    ),  // ruta disponible para CUSTOMER
   }, {
     path: '/car',
     element: (
-      <Layout>
-        <BuyCartTL />
-      </Layout>
-    ),
+      <ProtectedRoute allowedRoles={['CUSTOMER']}>
+        <Layout>
+          <BuyCartTL />
+        </Layout>
+      </ProtectedRoute>
+    ), // ruta disponible para CUSTOMER
   }, {
     path: '/myperfil',
     element: (
-      <Layout>
-        <UserProfileViewLg />
-      </Layout>
-    ),
+      <ProtectedRoute allowedRoles={['CUSTOMER']}>
+        <Layout>
+          <UserProfileViewLg />
+        </Layout>
+      </ProtectedRoute>
+    ),  // ruta disponible para CUSTOMER
   },
-  // Auth Routes
+  // Auth Routes, DISPONIBLE PARA TODOS
   {
     element: <AuthLayout />,
     children: [
@@ -137,67 +146,107 @@ const rutas = createBrowserRouter([
     path: '/register',
     element: <Register />,
   },
-  // Dashboard Employee Routes
+  // Dashboard Employee Routes, UNICAMENTE ROL EMPLOYEE
   {
     path: '/employee',
-    element: <DashboardLayout />,
+    element: (
+      <ProtectedRoute allowedRoles={['EMPLOYEE']}>
+        <DashboardLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
         element: <DashboardPage />,
       },
-      // Veterinarian Routes
+      // CARGO VETERINARIAN
       {
         path: 'agenda',
-        element: <Agenda />,
+        element: (
+          <ProtectedRoute allowedRoles={['EMPLOYEE']} allowedCargos={['VETERINARIAN']}>
+            <Agenda />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'consultation',
-        element: <ConsultationForm />,
+        element: (
+          <ProtectedRoute allowedRoles={['EMPLOYEE']} allowedCargos={['VETERINARIAN']}>
+            <ConsultationForm />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'hospitalization',
-        element: <Hospitalization />,
+        element: (
+          <ProtectedRoute allowedRoles={['EMPLOYEE']} allowedCargos={['VETERINARIAN']}>
+            <Hospitalization />
+          </ProtectedRoute>
+        ),
       },
-      // Cashier Routes
+      // CARGO CASHIER
       {
         path: 'pos',
-        element: <POS />,
+        element: (
+          <ProtectedRoute allowedRoles={['EMPLOYEE']} allowedCargos={['CASHIER']}>
+            <POS />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'clients',
-        element: <ClientManagement />,
+        element: (
+          <ProtectedRoute allowedRoles={['EMPLOYEE']} allowedCargos={['CASHIER']}>
+            <ClientManagement />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'pets',
-        element: <PetManagement />,
+        element: (
+          <ProtectedRoute allowedRoles={['EMPLOYEE']} allowedCargos={['CASHIER']}>
+            <PetManagement />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'appointments',
-        element: <AppointmentManagement />,
+        element: (
+          <ProtectedRoute allowedRoles={['EMPLOYEE']} allowedCargos={['CASHIER']}>
+            <AppointmentManagement />
+          </ProtectedRoute>
+        ),
       },
     ],
   },
   {
     path: '/pethistory/:petId',
     element: (
-      <Layout>
-        <PetDetailLw />
-      </Layout>
-    ),
+      <ProtectedRoute allowedRoles={['CUSTOMER']}>
+        <Layout>
+          <PetDetailLw />
+        </Layout>
+      </ProtectedRoute>
+    ), //RUTA UNICAMENTE CUSTOMER
   },
   {
     path: '/car',
     element: (
-      <Layout>
-        <BuyCartTL />
-      </Layout>
-    ),
+      <ProtectedRoute allowedRoles={['CUSTOMER']}>
+        <Layout>
+          <BuyCartTL />
+        </Layout>
+      </ProtectedRoute>
+    ), //RUTA UNICAMENTE CUSTOMER
   },
   {
-    // Dashboard Admin Routes
+    // Dashboard Admin Routes, UNICAMENTE ROL ADMIN
     path: '/admin',
-    element: <LayoutAdmin />,
+    element: (
+      <ProtectedRoute allowedRoles={['ADMIN']}>
+        <LayoutAdmin />
+      </ProtectedRoute>
+    ),
     children: [
       { index: true, element: <AdminLw /> },              // Dashboard principal
       { path: 'productos', element: <ProductsPage /> },   // Productos
