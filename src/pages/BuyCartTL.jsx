@@ -9,8 +9,9 @@ import EmptyCartButtonTL from "../components/buyCart/EmptyCartButtonTL"; //boton
 import ProductListTL from "../components/buyCart/ProductListTL"; //1er vista
 import ShippingOptionTL from "../components/buyCart/ShippingOptionTL"; //2da vista
 import NewAddressTL from "../components/buyCart/NewAddressTL"; //3ra vista
-import PaymentMethodTL from "../components/buyCart/PaymentMethodTL"; //4ta vista
+import PaymentMethodsViewLg from "../components/profile/PaymentMethodsViewLg"; //4ta vista
 import OrderReadyTL from "../components/buyCart/OrderReadyTL"; //5ta vista
+import { createOrder } from "../services/orderService";
 
 // Datos Mock
 import PRODUCTS_DATA from '../components/Data/products.json';
@@ -31,6 +32,8 @@ export default function BuyCartTL() {
     const [savedAddresses, setSavedAddresses] = useState([]);
     const [selectedAddressId, setSelectedAddressId] = useState(null);
     const [showAddressForm, setShowAddressForm] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [orderData, setOrderData] = useState(null);
 
     // --- ESTADO PARA DATOS DEL USUARIO (PERSISTENCIA) ---
     const [checkoutData, setCheckoutData] = useState({
@@ -129,6 +132,40 @@ export default function BuyCartTL() {
     const emptyCart = () => {
         setProducts([]);
         localStorage.removeItem('cartProducts');
+    };
+
+    // --- FINALIZAR COMPRA ---
+    const handleCheckout = async () => {
+        try {
+            setIsProcessing(true);
+            const checkoutPayload = {
+                userId: user.id,
+                paymentMethodId: checkoutData.paymentMethod.id,
+                shippingAddress: `${checkoutData.address.addressLine}, ${checkoutData.address.neighborhood}, ${checkoutData.address.city}`, // Simple string for now
+                items: products.map(p => ({
+                    productId: p.id,
+                    quantity: p.quantity
+                }))
+            };
+
+            console.log('🚀 BuyCartTL - Enviando checkout payload:', checkoutPayload);
+            console.log('🚀 BuyCartTL - Products antes de enviar:', products);
+
+            const response = await createOrder(checkoutPayload);
+
+            console.log('✅ BuyCartTL - Respuesta del backend:', response);
+            console.log('✅ BuyCartTL - billDetails en respuesta:', response?.billDetails);
+
+            setOrderData(response);
+            // emptyCart(); // Moved to OrderReadyTL exit or explicit action
+            nextStep();
+        } catch (error) {
+            console.error("❌ Error al procesar compra:", error);
+            console.error("❌ Detalles del error:", error.response?.data);
+            alert("Hubo un error al procesar tu compra. Por favor intenta nuevamente.");
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     // --- ACTUALIZAR DATOS ---
@@ -296,10 +333,28 @@ export default function BuyCartTL() {
             );
             break;
         case STEPS.PAYMENT:
-            content = <PaymentMethodTL onContinue={nextStep} />;
+            content = (
+                <div className="bg-white p-6 rounded-lg shadow-sm">
+                    <PaymentMethodsViewLg
+                        userId={user.id}
+                        selectionMode={true}
+                        onSelect={(method) => handleDataChange('root', 'paymentMethod', method)}
+                    />
+
+                    <div className="mt-8 flex justify-end pt-6 border-t">
+                        <button
+                            onClick={handleCheckout}
+                            disabled={!checkoutData.paymentMethod || isProcessing}
+                            className="bg-[var(--color-primary)] text-white px-8 py-2 rounded font-medium hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                            {isProcessing ? 'Procesando...' : 'Finalizar Compra'}
+                        </button>
+                    </div>
+                </div>
+            );
             break;
         case STEPS.CONFIRMATION:
-            content = <OrderReadyTL products={products} subtotal={subtotal} />;
+            content = <OrderReadyTL orderData={orderData} onExit={emptyCart} />;
             break;
         default:
             content = null;
@@ -336,6 +391,7 @@ export default function BuyCartTL() {
                                 products={products}
                                 subtotal={subtotal}
                                 onContinue={step === STEPS.CART ? nextStep : null}
+                                disabled={step === STEPS.CART && products.length === 0}
                             />
                         </div>
                     )}

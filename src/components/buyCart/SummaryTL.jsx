@@ -3,14 +3,14 @@ import { FaTag } from 'react-icons/fa';
 
 // 1. Recibimos 'onContinue' en lugar de 'goToNextStep'
 // 2. Mantenemos 'products = []' para evitar el error anterior
-export default function SummaryTL({ subtotal = 0, products = [], onContinue, isSimplified = false }) {
-    
-    const total = subtotal; 
+export default function SummaryTL({ subtotal = 0, products = [], onContinue, isSimplified = false, disabled = false }) {
+
+    const total = subtotal;
 
     return (
         <div className="bg-white rounded-xl shadow-lg p-6 h-fit">
             <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Resumen de Compra</h2>
-            
+
             <div className="space-y-3 text-sm text-gray-600 mb-6">
                 <div className="flex justify-between">
                     <span>Productos:</span>
@@ -41,9 +41,9 @@ export default function SummaryTL({ subtotal = 0, products = [], onContinue, isS
 
             {!isSimplified && (
                 <div className="relative mb-6">
-                    <input 
-                        type="text" 
-                        placeholder="Código de Cupón" 
+                    <input
+                        type="text"
+                        placeholder="Código de Cupón"
                         className="w-full border border-gray-300 rounded-lg py-2 px-4 pr-10 focus:outline-none focus:border-blue-500"
                     />
                     <FaTag className="absolute right-3 top-3 text-gray-400" />
@@ -57,9 +57,13 @@ export default function SummaryTL({ subtotal = 0, products = [], onContinue, isS
 
             {/* 3. Validamos '!isSimplified' y que 'onContinue' exista */}
             {!isSimplified && onContinue && (
-                <button 
-                    onClick={onContinue} // 4. Usamos la variable correcta
-                    className="w-full bg-[#F2055C] text-white font-bold py-3 rounded-lg hover:bg-[#BF0436] transition duration-200"
+                <button
+                    onClick={!disabled ? onContinue : undefined} // 4. Usamos la variable correcta
+                    disabled={disabled}
+                    className={`w-full font-bold py-3 rounded-lg transition duration-200 ${disabled
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-[#F2055C] text-white hover:bg-[#BF0436]'
+                        }`}
                 >
                     Continuar Compra
                 </button>

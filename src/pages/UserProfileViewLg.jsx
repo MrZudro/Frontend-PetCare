@@ -12,6 +12,7 @@ import { uploadImageToCloudinary } from '../services/cloudinaryService';
 import ChangePasswordViewLg from '../components/profile/ChangePasswordViewLg.jsx';
 import ProfileFormLg from '../components/profile/ProfileFormLg';
 import PaymentMethodsViewLg from '../components/profile/PaymentMethodsViewLg';
+import OrderHistoryViewLg from '../components/profile/OrderHistoryViewLg';
 
 // Icon mapping for navigation items
 const IconMap = {
@@ -307,18 +308,7 @@ const UserProfileViewLg = () => {
                             )}
 
                             {activeSection === 'orders' && (
-                                <div className="flex flex-col items-center justify-center h-96 text-center">
-                                    <div className="bg-gradient-to-br from-primary/10 to-acento-secundario/10 
-                                                  rounded-full p-8 mb-6">
-                                        <FaBox className="text-6xl text-primary" />
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-texto mb-2">
-                                        Historial de Pedidos
-                                    </h3>
-                                    <p className="text-gray-500 max-w-md">
-                                        Esta sección está en desarrollo. Pronto podrás ver todos tus pedidos aquí.
-                                    </p>
-                                </div>
+                                <OrderHistoryViewLg customerId={user.id} />
                             )}
                         </div>
                     </div>
