@@ -13,7 +13,7 @@ import ChangePasswordViewLg from '../components/profile/ChangePasswordViewLg.jsx
 import ProfileFormLg from '../components/profile/ProfileFormLg';
 import PaymentMethodsViewLg from '../components/profile/PaymentMethodsViewLg';
 
-// Mapeo de strings a componentes de iconos
+// Icon mapping for navigation items
 const IconMap = {
     FaUser, FaBox, FaCreditCard, FaLock, FaSignOutAlt
 };
@@ -37,6 +37,19 @@ const UserProfileViewLg = () => {
     // Fetch customer data on mount
     useEffect(() => {
         const fetchCustomerData = async () => {
+            // LOG 1: Verificar datos del usuario desde AuthContext
+            console.log('🔍 [UserProfileViewLg] Usuario desde AuthContext:', user);
+            console.log('🔍 [UserProfileViewLg] profilePhotoUrl desde user:', user?.profilePhotoUrl);
+
+            // LOG 2: Verificar localStorage
+            const storedUser = localStorage.getItem('user');
+            console.log('🔍 [UserProfileViewLg] localStorage raw:', storedUser);
+            if (storedUser) {
+                const parsedUser = JSON.parse(storedUser);
+                console.log('🔍 [UserProfileViewLg] localStorage parsed:', parsedUser);
+                console.log('🔍 [UserProfileViewLg] profilePhotoUrl desde localStorage:', parsedUser?.profilePhotoUrl);
+            }
+
             if (!user || !user.id) {
                 setError('Usuario no autenticado');
                 setLoading(false);
@@ -46,10 +59,15 @@ const UserProfileViewLg = () => {
             try {
                 setLoading(true);
                 const customerData = await getCustomerById(user.id);
+
+                // LOG 3: Verificar datos de la API
+                console.log('🔍 [UserProfileViewLg] Datos de la API:', customerData);
+                console.log('🔍 [UserProfileViewLg] profilePhotoUrl desde API:', customerData?.profilePhotoUrl);
+
                 setProfile(customerData);
                 setError(null);
             } catch (err) {
-                console.error('Error loading customer data:', err);
+                console.error('❌ [UserProfileViewLg] Error loading customer data:', err);
                 setError('Error al cargar los datos del perfil');
             } finally {
                 setLoading(false);
@@ -107,56 +125,95 @@ const UserProfileViewLg = () => {
         setProfile(updatedProfile);
     }, []);
 
-    // RENDER
+    // RENDER - Loading State
     if (loading) {
         return (
             <div className="max-w-7xl mx-auto my-10 px-4 flex items-center justify-center min-h-[400px]">
                 <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)]"></div>
-                    <p className="mt-4 text-[var(--color-texto)]">Cargando perfil...</p>
+                    <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-primary border-t-transparent"></div>
+                    <p className="mt-6 text-texto font-medium text-lg">Cargando perfil...</p>
                 </div>
             </div>
         );
     }
 
+    // RENDER - Error State
     if (error || !profile) {
         return (
             <div className="max-w-7xl mx-auto my-10 px-4">
-                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-                    <p className="text-red-700">{error || 'No se pudo cargar el perfil'}</p>
+                <div className="bg-red-50 border-l-4 border-alerta p-6 rounded-lg shadow-md">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <svg className="h-6 w-6 text-alerta" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div className="ml-3">
+                            <p className="text-alerta font-medium">{error || 'No se pudo cargar el perfil'}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
     }
 
+    // RENDER - Main Content
     return (
         <div className="max-w-7xl mx-auto my-10 px-4">
-            <div className="bg-[var(--color-fondo)] shadow-[var(--shadow-pred)] rounded-xl overflow-hidden p-6 md:p-8">
+            <div className="bg-fondo shadow-[var(--shadow-pred)] rounded-2xl overflow-hidden">
 
-                <h1 className="text-2xl font-bold text-[var(--color-texto)] mb-6">Mi Perfil</h1>
+                {/* Header */}
+                <div className="bg-gradient-to-r from-primary to-acento-secundario p-8 text-white">
+                    <h1 className="text-3xl font-bold">Mi Perfil</h1>
+                    <p className="mt-2 text-white/90">Gestiona tu información personal y preferencias</p>
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 p-6 lg:p-8">
 
-                    {/* COLUMNA 1: Menú de Navegación Lateral */}
-                    <div className="md:w-60 md:col-span-1">
-                        <div className="sticky top-6 bg-gray-50 p-4 rounded-lg shadow-inner flex flex-col justify-between">
+                    {/* SIDEBAR - Navigation */}
+                    <div className="lg:col-span-1">
+                        <div className="sticky top-6 bg-white rounded-xl shadow-md overflow-hidden">
 
-                            <div className="space-y-4 mb-6">
-                                {/* Sección de Foto de Perfil */}
-                                <div className="flex flex-col items-center border-b pb-4">
-                                    <div className="w-24 h-24 mb-2 relative">
-                                        <img
-                                            src={profile?.profilePhotoUrl || 'https://via.placeholder.com/150'}
-                                            alt="Foto de Perfil"
-                                            className="w-full h-full rounded-full object-cover border-2 border-[var(--color-primary)]"
-                                            onError={(e) => { e.target.src = 'https://via.placeholder.com/150'; }}
-                                        />
-                                        {/* Botón flotante para cargar imagen */}
+                            {/* Profile Photo Section */}
+                            <div className="bg-gradient-to-br from-primary/10 to-acento-secundario/10 p-6 border-b">
+                                <div className="flex flex-col items-center">
+                                    <div className="relative group">
+                                        <div className="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-lg 
+                                                      transition-all duration-300 ease-in-out transform group-hover:scale-105">
+                                            <img
+                                                src={(() => {
+                                                    // LOG 4: Verificar URL de imagen al renderizar
+                                                    const imageUrl = profile?.profilePhotoUrl || user?.profilePhotoUrl || 'https://via.placeholder.com/150';
+                                                    console.log('🖼️ [UserProfileViewLg] URL de imagen a renderizar:', imageUrl);
+                                                    console.log('🖼️ [UserProfileViewLg] profile?.profilePhotoUrl:', profile?.profilePhotoUrl);
+                                                    console.log('🖼️ [UserProfileViewLg] user?.profilePhotoUrl:', user?.profilePhotoUrl);
+                                                    return imageUrl;
+                                                })()}
+                                                alt="Foto de Perfil"
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    console.error('❌ [UserProfileViewLg] Error cargando imagen:', e.target.src);
+                                                    e.target.src = 'https://via.placeholder.com/150?text=Usuario';
+                                                }}
+                                                onLoad={(e) => {
+                                                    console.log('✅ [UserProfileViewLg] Imagen cargada exitosamente:', e.target.src);
+                                                }}
+                                            />
+                                        </div>
+
+                                        {/* Upload Button Overlay */}
                                         <label
                                             htmlFor="image-upload"
-                                            className={`absolute bottom - 0 right - 0 p - 1 bg - [var(--color - primary)]text - white rounded - full cursor - pointer hover: bg - [var(--color - primary - hover)]transition - colors ${uploadingImage ? 'opacity-50 cursor-not-allowed' : ''} `}
+                                            className={`absolute bottom-0 right-0 p-2.5 bg-primary text-white rounded-full 
+                                                      cursor-pointer shadow-lg transition-all duration-300 ease-in-out
+                                                      transform hover:scale-110 hover:bg-primary-hover
+                                                      ${uploadingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         >
-                                            <FaCamera className="w-4 h-4" />
+                                            {uploadingImage ? (
+                                                <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                                            ) : (
+                                                <FaCamera className="w-5 h-5" />
+                                            )}
                                             <input
                                                 id="image-upload"
                                                 type="file"
@@ -168,72 +225,102 @@ const UserProfileViewLg = () => {
                                         </label>
                                     </div>
 
-                                    <p className="font-semibold text-[var(--color-texto)]">
-                                        {profile.names} {profile.lastNames}
-                                    </p>
-                                    <p className="text-sm text-gray-500">{profile.email}</p>
+                                    <div className="mt-4 text-center">
+                                        <p className="font-bold text-lg text-texto">
+                                            {profile.names} {profile.lastNames}
+                                        </p>
+                                        <p className="text-sm text-gray-500 mt-1">{profile.email}</p>
+                                    </div>
                                 </div>
+                            </div>
 
-                                <nav className="flex flex-col space-y-1">
+                            {/* Navigation Menu */}
+                            <nav className="p-4">
+                                <div className="space-y-1">
                                     {navItemsLg.map((item) => {
                                         const IconComponent = IconMap[item.icon];
+                                        const isActive = activeSection === item.id;
+
                                         return (
                                             <button
                                                 key={item.id}
                                                 onClick={() => setActiveSection(item.id)}
-                                                className={`flex items - center p - 2 rounded - md transition - colors duration - 200 text - sm font - medium ${activeSection === item.id
-                                                        ? 'bg-[var(--color-primary)] text-white'
-                                                        : 'text-[var(--color-texto)] hover:bg-gray-200'
-                                                    } `}
+                                                className={`w-full flex items-center px-4 py-3 rounded-lg 
+                                                          font-medium text-sm transition-all duration-300 ease-in-out
+                                                          transform hover:translate-x-1
+                                                          ${isActive
+                                                        ? 'bg-gradient-to-r from-primary to-acento-secundario text-white shadow-md'
+                                                        : 'text-texto hover:bg-gray-100'
+                                                    }`}
                                             >
                                                 {IconComponent && <IconComponent className="mr-3 text-lg" />}
-                                                {item.label}
+                                                <span>{item.label}</span>
                                             </button>
                                         );
                                     })}
-                                </nav>
-                            </div>
+                                </div>
+                            </nav>
 
-                            {/* Botones de acción inferiores */}
-                            <div className="space-y-3 pt-3 border-t">
+                            {/* Action Buttons */}
+                            <div className="p-4 border-t space-y-2">
                                 <button
                                     onClick={() => setActiveSection('changePassword')}
-                                    className="w-full flex items-center justify-start p-2 rounded-md transition-colors duration-200 text-sm font-medium text-[var(--color-acento-secundario)] hover:bg-blue-50 border border-[var(--color-acento-secundario)]"
+                                    className="w-full flex items-center justify-start px-4 py-3 rounded-lg
+                                             font-medium text-sm text-acento-secundario border border-acento-secundario
+                                             transition-all duration-300 ease-in-out
+                                             hover:bg-acento-secundario hover:text-white transform hover:scale-105"
                                 >
-                                    <FaLock className="mr-3 text-lg" /> Cambiar Contraseña
+                                    <FaLock className="mr-3 text-lg" />
+                                    <span>Cambiar Contraseña</span>
                                 </button>
+
                                 <button
                                     onClick={handleLogout}
-                                    className="w-full flex items-center justify-start p-2 rounded-md transition-colors duration-200 text-sm font-medium text-[var(--color-alerta)] hover:bg-red-50 border border-[var(--color-alerta)]"
+                                    className="w-full flex items-center justify-start px-4 py-3 rounded-lg
+                                             font-medium text-sm text-alerta border border-alerta
+                                             transition-all duration-300 ease-in-out
+                                             hover:bg-alerta hover:text-white transform hover:scale-105"
                                 >
-                                    <FaSignOutAlt className="mr-3 text-lg" /> Cerrar Sesión
+                                    <FaSignOutAlt className="mr-3 text-lg" />
+                                    <span>Cerrar Sesión</span>
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    {/* COLUMNA 2: Contenido Principal */}
-                    <div className="md:col-span-3 bg-white p-4">
-                        {activeSection === 'profile' && (
-                            <ProfileFormLg
-                                profile={profile}
-                                onProfileUpdate={handleProfileUpdate}
-                            />
-                        )}
-                        {activeSection === 'payments' && (
-                            <PaymentMethodsViewLg />
-                        )}
+                    {/* MAIN CONTENT AREA */}
+                    <div className="lg:col-span-3">
+                        <div className="bg-white rounded-xl shadow-md p-6 min-h-[500px]">
+                            {activeSection === 'profile' && (
+                                <ProfileFormLg
+                                    profile={profile}
+                                    onProfileUpdate={handleProfileUpdate}
+                                />
+                            )}
 
-                        {activeSection === 'changePassword' && (
-                            <ChangePasswordViewLg setActiveSection={setActiveSection} />
-                        )}
+                            {activeSection === 'payments' && (
+                                <PaymentMethodsViewLg userId={user.id} />
+                            )}
 
-                        {activeSection === 'orders' && (
-                            <div className='p-8 text-center text-gray-600 border rounded-lg h-96 flex items-center justify-center'>
-                                Contenido de la sección Historial de Pedidos <FaBox className="ml-2" />.
-                                (Pendiente de implementación)
-                            </div>
-                        )}
+                            {activeSection === 'changePassword' && (
+                                <ChangePasswordViewLg setActiveSection={setActiveSection} />
+                            )}
+
+                            {activeSection === 'orders' && (
+                                <div className="flex flex-col items-center justify-center h-96 text-center">
+                                    <div className="bg-gradient-to-br from-primary/10 to-acento-secundario/10 
+                                                  rounded-full p-8 mb-6">
+                                        <FaBox className="text-6xl text-primary" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-texto mb-2">
+                                        Historial de Pedidos
+                                    </h3>
+                                    <p className="text-gray-500 max-w-md">
+                                        Esta sección está en desarrollo. Pronto podrás ver todos tus pedidos aquí.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
