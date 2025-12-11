@@ -1,69 +1,52 @@
 // src/components/admin/ProductsPage.jsx
 import { useState } from "react";
-import { FaPlus, FaSearch, FaEdit, FaToggleOn, FaToggleOff } from "react-icons/fa";
-import productsData from "../Data/products.json";
+import {
+  FaPlus,
+  FaSearch,
+  FaEdit,
+  FaToggleOn,
+  FaToggleOff,
+} from "react-icons/fa";
 import ProductModal from "./ProductsModal";
+import useProducts from "./useProducts"; // 👈 ajusta la ruta según tu estructura
 
 export default function ProductsPage() {
-  // Estado base con los datos del JSON (asegurando que sea array)
-  const [productos, setProductos] = useState(Array.isArray(productsData) ? productsData : []);
-  const [busqueda, setBusqueda] = useState("");
+  const {
+    productosFiltrados,
+    busqueda,
+    setBusqueda,
+    toggleEstado,
+    handleSave,
+    loading,
+    error,
+  } = useProducts();
 
-  // Estado para modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [productoEdit, setProductoEdit] = useState(null);
 
-  // Filtrado dinámico seguro
-  const productosFiltrados = productos.filter((p) => {
-    const q = busqueda.trim().toLowerCase();
+  if (loading) {
     return (
-      q === "" ||
-      (typeof p.name === "string" && p.name.toLowerCase().includes(q)) ||
-      (typeof p.descripcion === "string" && p.descripcion.toLowerCase().includes(q)) ||
-      (typeof p.codigo === "string" && p.codigo.toLowerCase().includes(q))
+      <p className="text-center text-lg font-semibold">
+        Cargando productos...
+      </p>
     );
-  });
+  }
 
-  const toggleEstado = (id) => {
-    setProductos((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, estado: p.estado === "activo" ? "inactivo" : "activo" } : p
-      )
+  if (error) {
+    return (
+      <p className="text-center text-red-600 font-bold">
+        {error}
+      </p>
     );
-  };
-
-  const handleSave = (nuevoProducto) => {
-    // Normalizamos tipos y campos
-    const normalizado = {
-      ...nuevoProducto,
-      precio: Number(nuevoProducto.precio ?? 0),
-      stock: Number(nuevoProducto.stock ?? 0),
-      estado: (nuevoProducto.estado ?? "activo").toLowerCase(),
-      foto: nuevoProducto.foto ?? "",
-      descripcion: nuevoProducto.descripcion ?? "",
-      name: nuevoProducto.name ?? "",
-      codigo: nuevoProducto.codigo ?? "",
-    };
-
-    if (productoEdit) {
-      // Edición
-      setProductos((prev) =>
-        prev.map((p) => (p.id === productoEdit.id ? { ...normalizado, id: productoEdit.id } : p))
-      );
-    } else {
-      // Creación (id incremental robusto)
-      setProductos((prev) => {
-        const nextId = prev.length ? Math.max(...prev.map((x) => Number(x.id) || 0)) + 1 : 1;
-        return [...prev, { ...normalizado, id: nextId }];
-      });
-    }
-  };
+  }
 
   return (
     <div className="space-y-6">
       {/* Cabecera */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-texto dark:text-text-primary-dark">Gestión de Productos</h1>
+        <h1 className="text-2xl font-bold text-texto dark:text-text-primary-dark">
+          Gestión de Productos
+        </h1>
         <button
           onClick={() => {
             setProductoEdit(null);
@@ -92,7 +75,10 @@ export default function ProductsPage() {
       {/* Listado */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {productosFiltrados.map((p) => (
-          <div key={p.id} className="bg-fondo dark:bg-card-dark shadow-lg rounded-lg p-4 space-y-3">
+          <div
+            key={p.id}
+            className="bg-fondo dark:bg-card-dark shadow-lg rounded-lg p-4 space-y-3"
+          >
             <img
               src={p.foto}
               alt={p.name || "Producto"}
@@ -117,6 +103,7 @@ export default function ProductsPage() {
             </div>
 
             <div className="flex justify-between items-center pt-2">
+              {/* Editar */}
               <button
                 onClick={() => {
                   setProductoEdit(p);
@@ -126,6 +113,8 @@ export default function ProductsPage() {
               >
                 <FaEdit /> Editar
               </button>
+
+              {/* Activar/Desactivar */}
               <button
                 onClick={() => toggleEstado(p.id)}
                 className={`flex items-center gap-2 ${
@@ -144,7 +133,7 @@ export default function ProductsPage() {
       <ProductModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={handleSave}
+        onSave={(nuevoProducto) => handleSave(nuevoProducto, productoEdit)}
         producto={productoEdit}
       />
     </div>

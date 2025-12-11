@@ -1,11 +1,30 @@
-import { useState } from "react";
-import productsData from "../Data/products.json";
+// src/hooks/useProducts.js
+import { useState, useEffect } from "react";
+import productsService from "../../services/productsService";
 
 export default function useProducts() {
-  const [productos, setProductos] = useState(Array.isArray(productsData) ? productsData : []);
+  const [productos, setProductos] = useState([]);
   const [busqueda, setBusqueda] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Filtrado dinámico seguro
+  // --- Cargar productos desde el backend ---
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await productsService.getAll();
+        setProductos(response.data);
+      } catch (err) {
+        console.error("Error cargando productos:", err);
+        setError("No se pudieron cargar los productos.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // --- Filtrado dinámico ---
   const productosFiltrados = productos.filter((p) => {
     const q = busqueda.trim().toLowerCase();
     return (
@@ -16,39 +35,44 @@ export default function useProducts() {
     );
   });
 
-  // Cambiar estado activo/inactivo
-  const toggleEstado = (id) => {
-    setProductos((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, estado: p.estado === "activo" ? "inactivo" : "activo" } : p
-      )
-    );
+  // --- Activar / Desactivar producto (este es tu "eliminar") ---
+  const toggleEstado = async (id) => {
+    try {
+      const producto = productos.find((p) => p.id === id);
+      if (!producto) return;
+
+      const updated = {
+        ...producto,
+        estado: producto.estado === "activo" ? "inactivo" : "activo",
+      };
+
+      await productsService.update(id, updated);
+      setProductos((prev) =>
+        prev.map((p) => (p.id === id ? updated : p))
+      );
+    } catch (err) {
+      console.error("Error al cambiar estado:", err);
+      setError("Error al cambiar estado del producto.");
+    }
   };
 
-  // Guardar nuevo o editar producto
-  const handleSave = (nuevoProducto, productoEdit) => {
-    const normalizado = {
-      ...nuevoProducto,
-      precio: Number(nuevoProducto.precio ?? 0),
-      stock: Number(nuevoProducto.stock ?? 0),
-      estado: (nuevoProducto.estado ?? "activo").toLowerCase(),
-      foto: nuevoProducto.foto ?? "",
-      descripcion: nuevoProducto.descripcion ?? "",
-      name: nuevoProducto.name ?? "",
-      codigo: nuevoProducto.codigo ?? "",
-    };
-
-    if (productoEdit) {
-      // Edición
-      setProductos((prev) =>
-        prev.map((p) => (p.id === productoEdit.id ? { ...normalizado, id: productoEdit.id } : p))
-      );
-    } else {
-      // Creación (id incremental robusto)
-      setProductos((prev) => {
-        const nextId = prev.length ? Math.max(...prev.map((x) => Number(x.id) || 0)) + 1 : 1;
-        return [...prev, { ...normalizado, id: nextId }];
-      });
+  // --- Guardar nuevo o editar producto ---
+  const handleSave = async (nuevoProducto, productoEdit) => {
+    try {
+      if (productoEdit) {
+        const response = await productsService.update(productoEdit.id, nuevoProducto);
+        const updated = response.data;
+        setProductos((prev) =>
+          prev.map((p) => (p.id === productoEdit.id ? updated : p))
+        );
+      } else {
+        const response = await productsService.create(nuevoProducto);
+        const created = response.data;
+        setProductos((prev) => [...prev, created]);
+      }
+    } catch (err) {
+      console.error("Error al guardar producto:", err);
+      setError("Error al guardar producto.");
     }
   };
 
@@ -57,7 +81,9 @@ export default function useProducts() {
     productosFiltrados,
     busqueda,
     setBusqueda,
-    toggleEstado,
-    handleSave
+    toggleEstado, // 👈 este es el botón de activo/inactivo
+    handleSave,
+    loading,
+    error,
   };
 }

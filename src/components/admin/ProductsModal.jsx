@@ -1,249 +1,251 @@
 import { useState, useEffect } from "react";
-import AlertMessage from "./AlertMessage";
+import { FaCloudUploadAlt } from "react-icons/fa";
+import { uploadImageToCloudinary } from "../../services/cloudinaryService";
+import categoriesService from "../../services/categoriesService";
+import subcategoriesService from "../../services/subcategoriesService";
 
 export default function ProductModal({ isOpen, onClose, onSave, producto }) {
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     name: "",
     picture: "",
     brand: "",
     description: "",
     sku: "",
-    price: 0,
-    stock: 0,
+    price: "",
+    stock: "",
+    categoriaId: "", // guardamos como número más abajo
     subcategoriaIds: [],
-    isActive: "ACTIVE"
+    isActive: "ACTIVO",
   });
 
-  const [errors, setErrors] = useState({});
-  const [localMessage, setLocalMessage] = useState(null);
+  const [categorias, setCategorias] = useState([]);
+  const [subcategorias, setSubcategorias] = useState([]);
+  const [subTemp, setSubTemp] = useState([]);
+  const [showSubDropdown, setShowSubDropdown] = useState(false);
 
-  // Reinicia el estado cada vez que el modal se abre
   useEffect(() => {
-    if (isOpen) {
-      if (producto) {
-        setFormData(producto);
-      } else {
-        setFormData({
-          name: "",
-          picture: "",
-          brand: "",
-          description: "",
-          sku: "",
-          price: 0,
-          stock: 0,
-          subcategoriaIds: [],
-          isActive: "ACTIVE"
-        });
+    const fetchData = async () => {
+      try {
+        const [catsRes, subsRes] = await Promise.all([
+          categoriesService.getAll(),
+          subcategoriesService.getAll(),
+        ]);
+
+        // Normaliza tipos a número para evitar comparaciones fallidas
+        const cats = (catsRes.data || []).map((c) => ({
+          ...c,
+          id: Number(c.id),
+        }));
+
+        const subs = (subsRes.data || []).map((s) => ({
+          ...s,
+          id: Number(s.id),
+          categoriaId: Number(s.categoriaId),
+        }));
+
+        setCategorias(cats);
+        setSubcategorias(subs);
+      } catch (err) {
+        console.error("Error cargando categorías/subcategorías:", err);
       }
-    }
-  }, [isOpen, producto]);
+    };
+    fetchData();
+  }, []);
 
-  // Mensajes temporales
   useEffect(() => {
-    if (localMessage) {
-      const timer = setTimeout(() => setLocalMessage(null), 3000);
-      return () => clearTimeout(timer);
+    if (producto) {
+      const categoriaIdNum =
+        producto.categoriaId !== undefined && producto.categoriaId !== null
+          ? Number(producto.categoriaId)
+          : "";
+
+      const subIdsNum = Array.isArray(producto.subcategoriaIds)
+        ? producto.subcategoriaIds.map((id) => Number(id))
+        : [];
+
+      setForm({
+        name: producto.name || "",
+        picture: producto.picture || "",
+        brand: producto.brand || "",
+        description: producto.description || "",
+        sku: producto.sku || "",
+        price: producto.price?.toString() || "",
+        stock: producto.stock?.toString() || "",
+        categoriaId: categoriaIdNum,
+        subcategoriaIds: subIdsNum,
+        isActive: producto.isActive || "ACTIVO",
+      });
+      setSubTemp(subIdsNum);
+    } else {
+      setSubTemp([]);
     }
-  }, [localMessage]);
+  }, [producto]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
 
-    let newErrors = { ...errors };
-    if (name === "name" && !value.trim()) {
-      newErrors.name = "El nombre del producto es obligatorio.";
-    } else {
-      delete newErrors.name;
-    }
-    if (name === "price") {
-      if (!value.trim()) {
-        newErrors.price = "El precio es obligatorio.";
-      } else if (Number(value) <= 0) {
-        newErrors.price = "El precio debe ser mayor a 0.";
-      } else {
-        delete newErrors.price;
-      }
-    }
-    if (name === "stock") {
-      if (value === "") {
-        newErrors.stock = "El stock es obligatorio.";
-      } else if (Number(value) < 0) {
-        newErrors.stock = "El stock no puede ser negativo.";
-      } else {
-        delete newErrors.stock;
-      }
-    }
-    setErrors(newErrors);
-  };
-
-  const handleSubmit = () => {
-    if (!formData.name.trim() || !formData.price || !formData.stock || Object.keys(errors).length > 0) {
-      setLocalMessage({ type: "error", text: "Corrige los errores antes de guardar." });
+    // Asegura tipos correctos al cambiar categoría
+    if (name === "categoriaId") {
+      const categoriaIdNum = value ? Number(value) : "";
+      setForm((prev) => ({
+        ...prev,
+        categoriaId: categoriaIdNum,
+        subcategoriaIds: [], // reset selección al cambiar categoría
+      }));
+      setSubTemp([]); // también reset temporal
       return;
     }
-    onSave(formData);
-    setLocalMessage({ type: "success", text: "Producto guardado con éxito." });
+
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const url = await uploadImageToCloudinary(file);
+      setForm((prev) => ({ ...prev, picture: url }));
+    } catch (err) {
+      console.error("Error al subir imagen:", err);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const required = ["name", "picture", "brand", "description", "sku", "price", "stock", "categoriaId", "isActive"];
+    for (const field of required) {
+      const v = form[field];
+      if (v === "" || v === null || v === undefined || v.toString().trim() === "") {
+        alert(`El campo "${field}" es obligatorio.`);
+        return;
+      }
+    }
+
+    const payload = {
+      ...form,
+      price: parseFloat(form.price),
+      stock: parseInt(form.stock, 10),
+      subcategoriaIds: form.subcategoriaIds,
+    };
+
+    onSave(payload);
     onClose();
   };
 
   if (!isOpen) return null;
 
+  // Filtra subcategorías por categoría seleccionada (comparación numérica)
+  const subcategoriasFiltradas =
+    form.categoriaId !== "" && form.categoriaId !== null
+      ? subcategorias.filter((sub) => sub.categoriaId === Number(form.categoriaId))
+      : [];
+
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-card-dark rounded-xl shadow-2xl w-full max-w-3xl p-6 animate-fadeIn">
-        <h2 className="text-xl font-bold text-white bg-primary px-4 py-2 rounded-lg mb-6">
-          {producto ? "Editar Producto" : "Crear Producto"}
+    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
+      <div className="bg-white dark:bg-card-dark rounded-lg shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 relative">
+        <h2 className="text-xl font-bold mb-4 text-texto dark:text-text-primary-dark">
+          {producto ? "Editar Producto" : "Nuevo Producto"}
         </h2>
 
-        <AlertMessage type={localMessage?.type} text={localMessage?.text} />
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <input name="name" value={form.name} onChange={handleChange} placeholder="Nombre" required className="border rounded p-2" />
+          <input name="brand" value={form.brand} onChange={handleChange} placeholder="Marca" required className="border rounded p-2" />
+          <input name="sku" value={form.sku} onChange={handleChange} placeholder="SKU" required className="border rounded p-2" />
+          <input name="price" type="number" value={form.price} onChange={handleChange} placeholder="Precio" required className="border rounded p-2" />
+          <input name="stock" type="number" value={form.stock} onChange={handleChange} placeholder="Stock" required className="border rounded p-2" />
 
-        <div className="max-h-[70vh] overflow-y-auto space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Nombre */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">Nombre</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Ej: Alimento Premium 10kg"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-              />
-              {errors.name && <p className="text-xs text-red-600">{errors.name}</p>}
-            </div>
+          <select
+            name="categoriaId"
+            value={form.categoriaId}
+            onChange={handleChange}
+            required
+            className="border rounded p-2"
+          >
+            <option value="">Selecciona una categoría</option>
+            {categorias.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
+          </select>
 
-            {/* Imagen */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">Imagen (URL)</label>
-              <input
-                type="text"
-                name="picture"
-                value={formData.picture}
-                onChange={handleChange}
-                placeholder="https://..."
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-              />
-            </div>
+          {/* Subcategorías tipo dropdown flotante filtradas */}
+          <div className="col-span-1 sm:col-span-2 relative">
+            <label className="block text-sm font-medium mb-1">Subcategorías</label>
+            <button
+              type="button"
+              onClick={() => setShowSubDropdown((prev) => !prev)}
+              className="border rounded p-2 text-left bg-white dark:bg-card-dark w-fit max-w-full"
+              disabled={!form.categoriaId}
+            >
+              {form.subcategoriaIds.length > 0
+                ? subcategorias
+                    .filter((sub) => form.subcategoriaIds.includes(sub.id))
+                    .map((sub) => sub.name)
+                    .join(", ")
+                : "Seleccionar subcategorías"}
+            </button>
 
-            {/* Marca */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">Marca</label>
-              <input
-                type="text"
-                name="brand"
-                value={formData.brand}
-                onChange={handleChange}
-                placeholder="Ej: Purina"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-              />
-            </div>
+            {showSubDropdown && form.categoriaId && (
+              <div className="absolute z-10 mt-2 w-64 max-h-60 overflow-y-auto border rounded-lg bg-white dark:bg-card-dark shadow-lg p-4 space-y-2">
+                {subcategoriasFiltradas.map((sub) => (
+                  <label key={sub.id} className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      value={sub.id}
+                      checked={subTemp.includes(sub.id)}
+                      onChange={(e) => {
+                        const id = Number(e.target.value);
+                        setSubTemp((prev) =>
+                          e.target.checked ? [...prev, id] : prev.filter((sid) => sid !== id)
+                        );
+                      }}
+                    />
+                    <span>{sub.name}</span>
+                  </label>
+                ))}
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Asegura que solo se guarden subcategorías de la categoría seleccionada
+                      const validSubIds = subTemp.filter((id) =>
+                        subcategoriasFiltradas.some((s) => s.id === id)
+                      );
+                      setForm((prev) => ({ ...prev, subcategoriaIds: validSubIds }));
+                      setShowSubDropdown(false);
+                    }}
+                    className="px-3 py-1 rounded bg-primary text-white hover:bg-primary-hover text-sm"
+                  >
+                    Aplicar
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
-            {/* SKU */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">SKU</label>
-              <input
-                type="text"
-                name="sku"
-                value={formData.sku}
-                onChange={handleChange}
-                placeholder="Código único"
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-              />
-            </div>
-
-            {/* Precio */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">Precio</label>
-              <input
-                type="number"
-                step="0.01"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-              />
-              {errors.price && <p className="text-xs text-red-600">{errors.price}</p>}
-            </div>
-
-            {/* Stock */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">Stock</label>
-              <input
-                type="number"
-                name="stock"
-                value={formData.stock}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-              />
-              {errors.stock && <p className="text-xs text-red-600">{errors.stock}</p>}
-            </div>
-
-            {/* Descripción */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold mb-1">Descripción</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-                rows={3}
-              />
-            </div>
-
-            {/* Subcategorías */}
-            <div className="md:col-span-2">
-              <label className="block text-sm font-semibold mb-1">Subcategorías</label>
-              <select
-                multiple
-                name="subcategoriaIds"
-                value={formData.subcategoriaIds}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    subcategoriaIds: Array.from(e.target.selectedOptions, opt => opt.value)
-                  })
-                }
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-              >
-                <option value="1">Medicamentos</option>
-                <option value="2">Accesorios</option>
-                <option value="3">Alimentos</option>
-              </select>
-            </div>
-
-            {/* Estado */}
-            <div>
-              <label className="block text-sm font-semibold mb-1">Estado</label>
-              <select
-                name="isActive"
-                value={formData.isActive}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-              >
-                <option value="ACTIVE">Activo</option>
-                <option value="INACTIVE">Inactivo</option>
-              </select>
+          {/* Imagen con estilo visual sin preview */}
+          <div className="col-span-1 sm:col-span-2">
+            <label className="block text-sm font-medium mb-1">Imagen del producto</label>
+            <div className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">
+              <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" id="fileUpload" />
+              <label htmlFor="fileUpload" className="flex flex-col items-center gap-2 text-primary cursor-pointer">
+                <FaCloudUploadAlt size={24} />
+                <span className="text-sm">Haz clic para subir o reemplazar imagen</span>
+              </label>
             </div>
           </div>
-        </div>
 
-        {/* Botones */}
-        <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg transition"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-4 py-2 bg-gradient-to-r from-primary to-primary-hover text-white rounded-lg shadow-md hover:scale-105 transition"
-          >
-            Guardar
-          </button>
-        </div>
+          <textarea name="description" value={form.description} onChange={handleChange} placeholder="Descripción" required className="col-span-1 sm:col-span-2 border rounded p-2" />
+
+          <select name="isActive" value={form.isActive} onChange={handleChange} required className="col-span-1 sm:col-span-2 border rounded p-2">
+            <option value="ACTIVO">Activo</option>
+            <option value="INACTIVO">Inactivo</option>
+          </select>
+
+          <div className="col-span-1 sm:col-span-2 flex justify-end gap-4 mt-4">
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Cancelar</button>
+            <button type="submit" className="px-4 py-2 rounded bg-primary text-white hover:bg-primary-hover">Guardar</button>
+          </div>
+        </form>
       </div>
     </div>
   );
