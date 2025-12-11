@@ -1,5 +1,13 @@
+// src/components/admin/ServicesPage.jsx
 import { useState } from "react";
-import { FaPlus, FaSearch, FaEdit, FaToggleOn, FaToggleOff } from "react-icons/fa";
+import {
+  FaPlus,
+  FaSearch,
+  FaEdit,
+  FaToggleOn,
+  FaToggleOff,
+  FaTrash,
+} from "react-icons/fa";
 import ServiceModal from "./ServiceModal";
 import useServices from "./useServices";
 
@@ -9,19 +17,43 @@ export default function ServicesPage() {
     busqueda,
     setBusqueda,
     toggleEstado,
-    handleSave
+    handleSave,
+    handleDelete,
+    loading,
+    error,
   } = useServices();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [servicioEdit, setServicioEdit] = useState(null);
 
+  if (loading) {
+    return (
+      <p className="text-center text-lg font-semibold">
+        Cargando servicios...
+      </p>
+    );
+  }
+
+  if (error) {
+    return (
+      <p className="text-center text-red-600 font-bold">
+        {error}
+      </p>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Cabecera */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-texto dark:text-text-primary-dark">Gestión de Servicios</h1>
+        <h1 className="text-2xl font-bold text-texto dark:text-text-primary-dark">
+          Gestión de Servicios
+        </h1>
         <button
-          onClick={() => { setServicioEdit(null); setIsModalOpen(true); }}
+          onClick={() => {
+            setServicioEdit(null);
+            setIsModalOpen(true);
+          }}
           className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg shadow-md flex items-center gap-2"
         >
           <FaPlus /> Crear Servicio
@@ -42,25 +74,55 @@ export default function ServicesPage() {
 
       {/* Listado */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {serviciosFiltrados.map(s => (
-          <div key={s.id} className="bg-fondo dark:bg-card-dark shadow-lg rounded-lg p-4 space-y-2">
-            <img src={s.foto} alt={s.name} className="w-full h-40 object-cover rounded-lg" />
-            <h3 className="text-lg font-semibold text-texto dark:text-text-primary-dark">{s.name}</h3>
-            <p className="text-sm text-texto/70 dark:text-text-secondary-dark">{s.descripcion}</p>
-            <p className="text-sm text-texto/70 dark:text-text-secondary-dark">Precio: ${s.precio}</p>
+        {serviciosFiltrados.map((s) => (
+          <div
+            key={s.id}
+            className="bg-fondo dark:bg-card-dark shadow-lg rounded-lg p-4 space-y-2"
+          >
+            <img
+              src={s.foto}
+              alt={s.name}
+              className="w-full h-40 object-cover rounded-lg"
+            />
+            <h3 className="text-lg font-semibold text-texto dark:text-text-primary-dark">
+              {s.name}
+            </h3>
+            <p className="text-sm text-texto/70 dark:text-text-secondary-dark">
+              {s.descripcion}
+            </p>
+            <p className="text-sm text-texto/70 dark:text-text-secondary-dark">
+              Precio: ${s.precio}
+            </p>
+
             <div className="flex justify-between items-center pt-2">
+              {/* Editar */}
               <button
-                onClick={() => { setServicioEdit(s); setIsModalOpen(true); }}
+                onClick={() => {
+                  setServicioEdit(s);
+                  setIsModalOpen(true);
+                }}
                 className="flex items-center gap-2 text-primary hover:text-primary-hover"
               >
                 <FaEdit /> Editar
               </button>
+
+              {/* Cambiar estado */}
               <button
                 onClick={() => toggleEstado(s.id)}
-                className={`flex items-center gap-2 ${s.estado === "activo" ? "text-green-600" : "text-red-600"}`}
+                className={`flex items-center gap-2 ${
+                  s.estado === "activo" ? "text-green-600" : "text-red-600"
+                }`}
               >
                 {s.estado === "activo" ? <FaToggleOn /> : <FaToggleOff />}
                 {s.estado?.charAt(0).toUpperCase() + s.estado?.slice(1) || "Sin estado"}
+              </button>
+
+              {/* Eliminar */}
+              <button
+                onClick={() => handleDelete(s.id)}
+                className="flex items-center gap-2 text-red-600 hover:text-red-800"
+              >
+                <FaTrash /> Eliminar
               </button>
             </div>
           </div>
