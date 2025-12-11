@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { uploadImageToCloudinary } from '../../services/cloudinaryService';
-import api from '../../services/axiosConfig';
+import { getDocumentTypes, getLocalities, getNeighborhoodsByLocality } from '../../services/locationService';
 import { FaEye, FaEyeSlash, FaCamera } from 'react-icons/fa';
 
 const Register = () => {
@@ -21,7 +21,9 @@ const Register = () => {
         role: 'CUSTOMER',
     });
     const [documentTypes, setDocumentTypes] = useState([]);
+    const [localities, setLocalities] = useState([]);
     const [neighborhoods, setNeighborhoods] = useState([]);
+    const [selectedLocalityId, setSelectedLocalityId] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [error, setError] = useState('');
@@ -35,18 +37,37 @@ const Register = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [docTypesRes, neighborhoodsRes] = await Promise.all([
-                    api.get('/api/document-types'),
-                    api.get('/api/neighborhoods')
+                const [docTypes, locs] = await Promise.all([
+                    getDocumentTypes(),
+                    getLocalities()
                 ]);
-                setDocumentTypes(docTypesRes.data);
-                setNeighborhoods(neighborhoodsRes.data);
+                setDocumentTypes(docTypes);
+                setLocalities(locs);
             } catch (err) {
                 console.error("Error fetching form data:", err);
             }
         };
         fetchData();
     }, []);
+
+    // Fetch neighborhoods when locality changes
+    useEffect(() => {
+        const fetchNeighborhoods = async () => {
+            if (!selectedLocalityId) {
+                setNeighborhoods([]);
+                return;
+            }
+
+            try {
+                const hoods = await getNeighborhoodsByLocality(selectedLocalityId);
+                setNeighborhoods(hoods); // Already sorted alphabetically from backend
+            } catch (err) {
+                console.error('Error loading neighborhoods:', err);
+            }
+        };
+
+        fetchNeighborhoods();
+    }, [selectedLocalityId]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -289,25 +310,56 @@ const Register = () => {
                             </div>
                         </div>
 
-                        <div>
-                            <label htmlFor="neighborhoodId" className="block text-sm font-medium text-gray-700">
-                                Barrio (Opcional)
-                            </label>
-                            <div className="mt-1">
-                                <select
-                                    id="neighborhoodId"
-                                    name="neighborhoodId"
-                                    value={formData.neighborhoodId}
-                                    onChange={handleChange}
-                                    className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                >
-                                    <option value="">Seleccione...</option>
-                                    {neighborhoods.map((neighborhood) => (
-                                        <option key={neighborhood.id} value={neighborhood.id}>
-                                            {neighborhood.name}
+                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label htmlFor="localityId" className="block text-sm font-medium text-gray-700">
+                                    Localidad *
+                                </label>
+                                <div className="mt-1">
+                                    <select
+                                        id="localityId"
+                                        value={selectedLocalityId || ''}
+                                        onChange={(e) => {
+                                            const localityId = e.target.value ? parseInt(e.target.value) : null;
+                                            setSelectedLocalityId(localityId);
+                                            setFormData({ ...formData, neighborhoodId: '' });
+                                        }}
+                                        className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                        required
+                                    >
+                                        <option value="">Seleccione una localidad...</option>
+                                        {localities.map(loc => (
+                                            <option key={loc.id} value={loc.id}>
+                                                {loc.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="neighborhoodId" className="block text-sm font-medium text-gray-700">
+                                    Barrio *
+                                </label>
+                                <div className="mt-1">
+                                    <select
+                                        id="neighborhoodId"
+                                        name="neighborhoodId"
+                                        value={formData.neighborhoodId}
+                                        disabled={!selectedLocalityId}
+                                        className="block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                        required
+                                    >
+                                        <option value="">
+                                            {!selectedLocalityId ? 'Primero seleccione una localidad' : 'Seleccione un barrio...'}
                                         </option>
-                                    ))}
-                                </select>
+                                        {neighborhoods.map((neighborhood) => (
+                                            <option key={neighborhood.id} value={neighborhood.id}>
+                                                {neighborhood.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
