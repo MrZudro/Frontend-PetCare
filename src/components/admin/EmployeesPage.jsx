@@ -1,19 +1,58 @@
 // src/components/admin/EmployeesPage.jsx
-import { useState } from "react";
-import { FaPlus, FaSearch, FaEdit, FaToggleOn, FaToggleOff } from "react-icons/fa";
-import employeesData from "../Data/employees.json";
+import { useState, useEffect } from "react";
+import { FaPlus, FaSearch, FaEdit, FaToggleOn, FaToggleOff, FaCalendarAlt } from "react-icons/fa";
+import employeesService from "../../services/employeesService";
 import EmployeeModal from "./EmployeeModal";
+import ScheduleManagerModal from "./ScheduleManagerModal";
 import AlertMessage from "./AlertMessage";
 
 export default function EmployeesPage() {
-  // Estado base con los datos del JSON
-  const [empleados, setEmpleados] = useState(Array.isArray(employeesData) ? employeesData : []);
+  // Estado base
+  const [empleados, setEmpleados] = useState([]);
   const [busqueda, setBusqueda] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Estado para modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [empleadoEdit, setEmpleadoEdit] = useState(null);
   const [message, setMessage] = useState(null);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [empleadoSchedule, setEmpleadoSchedule] = useState(null);
+
+  // Cargar empleados desde la API
+  useEffect(() => {
+    fetchEmpleados();
+  }, []);
+
+  const fetchEmpleados = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await employeesService.getAll();
+      // Mapear los datos de la API al formato esperado por el componente
+      const empleadosMapeados = response.data.map(emp => ({
+        id: emp.id,
+        name: `${emp.names} ${emp.lastNames}`,
+        role: emp.cargo || "Sin cargo",
+        email: emp.email,
+        estado: "activo", // Por defecto activo, podrías agregar un campo en el backend
+        employeeCode: emp.employeeCode,
+        salary: emp.salary,
+        // Datos adicionales que podrían ser útiles
+        names: emp.names,
+        lastNames: emp.lastNames,
+        phone: emp.phone,
+        address: emp.address
+      }));
+      setEmpleados(empleadosMapeados);
+    } catch (err) {
+      console.error("Error cargando empleados:", err);
+      setError("Error al cargar los empleados. Por favor intente nuevamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filtrado dinámico
   const empleadosFiltrados = empleados.filter((e) => {
@@ -34,7 +73,7 @@ export default function EmployeesPage() {
     );
   };
 
-  const handleSave = (nuevoEmpleado) => {
+  const handleSave = async (nuevoEmpleado) => {
     const normalizado = {
       ...nuevoEmpleado,
       estado: (nuevoEmpleado.estado ?? "activo").toLowerCase(),
@@ -43,22 +82,53 @@ export default function EmployeesPage() {
       email: nuevoEmpleado.email ?? ""
     };
 
-    if (empleadoEdit) {
-      // Edición
-      setEmpleados((prev) =>
-        prev.map((e) => (e.id === empleadoEdit.id ? { ...normalizado, id: empleadoEdit.id } : e))
-      );
-      setMessage({ type: "success", text: "Empleado actualizado correctamente." });
-    } else {
-      // Creación
-      setEmpleados((prev) => {
-        const nextId = prev.length ? Math.max(...prev.map((x) => Number(x.id) || 0)) + 1 : 1;
-        return [...prev, { ...normalizado, id: nextId }];
-      });
-      setMessage({ type: "success", text: "Empleado registrado correctamente." });
+    try {
+      if (empleadoEdit) {
+        // Edición - llamar a la API
+        await employeesService.update(empleadoEdit.id, normalizado);
+        setMessage({ type: "success", text: "Empleado actualizado correctamente." });
+      } else {
+        // Creación - llamar a la API
+        await employeesService.create(normalizado);
+        setMessage({ type: "success", text: "Empleado registrado correctamente." });
+      }
+      // Recargar la lista de empleados
+      fetchEmpleados();
+    } catch (err) {
+      console.error("Error guardando empleado:", err);
+      setMessage({ type: "error", text: "Error al guardar el empleado. Por favor intente nuevamente." });
+    } finally {
+      setIsModalOpen(false);
     }
-    setIsModalOpen(false);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando empleados...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <p className="text-red-600 font-semibold mb-2">Error</p>
+          <p className="text-red-500">{error}</p>
+          <button
+            onClick={fetchEmpleados}
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -106,38 +176,66 @@ export default function EmployeesPage() {
               <p className="text-sm text-texto/70 dark:text-text-secondary-dark">
                 Correo: {e.email || "—"}
               </p>
+              {e.employeeCode && (
+                <p className="text-sm text-texto/70 dark:text-text-secondary-dark">
+                  Código: {e.employeeCode}
+                </p>
+              )}
             </div>
 
-            <div className="flex justify-between items-center pt-2">
+            <div className="flex flex-col gap-2 pt-2">
+              <div className="flex justify-between items-center">
+                <button
+                  onClick={() => {
+                    setEmpleadoEdit(e);
+                    setIsModalOpen(true);
+                  }}
+                  className="flex items-center gap-2 text-primary hover:text-primary-hover"
+                >
+                  <FaEdit /> Editar
+                </button>
+                <button
+                  onClick={() => toggleEstado(e.id)}
+                  className={`flex items-center gap-2 ${e.estado === "activo" ? "text-green-600" : "text-red-600"
+                    }`}
+                >
+                  {e.estado === "activo" ? <FaToggleOn /> : <FaToggleOff />}
+                  {e.estado?.charAt(0).toUpperCase() + e.estado?.slice(1) || "Sin estado"}
+                </button>
+              </div>
               <button
                 onClick={() => {
-                  setEmpleadoEdit(e);
-                  setIsModalOpen(true);
+                  setEmpleadoSchedule(e);
+                  setIsScheduleModalOpen(true);
                 }}
-                className="flex items-center gap-2 text-primary hover:text-primary-hover"
+                className="w-full flex items-center justify-center gap-2 bg-primary/10 hover:bg-primary/20 text-primary px-3 py-2 rounded-lg transition-colors"
               >
-                <FaEdit /> Editar
-              </button>
-              <button
-                onClick={() => toggleEstado(e.id)}
-                className={`flex items-center gap-2 ${
-                  e.estado === "activo" ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {e.estado === "activo" ? <FaToggleOn /> : <FaToggleOff />}
-                {e.estado?.charAt(0).toUpperCase() + e.estado?.slice(1) || "Sin estado"}
+                <FaCalendarAlt /> Gestionar Horario
               </button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Modal */}
+      {empleadosFiltrados.length === 0 && !loading && (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">No se encontraron empleados</p>
+        </div>
+      )}
+
+      {/* Modal de Empleado */}
       <EmployeeModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSave}
         empleado={empleadoEdit}
+      />
+
+      {/* Modal de Gestión de Horarios */}
+      <ScheduleManagerModal
+        isOpen={isScheduleModalOpen}
+        onClose={() => setIsScheduleModalOpen(false)}
+        empleado={empleadoSchedule}
       />
     </div>
   );

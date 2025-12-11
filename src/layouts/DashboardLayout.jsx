@@ -45,16 +45,16 @@ const DashboardLayout = () => {
     };
 
     const veterinarianLinks = [
-        { path: '/dashboard/agenda', label: 'Agenda', icon: <FaCalendarAlt /> },
-        { path: '/dashboard/consultation', label: 'Consulta', icon: <FaNotesMedical /> },
-        { path: '/dashboard/hospitalization', label: 'Hospitalización', icon: <FaBed /> },
+        { path: '/employee/agenda', label: 'Agenda', icon: <FaCalendarAlt /> },
+        { path: '/employee/consultation', label: 'Consulta', icon: <FaNotesMedical /> },
+        { path: '/employee/hospitalization', label: 'Hospitalización', icon: <FaBed /> },
     ];
 
     const cashierLinks = [
-        { path: '/dashboard/pos', label: 'Punto de Venta', icon: <FaCashRegister /> },
-        { path: '/dashboard/clients', label: 'Clientes', icon: <FaUsers /> },
-        { path: '/dashboard/pets', label: 'Mascotas', icon: <FaPaw /> },
-        { path: '/dashboard/appointments', label: 'Gestión Citas', icon: <FaCalendarAlt /> },
+        { path: '/employee/pos', label: 'Punto de Venta', icon: <FaCashRegister /> },
+        { path: '/employee/clients', label: 'Clientes', icon: <FaUsers /> },
+        { path: '/employee/pets', label: 'Mascotas', icon: <FaPaw /> },
+        { path: '/employee/appointments', label: 'Gestión Citas', icon: <FaCalendarAlt /> },
     ];
 
     const links = currentUser.cargo === 'VETERINARIAN' ? veterinarianLinks :
